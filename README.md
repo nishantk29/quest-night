@@ -35,3 +35,8 @@ Live: https://quest-night.hatethespurs.workers.dev
 
 > The GitHub Actions files live in `docs/github-workflows/` for now: the box's GitHub login can't write
 > `.github/workflows` (no `workflow` scope). Move them to `.github/workflows/` from a login that can.
+
+### Deploying without a wrangler token (how v1 went live)
+`node scripts/build-embedded.mjs` builds `dist-embedded/worker.js` with every file in `public/` inlined; it was
+uploaded through the Cloudflare API (script `quest-night`, Durable Object migration tag `v1`, workers.dev on).
+A later `npm run deploy` replaces it with the normal Static Assets build; the migration tag matches.
