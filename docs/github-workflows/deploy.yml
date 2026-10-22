@@ -1,0 +1,36 @@
+# Deploy to Cloudflare from GitHub, so nobody needs 1Password on a laptop.
+# Runs only when started by hand (Actions tab, or `gh workflow run deploy.yml`), never on every push:
+# deploys stay deliberate. Tests must pass first; the live smoke test runs after.
+name: Deploy
+
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: deploy
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm test
+      - name: Deploy (stamps a new service-worker version, then wrangler deploy)
+        run: npm run deploy
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      - name: Live smoke test
+        run: GAMES=6 node scripts/sim-games.mjs
+        env:
+          BASE: https://quest-night.hatethespurs.workers.dev

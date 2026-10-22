@@ -1,0 +1,17 @@
+{
+  "name": "quest-night",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev",
+    "test": "node --test test/*.test.js",
+    "deploy": "node -e \"const f=require('fs'),s='public/sw.js',q=String.fromCharCode(39);f.writeFileSync(s,f.readFileSync(s,'utf8').replace(/const VERSION = '[^']*'/,'const VERSION = '+q+'quest-'+Date.now()+q))\" && wrangler deploy"
+  },
+  "devDependencies": {
+    "wrangler": "^4"
+  },
+  "allowScripts": {
+    "esbuild@0.27.3": true,
+    "workerd@1.20260426.1": true
+  }
+}
