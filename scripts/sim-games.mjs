@@ -83,9 +83,12 @@ async function game(g) {
   for (const s of seats) {
     const txt = JSON.stringify(s.view);
     if (s.view.game.roles) fail('roles leaked before the end');
-    if (/token|hostKey|"cards"/.test(txt)) fail('secret field in a view');
-    if (/"votes"/.test(txt)) fail('votes object leaked');
+    if (/token|hostKey|"cards":\{/.test(txt)) fail('secret field in a view');
+    if (/"votes":\{/.test(txt)) fail('votes object leaked');
   }
+  // The shared table screen gets the public view only.
+  const scr = await new Promise((res, rej) => { const w = new WebSocket(`${WS}/ws/${r.code}`); w.onopen = () => w.send(JSON.stringify({ type: 'hello', screen: true })); w.onmessage = (e) => { const m = JSON.parse(e.data); if (m.type === 'view') { w.close(); res(m.view); } }; w.onerror = () => rej(new Error('screen ws')); });
+  if (scr.kind !== 'screen' || /"role":\{|"sees"|"roles":\{|token|hostKey/.test(JSON.stringify(scr))) fail('table screen leak');
   const truthKnow = Object.fromEntries(seats.map((s) => [s.id, knowledgeFor(s.id, mine)]));
   for (const s of seats) if (JSON.stringify(s.view.me.sees) !== JSON.stringify(truthKnow[s.id])) fail(`${s.name} knowledge mismatch`);
   Object.values(mine).forEach((x) => stats.roles.add(x));
