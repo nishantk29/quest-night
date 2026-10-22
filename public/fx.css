@@ -1,0 +1,126 @@
+/* Quest Night animations and Liquid Glass. Pairs with js/fx.js.
+   Rules: animate only transform and opacity; will-change only while animating (.fx-a / .is-fx); no idle loops.
+   html.fx-off  = reduced motion or the host turned animations off: no animation at all.
+   html.fx-lite = weak phone (<=4 cores or <=4 GB): flat 2D pops, no blur, fewer particles. */
+:root{--spring:cubic-bezier(.34,1.56,.64,1);--glass-tint:rgba(19,33,58,.7);--glass-solid:rgba(15,27,48,.97)}
+
+/* ---------------------------------------------------------------- overlay layer, particles, stamp, glow */
+#fx{position:fixed;inset:0;z-index:70;pointer-events:none;contain:layout style}
+.fx-p{position:absolute;display:block;width:10px;height:10px;opacity:0}
+.fx-p.spark{clip-path:polygon(50% 0,62% 38%,100% 50%,62% 62%,50% 100%,38% 62%,0 50%,38% 38%)}
+.fx-p.chip{width:8px;height:12px;border-radius:2px}
+.fx-stamp{position:absolute;left:50%;top:38%;padding:.1em .45em;border:.14em double currentColor;border-radius:.2em;font:800 clamp(2rem,9vw,4rem)/1 var(--font-display);letter-spacing:.08em;text-transform:uppercase;white-space:nowrap;opacity:0}
+.fx-stamp.is-red{color:#FFD6CF;background:rgba(168,49,43,.92)}
+.fx-glow{position:absolute;inset:0;opacity:0;background:radial-gradient(circle at 50% 40%,rgba(246,217,138,.42),rgba(228,185,78,.16) 40%,transparent 70%)}
+
+/* ---------------------------------------------------------------- shared in-page animation hooks */
+.fx-a{will-change:transform,opacity}
+.fx-off .fx-a,.fx-off .fx-a *,.fx-off .lantern-glow{animation:none!important}
+.flip{animation:none}
+
+/* role card: flip (existing) + spring pop with a little lift */
+.rcard-tap.fx-pop{animation:fx-pop 700ms var(--spring) both}
+@keyframes fx-pop{0%{transform:perspective(900px) translateY(18px) translateZ(-60px) rotateX(18deg) scale(.82)}55%{transform:perspective(900px) translateY(-6px) translateZ(30px) rotateX(-3deg) scale(1.07)}78%{transform:perspective(900px) scale(.98)}100%{transform:none}}
+.fx-lite .rcard-tap.fx-pop{animation-name:fx-pop-flat}
+@keyframes fx-pop-flat{0%{transform:scale(.85);opacity:.4}60%{transform:scale(1.05);opacity:1}100%{transform:none}}
+.rcard-tap[data-tilt] .rcard{transition:transform 160ms ease-out}
+.rcard-tap[data-tilt] .rcard{transform:rotateX(var(--rx,0deg)) rotateY(var(--ry,0deg))}
+
+/* team votes: every tile flips together */
+.vtiles{display:grid;grid-template-columns:1fr 1fr;gap:var(--s3);perspective:900px}
+.vtile{position:relative;transform-style:preserve-3d;border-radius:28px}
+.vt-face{display:grid;justify-items:center;align-content:center;gap:2px;min-height:112px;padding:var(--s3);border-radius:inherit;color:#F3EAD3;backface-visibility:hidden}
+.vt-face b{font:800 clamp(3.5rem,16vw,5.5rem)/1 var(--font-display);display:block}
+.vt-face small{font:800 var(--fs-md) var(--font-ui);letter-spacing:.12em;text-transform:uppercase}
+.vtile.yes .vt-face{background:#2E5A94} .vtile.no .vt-face{background:#A8312B}
+.vt-back{position:absolute;inset:0;border-radius:inherit;transform:rotateY(180deg);backface-visibility:hidden;background:repeating-linear-gradient(45deg,rgba(228,185,78,.16) 0 1px,transparent 1px 9px),#13213A;box-shadow:inset 0 0 0 3px #0A1322,inset 0 0 0 4px rgba(228,185,78,.6)}
+.vtile.fx-a{animation:vt-flip 620ms var(--spring) calc(0ms - var(--age,0ms)) both}
+@keyframes vt-flip{0%{transform:rotateY(180deg) scale(.86)}65%{transform:rotateY(-14deg) scale(1.07)}100%{transform:none}}
+.fx-lite .vtile.fx-a{animation-name:vt-pop}
+.fx-lite .vt-back{display:none}
+@keyframes vt-pop{0%{transform:scale(.8);opacity:0}65%{transform:scale(1.06);opacity:1}100%{transform:none}}
+
+/* quest cards: shuffle in a stack, then pop out one by one, face up */
+.qcards{--w:56px;--gap:8px;perspective:900px}
+.qcards .flip{position:relative;--off:calc(((var(--n) - 1) / 2 - var(--i)) * (var(--w) + var(--gap)))}
+.qcards.fx-q .flip{animation:qc-shuffle 300ms ease-in-out calc(0ms - var(--age,0ms)) both,qc-pop 420ms var(--spring) calc(300ms + var(--i) * var(--step) - var(--age,0ms)) forwards}
+.qcards.fx-q .flip::after{content:"";position:absolute;inset:0;border-radius:inherit;background:repeating-linear-gradient(45deg,rgba(228,185,78,.2) 0 1px,transparent 1px 7px),#13213A;box-shadow:inset 0 0 0 2px rgba(228,185,78,.7);animation:qc-back 1ms linear calc(300ms + var(--i) * var(--step) + 110ms - var(--age,0ms)) both}
+.qcards.fx-q .flip .ico{animation:qc-ico 1ms linear calc(300ms + var(--i) * var(--step) + 110ms - var(--age,0ms)) both}
+@keyframes qc-shuffle{0%{transform:translateX(var(--off)) rotate(0)}25%{transform:translateX(calc(var(--off) + var(--sg) * 14px)) rotate(calc(var(--sg) * 7deg))}55%{transform:translateX(calc(var(--off) - var(--sg) * 12px)) rotate(calc(var(--sg) * -6deg))}80%{transform:translateX(calc(var(--off) + var(--sg) * 5px)) rotate(calc(var(--sg) * 3deg))}100%{transform:translateX(var(--off)) rotate(0)}}
+@keyframes qc-pop{0%{transform:translateX(var(--off)) translateY(10px) rotateY(180deg) scale(.9)}55%{transform:translateX(calc(var(--off) * .05)) translateY(-16px) rotateY(-12deg) scale(1.14)}80%{transform:translateY(2px) scale(.97)}100%{transform:none}}
+@keyframes qc-back{from{opacity:1}to{opacity:0}}
+@keyframes qc-ico{from{opacity:0}to{opacity:1}}
+.fx-lite .qcards.fx-q .flip{animation:qc-flat 260ms ease-out calc(var(--i) * var(--step) - var(--age,0ms)) both}
+.fx-lite .qcards.fx-q .flip::after{display:none}
+.fx-lite .qcards.fx-q .flip .ico{animation:none}
+@keyframes qc-flat{0%{transform:scale(.7);opacity:0}70%{transform:scale(1.08);opacity:1}100%{transform:none}}
+
+/* the Lantern */
+.lantern-glow{position:absolute;inset:-20px;border-radius:50%;pointer-events:none;background:radial-gradient(circle,rgba(246,217,138,.9),rgba(228,185,78,.35) 45%,transparent 70%);animation:lg 1100ms ease-out calc(0ms - var(--age,0ms)) both;will-change:transform,opacity}
+.knight-lantern.is-glow .ico{animation:lg-icon 1100ms var(--spring) calc(0ms - var(--age,0ms)) both}
+@keyframes lg{0%{transform:scale(.3);opacity:0}25%{opacity:1}100%{transform:scale(1.9);opacity:0}}
+@keyframes lg-icon{0%{transform:scale(1)}30%{transform:scale(1.5)}100%{transform:scale(1)}}
+.fx-lite .lantern-glow{animation-name:lg-flat}
+@keyframes lg-flat{0%,100%{opacity:0}30%{opacity:1}}
+
+/* seals and number rolls */
+.seal.is-pop{animation:seal-pop 700ms var(--spring) both}
+[data-roll]{display:inline-block}
+
+/* ---------------------------------------------------------------- Liquid Glass */
+.glass,.dash,.pane-sec[aria-label="Table Tools"],.chat,.sticky-act .btn.big:not(.disabled):not([aria-disabled="true"]){
+  position:relative;isolation:isolate;overflow:clip;
+  -webkit-backdrop-filter:blur(16px) saturate(1.6);backdrop-filter:blur(16px) saturate(1.6);
+  border:1px solid rgba(255,255,255,.24);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.38),inset 0 0 0 1px rgba(255,255,255,.05),0 1px 0 rgba(0,0,0,.45),0 14px 26px -12px rgba(0,0,0,.7),0 30px 56px -30px rgba(0,0,0,.8)}
+.glass,.dash,.pane-sec[aria-label="Table Tools"],.chat{background:linear-gradient(155deg,rgba(255,255,255,.1),rgba(255,255,255,0) 42%),var(--glass-tint);border-radius:var(--r-panel);padding:var(--s4)}
+.sticky-act .btn.big:not(.disabled):not([aria-disabled="true"]){background:linear-gradient(160deg,rgba(255,255,255,.28),rgba(255,255,255,0) 50%),rgba(228,185,78,.86);border-color:rgba(255,255,255,.4);color:var(--on-brass)}
+/* soft specular highlight; --hx/--hy (-1..1) come from the tilt, so it slides with the card. Under the text, kept faint for contrast. */
+.glass::after,.dash::after,.pane-sec[aria-label="Table Tools"]::after,.chat::after,.sticky-act .btn.big:not(.disabled)::after{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;border-radius:inherit;
+  background:radial-gradient(closest-side at 35% 25%,rgba(255,255,255,.14),rgba(255,255,255,0));transform:translate(calc(var(--hx,-.4) * 14%),calc(var(--hy,-.4) * 14%));transition:transform 160ms ease-out}
+.chat .msgs{background:var(--panel);border-radius:12px;padding:var(--s2) var(--s3)} /* the feed stays solid */
+@supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){
+  .glass,.dash,.pane-sec[aria-label="Table Tools"],.chat{background:var(--glass-solid)}
+  .sticky-act .btn.big:not(.disabled):not([aria-disabled="true"]){background:var(--brass)}}
+.fx-lite .glass,.fx-lite .dash,.fx-lite .pane-sec[aria-label="Table Tools"],.fx-lite .chat,.fx-lite .sticky-act .btn.big{-webkit-backdrop-filter:none;backdrop-filter:none}
+.fx-lite .glass,.fx-lite .dash,.fx-lite .pane-sec[aria-label="Table Tools"],.fx-lite .chat{background:var(--glass-solid)}
+.fx-lite .sticky-act .btn.big:not(.disabled):not([aria-disabled="true"]){background:var(--brass)}
+.fx-lite .glass::after,.fx-lite .dash::after,.fx-lite .chat::after,.fx-lite .pane-sec::after{display:none}
+
+/* ---------------------------------------------------------------- the victory card */
+.fx-victory{position:absolute;inset:0;display:grid;place-items:center;padding:16px;background:rgba(6,11,20,.4)}
+.fx-victory.a-loyal{--glass-tint:rgba(30,60,110,.74);--team:#8EBAF3}
+.fx-victory.a-shadow{--glass-tint:rgba(98,26,36,.76);--team:#F46E62}
+.vc-wrap{pointer-events:auto;perspective:900px;width:min(100%,420px)}
+.vc-tilt{display:grid;justify-items:center;gap:var(--s3);padding:var(--s5) var(--s4) var(--s4);border-radius:32px;text-align:center;max-height:calc(100dvh - 32px);overflow:auto;transform-style:preserve-3d;
+  transform:rotateX(var(--rx,0deg)) rotateY(var(--ry,0deg));transition:transform 160ms ease-out;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.4),inset 0 0 0 1px rgba(255,255,255,.08),0 2px 0 rgba(0,0,0,.4),0 8px 0 -2px rgba(0,0,0,.25),0 24px 40px -14px rgba(0,0,0,.75),0 50px 80px -40px rgba(0,0,0,.8)}
+.vc-crest{transform:translateZ(46px);color:#F6D98A}
+.vc-crest .ico{width:88px;height:88px;filter:drop-shadow(0 4px 0 rgba(0,0,0,.35))}
+.vc-tilt h2{font:800 clamp(2rem,9vw,2.75rem)/1.05 var(--font-display);color:#F6D98A;transform:translateZ(30px)}
+.vc-text{color:#F3EAD3;font:500 var(--fs-md)/1.35 var(--font-ui)}
+.vc-status{padding:.15em .8em;border-radius:999px;background:#E4B94E;color:#0C1626;font:800 var(--fs-xl)/1.2 var(--font-display);transform:translateZ(24px)}
+.vc-roles{list-style:none;display:grid;grid-template-columns:1fr 1fr;gap:6px;width:100%;max-height:30dvh;overflow:auto;padding:0;margin:0;text-align:left}
+.vc-roles li{display:flex;align-items:center;gap:8px;padding:6px 10px;border-radius:14px;background:rgba(8,14,26,.55);border:1px solid rgba(255,255,255,.14)}
+.vc-roles li.a-loyal{border-left:4px solid #8EBAF3} .vc-roles li.a-shadow{border-left:4px solid #F46E62}
+.vc-roles .ico{width:24px;height:24px;flex:none;color:#F3EAD3}
+.vc-roles span{display:grid;line-height:1.15;min-width:0} .vc-roles b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#F3EAD3} .vc-roles small{color:#C9D2E0}
+.vc-btns{display:grid;gap:var(--s2);width:100%}
+.vc-btns .btn.ghost{background:rgba(8,14,26,.45);border-color:rgba(255,255,255,.4);color:#F3EAD3}
+.vc-btns .btn.big{min-height:56px}
+.is-fx .vc-wrap{animation:vc-in 720ms var(--spring) both;will-change:transform,opacity}
+.is-fx .vc-roles li{animation:vc-chip 420ms var(--spring) calc(650ms + var(--i) * 45ms) both;will-change:transform,opacity}
+@keyframes vc-in{0%{transform:translateY(60px) translateZ(-160px) rotateX(38deg) scale(.7);opacity:0}30%{opacity:1}58%{transform:translateY(-10px) translateZ(20px) rotateX(-6deg) scale(1.06)}80%{transform:rotateX(2deg) scale(.985)}100%{transform:none;opacity:1}}
+@keyframes vc-chip{0%{transform:rotateX(90deg) scale(.8);opacity:0}100%{transform:none;opacity:1}}
+.fx-lite .vc-tilt{transform:none;transform-style:flat}
+.fx-lite .vc-crest,.fx-lite .vc-tilt h2,.fx-lite .vc-status{transform:none}
+.fx-lite .is-fx .vc-wrap{animation-name:vc-in-flat}
+.fx-lite .is-fx .vc-roles li{animation-name:vc-chip-flat}
+@keyframes vc-in-flat{0%{transform:scale(.8);opacity:0}60%{transform:scale(1.04);opacity:1}100%{transform:none}}
+@keyframes vc-chip-flat{from{opacity:0}to{opacity:1}}
+
+/* animations off (reduced motion or host toggle): nothing moves, everything is still readable */
+.fx-off .vc-tilt{transform:none;transition:none}
+.fx-off .vc-wrap,.fx-off .vc-roles li,.fx-off .rcard-tap.fx-pop,.fx-off .vtile,.fx-off .qcards .flip,.fx-off .qcards .flip::after,.fx-off .qcards .flip .ico,.fx-off .seal.is-pop,.fx-off .reveal.is-new{animation:none!important}
+.fx-off .glass::after,.fx-off .dash::after,.fx-off .chat::after,.fx-off .pane-sec::after,.fx-off .sticky-act .btn::after{transition:none;transform:none}
+@media (prefers-reduced-motion:reduce){.glass::after,.dash::after,.chat::after,.pane-sec::after{transition:none}.btn{transition:none!important}}

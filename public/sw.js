@@ -1,8 +1,8 @@
 // Quest Night service worker (same pattern as Mafia Night): versioned cache for static files,
 // network-first for pages, and /api/* and /ws/* never cached. `npm run deploy` stamps VERSION.
 const VERSION = 'quest-dev';
-const PRECACHE = ['/', '/styles.css', '/manifest.webmanifest',
-  ...['app', 'glyphs', 'rules', 'ui_icons', 'art', 'cards', 'faq', 'table_ui'].map((m) => `/js/${m}.js`),
+const PRECACHE = ['/', '/styles.css', '/theme.css', '/fx.css', '/manifest.webmanifest',
+  ...['app', 'glyphs', 'rules', 'ui_icons', 'art', 'cards', 'faq', 'table_ui', 'fx'].map((m) => `/js/${m}.js`),
   ...['big-shoulders-display-var', 'alegreya-sans-400', 'alegreya-sans-500', 'alegreya-sans-700', 'alegreya-sans-800', 'alegreya-italic-var', 'cinzel-600', 'cinzel-800', 'cinzel-decorative-700'].map((f) => `/fonts/${f}.woff2`),
   '/icons/favicon.svg', '/icons/icon-192.png', '/icons/icon-512.png'];
 const isLive = (u) => u.pathname.startsWith('/api/') || u.pathname.startsWith('/ws/');
