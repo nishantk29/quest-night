@@ -1,0 +1,29 @@
+/* Quest Night, Transit-style layer: bold flat colour blocks (navy, gold, parchment, team blue and red), big rounded
+   cards, pill buttons, chunky type and big glanceable numbers, springy presses. Liquid Glass lives only on
+   overlays and sheets (fx.css), so these flat blocks dominate. Every text pair is >= 4.5:1. */
+:root{--blue-block:#2E5A94;--red-block:#A8312B;--block-r:28px}
+.btn{border-radius:999px;min-height:52px;padding:0 26px;font-weight:800;transition:transform 320ms var(--spring,ease-out),background-color 90ms,border-color 90ms}
+.btn:active{transform:scale(.95)}
+.btn.sm{min-height:40px;padding:0 16px}
+.btn.big{min-height:64px;font-size:clamp(1.2rem,1.05rem + .6vw,1.45rem);letter-spacing:.01em}
+.choice{border-radius:var(--block-r);border:0;padding:var(--s6) var(--s3);font:800 var(--fs-xl) var(--font-display);transition:transform 320ms var(--spring,ease-out)}
+.choice:active:not([aria-disabled="true"]){transform:scale(.95)}
+.choice.yes,.choice.success{background:var(--blue-block);color:#F3EAD3} .choice.no,.choice.sabotage{background:var(--red-block);color:#F3EAD3;border:0}
+.choice .ico{width:72px;height:72px}
+.stage{background:var(--panel);padding:var(--s5) var(--s4);border-radius:var(--block-r)}
+.phase-title{font-size:clamp(2.2rem,1.6rem + 3vw,3.6rem);letter-spacing:0}
+.note{padding:var(--s3) var(--s4);border-radius:20px;background:var(--card);color:var(--card-ink)}
+.note > .ui-ico,.note.is-warn > .ui-ico,.note.is-out > .ui-ico{color:#8A2630}
+.note.is-warn,.note.warn,.note.is-out{color:var(--card-ink);font-weight:700}
+.reveal{border:0;border-radius:var(--block-r)}
+.reveal-h{padding:var(--s3) var(--s4);border-radius:20px;color:#F3EAD3;font-size:var(--fs-xl)}
+.reveal-h.ok{background:var(--blue-block);color:#F3EAD3} .reveal-h.bad{background:var(--red-block);color:#F3EAD3}
+.seal b{font-size:clamp(1.8rem,8vw,3rem)}
+.seals-legend{font-size:var(--fs-md);font-weight:700;color:var(--candle)}
+.seals-legend [data-roll]{font:800 1.5em/1 var(--font-display);color:var(--brass)}
+.chip b{font-size:1.3em}
+.tabbar button:active{transform:scale(.92);transition:transform 320ms var(--spring,ease-out)}
+.winner{border-radius:var(--block-r)}
+.toggle,.tool-btn{border-radius:20px}
+.fx-opt{margin-top:var(--s3)}
+@media (prefers-reduced-motion:reduce){.btn,.choice,.tabbar button{transition:none!important}}

@@ -9,7 +9,7 @@ const ratio = (a, b) => { const [x, y] = [lum(a), lum(b)].sort((p, q) => q - p);
 const TEXT = [['candle', 'room'], ['candle', 'panel'], ['candle', 'panel-2'], ['smoke', 'room'], ['smoke', 'panel'], ['smoke', 'panel-2'], ['faint', 'room'],
   ['town', 'room'], ['town', 'panel'], ['mafia', 'room'], ['mafia', 'panel'], ['on-brass', 'brass'], ['accent', 'room'], ['warn', 'room'], ['warn', 'panel'],
   ['felt-muted', 'baize'], ['on-fill', 'reform-fill'], ['on-fill', 'cabal-fill'], ['room', 'candle']];
-const FIXED = [['#DCE9FB', '#17305A', 'card ink on Loyal art'], ['#FFD6CF', '#3A0C14', 'card ink on Shadow art'], ['#B3262E', '#F2E6C8', 'red card index'], ['#0c1626', '#3e68a6', 'success seal icon (3:1)', 3], ['#F3EAD3', '#244677', 'felt names'], ['#BAC4D4', '#13213A', 'muted on panel']];
+const FIXED = [['#DCE9FB', '#17305A', 'card ink on Loyal art'], ['#FFD6CF', '#3A0C14', 'card ink on Shadow art'], ['#B3262E', '#F2E6C8', 'red card index'], ['#0c1626', '#3e68a6', 'success seal icon (3:1)', 3], ['#F3EAD3', '#244677', 'felt names'], ['#BAC4D4', '#13213A', 'muted on panel'], ['#BAC4D4', '#374763', 'muted on glass + specular'], ['#F3EAD3', '#A8312B', 'cream on red block'], ['#F3EAD3', '#2E5A94', 'cream on blue block'], ['#0C1626', '#BB9741', 'navy on glass gold button']];
 let bad = 0;
 const base = block(':root');
 for (const [name, t] of [['theme', base]]) {

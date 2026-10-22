@@ -8,6 +8,7 @@ import { ROLES, QUEST_SIZES, SHADOW_COUNT, roleList, OPTIONAL, MIN_PLAYERS, MAX_
 import { makeTable, faqPage, wireFaqSearch } from './table_ui.js';
 import { roleCards, ROLE_CARD, PIECES as CARD_PIECES } from './cards.js';
 import { FAQ } from './faq.js';
+import { fx } from './fx.js';
 
 const $app = document.getElementById('app');
 const $toast = document.getElementById('toast');
@@ -40,6 +41,7 @@ function render() {
   $app.innerHTML = screen();
   S.ui.fresh = {}; S.ui.flip = false;
   window.scrollTo(0, y);
+  fx.after($app);
   for (const el of $app.querySelectorAll('[data-scroll]')) el.scrollTop = el.scrollHeight;
 }
 document.addEventListener('focusout', () => { if (pending) setTimeout(render, 50); });
@@ -238,7 +240,7 @@ function track(v) {
   }).join('');
   const pips = Array.from({ length: g.maxRejects }, (_, i) => `<i class="${i < g.rejects ? 'on' : ''} ${i === g.maxRejects - 1 ? 'last' : ''}"></i>`).join('');
   return `<section class="track" aria-label="Quests"><div class="seals">${seals}</div>
-    <div class="seals-legend"><span>${g.results.filter((r) => r === 'success').length} succeeded · ${g.results.filter((r) => r === 'fail').length} failed</span>
+    <div class="seals-legend"><span><b data-roll="ok">${g.results.filter((r) => r === 'success').length}</b> succeeded · <b data-roll="bad">${g.results.filter((r) => r === 'fail').length}</b> failed</span>
     <span class="rejects" title="Rejected parties this quest">Rejected ${pips}</span></div></section>`;
 }
 
@@ -253,6 +255,11 @@ function marksFor(v) {
   if (v.phase === 'assassin' && g.shadow) { for (const id of g.shadow) m[id] = ['is-shadow', art('shadow'), 'Shadow']; m[g.assassin] = ['is-shadow', glyph('assassin'), 'Assassin']; }
   if (v.phase === 'over' && g.roles) for (const [id, r] of Object.entries(g.roles)) m[id] = [r.side === 'shadow' ? 'is-shadow' : 'is-loyal', glyph(r.icon), r.name];
   return m;
+}
+
+function lanternMark(g) {
+  const key = `lantern:${g.lantern.checks}`; const a = fx.on(key);
+  return `<span class="knight-lantern ${a >= 0 ? 'is-glow' : ''}" title="Holds the Lantern"${fx.st(key)}>${a >= 0 ? '<i class="lantern-glow"></i>' : ''}${art('lantern')}</span>`;
 }
 
 function roundTable(v) {
@@ -279,13 +286,13 @@ function roundTable(v) {
     const label = `${p.name}${g.leader === p.id ? ', leader' : ''}${onTeam ? ', on the party' : ''}${mk ? `, ${mk[2]}` : ''}`;
     return `<${tag} class="knight ${p.id === v.me?.id ? 'is-me' : ''} ${onTeam ? 'on-team' : ''} ${canPick ? 'can-pick' : ''} ${p.online || p.phoneless ? '' : 'is-off'}" style="left:${x.toFixed(2)}%;top:${y.toFixed(2)}%"
       ${canPick ? `type="button" data-a="${act}" data-id="${p.id}" aria-pressed="${onTeam || !!yes}"` : ''} aria-label="${esc(label)}">
-      <span class="knight-disc">${initial(p.name)}${g.leader === p.id && v.phase !== 'over' ? `<span class="knight-crown">${art('crown')}</span>` : ''}${g.lantern?.holder === p.id && v.phase !== 'over' ? `<span class="knight-lantern" title="Holds the Lantern">${art('lantern')}</span>` : ''}${mk ? `<span class="knight-mark ${mk[0]}" title="${esc(mk[2])}">${mk[1]}</span>` : ''}</span>
+      <span class="knight-disc">${initial(p.name)}${g.leader === p.id && v.phase !== 'over' ? `<span class="knight-crown">${art('crown')}</span>` : ''}${g.lantern?.holder === p.id && v.phase !== 'over' ? lanternMark(g) : ''}${mk ? `<span class="knight-mark ${mk[0]}" title="${esc(mk[2])}">${mk[1]}</span>` : ''}</span>
       <span class="knight-name">${esc(p.name)}</span></${tag}>`;
   }).join('');
   let felt = '';
   const size = g.sizes[g.quest];
   if (v.phase === 'propose') felt = `<b>${esc(nameOf(v, g.leader))}</b> wears the crown.<br>Party of ${size}: ${g.team.length} chosen`;
-  else if (v.phase === 'vote') felt = v.mode.votes === 'app' ? `${g.voted.length} of ${n} have voted` : 'Votes at the table';
+  else if (v.phase === 'vote') felt = v.mode.votes === 'app' ? `<b data-roll="voted">${g.voted.length}</b> of ${n} have voted` : 'Votes at the table';
   else if (v.phase === 'quest') felt = v.mode.cards === 'app' ? `${g.played.length} of ${g.team.length} cards played` : 'Quest cards at the table';
   else if (v.phase === 'reveal') felt = g.appRoles ? `${g.ready.length} of ${n} have read their card` : 'Look at your card';
   else if (v.phase === 'lantern') felt = `<b>${esc(nameOf(v, g.lantern.holder))}</b> raises the Lantern`;
@@ -378,24 +385,41 @@ function over(v) {
     ${me?.host ? '<div class="sticky-act"><button class="btn big" data-a="again">Play again with this table</button></div>' : v.kind === 'screen' ? '' : '<p class="muted center">The host can start another game.</p>'}`;
 }
 
+// A deterministic cosmetic shuffle (so a re-render keeps the same order): the table sees how many sabotage cards
+// there were, never who played them.
+const shuffled = (arr, seed) => { const a = arr.slice(); let x = seed * 2654435761 + 12345; for (let i = a.length - 1; i > 0; i--) { x = (x * 1664525 + 1013904223) >>> 0; const j = x % (i + 1); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+
 function lastReveals(v) {
   const g = v.game; const out = [];
   if (g.lastQuest && ['propose', 'lantern', 'assassin', 'over'].includes(v.phase) && g.lastQuest.quest === g.quest - 1 && !(g.lastVote && g.lastVote.quest === g.quest)) {
-    const q = g.lastQuest;
-    const cards = Array.from({ length: q.size }, (_, i) => (i < q.size - q.fails ? 's' : 'f'));
-    out.push(`<section class="reveal ${S.ui.fresh.quest ? 'is-new' : ''}"><h2 class="reveal-h ${q.result === 'success' ? 'ok' : 'bad'}">Quest ${q.quest + 1} ${q.result === 'success' ? 'succeeded' : 'failed'}</h2>
-      <div class="flips">${cards.map((c, i) => `<span class="flip ${c}" style="animation-delay:${i * 160}ms">${art(c === 's' ? 'chalice' : 'broken')}</span>`).join('')}</div>
-      <p class="muted center">${q.fails} sabotage card${q.fails === 1 ? '' : 's'}${q.need === 2 ? ' (two were needed)' : ''}.</p></section>`);
+    const q = g.lastQuest; const key = `quest:${q.quest}`;
+    if (S.ui.fresh.quest) fx.cue(key, () => {
+      const n = q.size; const step = Math.min(110, Math.floor(340 / Math.max(1, n - 1)));
+      setTimeout(() => (q.result === 'success' ? fx.burstAt('[data-fx="quest"]', 'gold', 18) : (fx.stamp('Sabotaged'), fx.burstAt('[data-fx="quest"]', 'red', 12))), 300 + (n - 1) * step);
+    });
+    const a = fx.on(key);
+    const cards = shuffled(Array.from({ length: q.size }, (_, i) => (i < q.size - q.fails ? 's' : 'f')), q.quest + 1);
+    const step = Math.min(110, Math.floor(340 / Math.max(1, q.size - 1)));
+    out.push(`<section class="reveal ${S.ui.fresh.quest ? 'is-new' : ''}"><h2 class="reveal-h ${q.result === 'success' ? 'ok' : 'bad'}" data-fx="quest">Quest ${q.quest + 1} ${q.result === 'success' ? 'succeeded' : 'failed'}</h2>
+      <div class="flips qcards ${a >= 0 ? 'fx-q' : ''}" style="--n:${q.size};--step:${step}ms${a >= 0 ? `;--age:${a}ms` : ''}">${cards.map((c, i) => `<span class="flip ${c} ${a >= 0 ? 'fx-a' : ''}" style="--i:${i};--sg:${i % 2 ? -1 : 1}">${art(c === 's' ? 'chalice' : 'broken')}</span>`).join('')}</div>
+      <p class="muted center"><b data-roll="fails">${q.fails}</b> sabotage card${q.fails === 1 ? '' : 's'}${q.need === 2 ? ' (two were needed)' : ''}.</p></section>`);
   }
   const lv = g.lastVote;
   if (lv && (v.phase === 'quest' || (v.phase === 'propose' && lv.quest === g.quest) || (v.phase === 'over' && g.reason === 'rejects'))) {
     const delay = v.house.revealDelay && S.ui.fresh.vote ? v.house.revealDelay : 0;
     if (delay) { S.ui.holdVote = Date.now() + delay * 1000; setTimeout(render, delay * 1000 + 30); }
     if (S.ui.holdVote && Date.now() < S.ui.holdVote) out.push(`<section class="reveal"><h2 class="reveal-h">The votes are in…</h2><p class="say center">Revealing in a moment.</p></section>`);
-    else out.push(`<section class="reveal ${S.ui.fresh.vote || S.ui.holdVote ? 'is-new' : ''}"><h2 class="reveal-h ${lv.passed ? 'ok' : 'bad'}">Party ${lv.passed ? 'approved' : 'rejected'} ${lv.yes}–${lv.no}</h2>
+    else {
+      const key = `vote:${g.history.length}`;
+      if (S.ui.fresh.vote || S.ui.holdVote) fx.cue(key, () => setTimeout(() => fx.burstAt('[data-fx="vote"]', lv.passed ? 'gold' : 'red', 16), 520));
+      const a = fx.on(key);
+      out.push(`<section class="reveal ${S.ui.fresh.vote || S.ui.holdVote ? 'is-new' : ''}"><h2 class="reveal-h ${lv.passed ? 'ok' : 'bad'}">Party ${lv.passed ? 'approved' : 'rejected'} ${lv.yes}–${lv.no}</h2>
+      <div class="vtiles" data-fx="vote"><div class="vtile yes ${a >= 0 ? 'fx-a' : ''}"${fx.st(key)}><span class="vt-face"><b data-roll="vy">${lv.yes}</b><small>Approve</small></span><span class="vt-back"></span></div>
+      <div class="vtile no ${a >= 0 ? 'fx-a' : ''}"${fx.st(key)}><span class="vt-face"><b data-roll="vn">${lv.no}</b><small>Reject</small></span><span class="vt-back"></span></div></div>
       <p class="muted">${names(v, lv.team)}, chosen by ${esc(nameOf(v, lv.leader))}.</p>
       ${v.house.anonVotes ? '<p class="muted">Anonymous votes: only the count is shown.</p>' : `<div class="vote-cols"><div class="yes"><h4>Approve</h4><ul>${lv.approve.map((id) => `<li>${esc(nameOf(v, id))}</li>`).join('') || '<li>nobody</li>'}</ul></div>
       <div class="no"><h4>Reject</h4><ul>${lv.reject.map((id) => `<li>${esc(nameOf(v, id))}</li>`).join('') || '<li>nobody</li>'}</ul></div></div>`}</section>`);
+    }
     if (S.ui.holdVote && Date.now() >= S.ui.holdVote) S.ui.holdVote = 0;
   }
   return out.join('');
@@ -406,7 +430,7 @@ function cardView(v) {
   const sees = (v.me.sees || []).map((k) => `<li class="${k.tag === 'shadow' ? 'is-shadow' : 'is-seer'}">${k.tag === 'shadow' ? art('shadow') : glyph('seer')}<span><b>${esc(nameOf(v, k.id))}</b> ${k.tag === 'shadow' ? 'serves the Shadow' : 'is the Seer or the Enchantress'}</span></li>`).join('');
   const lan = (v.me.lanternSeen || []).map((k) => `<li class="${k.side === 'shadow' ? 'is-shadow' : 'is-loyal'}">${art('lantern')}<span>Lantern: <b>${esc(nameOf(v, k.id))}</b> is ${k.side === 'shadow' ? 'of the Shadow' : 'Loyal'}</span></li>`).join('');
   const hint = { seer: 'The Usurper, if dealt, is hidden from you.', herald: 'One of these is the Seer. The other may be the Enchantress.', outcast: 'You know none of the Shadow.' }[r.id] || '';
-  const card = `<button type="button" class="rcard-tap" data-a="flip" aria-label="${shown ? 'Hide your card' : 'Show your card'}">
+  const card = `<button type="button" class="rcard-tap ${S.ui.flip && shown && fx.enabled() ? 'fx-pop fx-a' : ''}" data-tilt data-a="flip" aria-label="${shown ? 'Hide your card' : 'Show your card'}">
     <div class="rcard a-${r.side} ${S.ui.flip ? (shown ? 'is-flipping' : 'is-unflipping') : ''}" data-face="${shown ? 'front' : 'back'}"><div class="rcard-inner">
       <div class="rcard-face rcard-front"><div class="cardart a-${r.side}">${art(r.side, 'crest')}${glyph(r.icon, 'big')}</div>
         <div class="rcard-body"><h2 class="rcard-name">${esc(r.name)}</h2><span class="side-tag a-${r.side}">${esc(r.sideName)}</span><p class="rcard-blurb">${esc(r.blurb)}</p></div></div>
@@ -473,7 +497,8 @@ function hostPane(v) {
   const g = v.game;
   const script = g ? `${scriptHtml(phaseScript(v))}<details class="faq-q"><summary>Opening script (eyes closed)</summary>${scriptHtml(openingScript(g.roleSet, !!g.lantern))}</details>`
     : `<p class="muted">Once you start, the lines to read aloud for each phase appear here.</p>`;
-  return T.hostPane(v, hostControls(v), script);
+  const toggle = `<label class="toggle fx-opt ${fx.isUserOn() ? 'is-on' : ''}"><input type="checkbox" data-a="fxSet" ${fx.isUserOn() ? 'checked' : ''}><span><b>Animations</b><span class="muted">Card flips, bursts and the victory card on this device. Always off if your device asks for reduced motion.</span></span></label>`;
+  return T.hostPane(v, toggle + hostControls(v), script);
 }
 
 // ---------------------------------------------------------------- shared table screen (TV / laptop)
@@ -500,6 +525,7 @@ function wsTransport(code, asScreen) {
     ws.onmessage = (ev) => {
       let m; try { m = JSON.parse(ev.data); } catch { return; }
       if (m.type === 'view') onView(m.view);
+      else if (m.type === 'gameover') onGameOver(m);
       else if (m.type === 'error') toast(m.error);
       else if (m.type === 'joined') store.set(`${KEY}.player.${code}`, JSON.stringify({ playerId: m.playerId, token: m.token }));
       else if (m.type === 'fatal') { if (m.clear) { store.del(`${KEY}.player.${code}`); S.view = null; toast(m.error); render(); } else { closed = true; S.fatal = m.error; render(); } }
@@ -513,6 +539,15 @@ function wsTransport(code, asScreen) {
   };
 }
 
+// The server's game-over event: every client (players, storytellers, the table screen) gets it at once.
+function onGameOver(m) {
+  const v = S.view; if (!v?.game) return;
+  const g = v.game; const side = m.winner;
+  const roles = g.roles ? v.players.filter((p) => g.roles[p.id]).map((p) => ({ name: p.name, role: g.roles[p.id].name, side: g.roles[p.id].side, icon: glyph(g.roles[p.id].icon) })) : [];
+  fx.victory({ side, title: `${m.winnerName} ${side === 'loyal' ? 'win' : 'wins'}`, text: m.text, status: m.won === true ? 'You won!' : m.won === false ? 'You lost' : '', crest: art(side === 'loyal' ? 'loyal' : 'shadow'),
+    roles, onAgain: v.me?.host && v.kind !== 'screen' ? () => send({ type: 'again' }) : null, noFocus: v.kind === 'screen' });
+}
+
 function onView(v) {
   const p = S.view;
   if (p?.game && v.game) {
@@ -521,6 +556,9 @@ function onView(v) {
   }
   if (v.phase !== p?.phase) { S.ui.showCard = false; S.ui.tally = {}; S.ui.strike = null; }
   if (p?.phase !== v.phase && navigator.vibrate && ['vote', 'quest', 'lantern', 'assassin', 'over'].includes(v.phase)) try { navigator.vibrate(30); } catch { /* ignore */ }
+  if (v.phase !== 'over') fx.closeVictory();
+  if (v.game?.lantern && v.phase === 'lantern' && p?.phase !== 'lantern') { fx.mark(`lantern:${v.game.lantern.checks}`); fx.glow(); }
+  if ((v.me?.lanternSeen?.length || 0) > (p?.me?.lanternSeen?.length || 0)) fx.glow(); // the holder's own result, on their own phone
   T.onView(p, v);
   S.view = v; render();
 }
@@ -563,10 +601,11 @@ $app.addEventListener('change', (e) => {
   else if (el.dataset.a === 'houseSet') send({ type: 'house', house: { [k]: el.checked } });
   else if (el.dataset.a === 'houseSel') { send({ type: 'house', house: { [k]: el.value } }); el.blur(); }
   else if (el.dataset.a === 'modeSet') send({ type: 'mode', mode: { play: el.value } });
+  else if (el.dataset.a === 'fxSet') { fx.setUserOn(el.checked); render(); }
 });
 $app.addEventListener('click', (e) => {
   const el = e.target.closest('[data-a]');
-  if (!el || ['set', 'houseSet', 'houseSel', 'modeSet'].includes(el.dataset.a)) return;
+  if (!el || ['set', 'houseSet', 'houseSel', 'modeSet', 'fxSet'].includes(el.dataset.a)) return;
   if (el.getAttribute('aria-disabled') === 'true') { if (el.dataset.a === 'play') toast('The Loyal can only play Success.'); return; }
   if (T.handle(el.dataset.a, el)) return;
   act(el.dataset.a, el);
@@ -600,7 +639,9 @@ async function act(a, el) {
     case 'addSeat': { const n = (S.ui.draft.seatName || '').trim(); if (!n) { toast('Type a name for the seat.'); return; } send({ type: 'addSeat', name: n }); S.ui.draft.seatName = ''; document.activeElement?.blur?.(); return; }
     case 'copy': try { await navigator.clipboard.writeText(d.link); toast('Invite link copied.'); } catch { toast(d.link); } return;
     case 'share': try { await navigator.share({ title: 'Quest Night', text: 'Join my Quest Night table', url: d.link }); } catch { /* cancelled */ } return;
-    case 'flip': S.ui.showCard = !S.ui.showCard; S.ui.flip = true; render(); return;
+    case 'flip': S.ui.showCard = !S.ui.showCard; S.ui.flip = true; render();
+      if (S.ui.showCard) requestAnimationFrame(() => fx.burstAt('.rcard-tap', S.view?.me?.role?.side === 'shadow' ? 'red' : 'blue', 10)); // your own phone only
+      return;
     case 'start': if (el.classList.contains('disabled')) { toast('Not ready to start yet.'); return; } send({ type: 'start' }); return;
     case 'propose': if (el.classList.contains('disabled')) { toast('Choose the whole party first.'); return; } send({ type: 'propose' }); return;
     case 'vote': send({ type: 'vote', approve: d.v === '1' }); return;

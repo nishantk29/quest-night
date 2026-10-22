@@ -293,6 +293,20 @@ export function viewForPlayer(room, playerId, connected = new Set()) {
   return view;
 }
 
+// The game-over event, sent once by the server to every connected client when the game ends. Everything in
+// it is public except `won`, which is computed here for that one player's own socket (null for the table
+// screen, storytellers and physical-card tables, where the server doesn't know who is who).
+export function gameOverEvent(room, playerId = null) {
+  const g = room.game;
+  if (!g || room.phase !== 'over') return null;
+  const nm = (id) => room.players.find((p) => p.id === id)?.name || 'the Seer';
+  const text = { rejects: 'Five parties in a row were rejected', quests: g.winner === 'loyal' ? 'Three quests succeeded' : 'Three quests were sabotaged',
+    assassin: `The Assassin named ${nm(g.target)}, the Seer`, survived: `The Assassin named ${nm(g.target)}, who was not the Seer` }[g.reason] || '';
+  const me = playerId && g.roles ? byId(room, playerId) : null;
+  const mine = me && !me.watch && g.roles[me.id] ? sideOf(g.roles[me.id]) : null;
+  return { type: 'gameover', winner: g.winner, winnerName: g.winner === 'loyal' ? 'The Loyal' : 'The Shadow', reason: g.reason, text, won: mine ? mine === g.winner : null };
+}
+
 // The shared table screen (TV or laptop): public information only, always.
 export function viewForScreen(room, connected = new Set()) {
   const view = { kind: 'screen', ...tableView(room, null, connected), game: publicGame(room) };
