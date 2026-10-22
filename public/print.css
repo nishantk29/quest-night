@@ -1,0 +1,37 @@
+@font-face{font-family:"Cinzel";font-weight:800;src:url(/fonts/cinzel-800.woff2) format("woff2")}
+@font-face{font-family:"Cinzel";font-weight:600;src:url(/fonts/cinzel-600.woff2) format("woff2")}
+@font-face{font-family:"Cinzel Decorative";font-weight:700;src:url(/fonts/cinzel-decorative-700.woff2) format("woff2")}
+@font-face{font-family:"Alegreya Sans";font-weight:400;src:url(/fonts/alegreya-sans-400.woff2) format("woff2")}
+@font-face{font-family:"Alegreya Sans";font-weight:700;src:url(/fonts/alegreya-sans-700.woff2) format("woff2")}
+@font-face{font-family:"Alegreya";font-style:italic;font-weight:400 900;src:url(/fonts/alegreya-italic-var.woff2) format("woff2")}
+@page{size:letter;margin:6mm 10mm}
+*{box-sizing:border-box}
+body{margin:0;font:400 11pt/1.4 "Alegreya Sans",sans-serif;color:#17202F;background:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.bar{display:flex;flex-wrap:wrap;gap:12px;align-items:center;padding:10px 16px;background:#0C1626;color:#F3EAD3;font-size:14px}
+.bar a{color:#E4B94E}
+@media print{.noprint{display:none}}
+.sheet{max-width:190mm;margin:0 auto;padding:4mm 0}
+.sheet.cardpage{padding:0}
+h1{font:700 26pt/1.1 "Cinzel Decorative",serif;margin:0 0 2mm;color:#0C1626}
+h2{font:800 14pt/1.2 Cinzel,serif;margin:6mm 0 2mm;color:#0C1626;border-bottom:1.5pt solid #B78F2E;padding-bottom:1mm}
+h3{font:800 11pt Cinzel,serif;margin:3mm 0 1mm}
+p,li{margin:0 0 1.5mm}
+table{width:100%;border-collapse:collapse;font-size:10pt;margin:1mm 0 2mm}
+th,td{border:0.6pt solid #9aa7bd;padding:1.4mm 2mm;text-align:left;vertical-align:top}
+th{background:#E9EEF6}
+.red{color:#B3262E;font-weight:700}.blk{color:#111;font-weight:700}
+.script li{font:italic 11pt/1.45 Alegreya,serif}
+.break{break-before:page}
+.cards{display:grid;grid-template-columns:repeat(3,63mm);grid-auto-rows:88mm;gap:0;justify-content:center}
+.c{position:relative;width:63mm;height:88mm;padding:4mm;border:0.3pt dashed #999;break-inside:avoid}
+.ci{position:relative;height:100%;border-radius:3.5mm;overflow:hidden;display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:5mm 3mm 4mm;text-align:center;color:#F3EAD3;background:var(--c2);border:1.6mm solid var(--c3);outline:0.4mm solid #E4B94E;outline-offset:-2mm}
+.c.loyal{--c1:#2E5A94;--c2:#17305A;--c3:#0B1730}.c.shadow{--c1:#8A2630;--c2:#3A0C14;--c3:#14050A}.c.gold{--c1:#1a2f52;--c2:#0E1A2E;--c3:#08101E}
+.ci .ico{width:30mm;height:30mm;fill:currentColor;color:#F3EAD3}
+.ci .crest{position:absolute;left:8mm;right:8mm;top:12mm;width:auto;height:46mm;color:var(--c1)!important;opacity:1}
+.ci > :not(.crest){position:relative}
+.ci b{font:800 12pt/1.1 Cinzel,serif;letter-spacing:.03em}
+.ci small{font:italic 8pt/1.25 Alegreya,serif;opacity:.9;max-width:44mm}
+.ci .side{font:600 7pt Cinzel,serif;letter-spacing:.2em;color:#E4B94E}
+.back .ci{background:#0E1A2E;justify-content:center}
+.back .ci .ico{color:#E4B94E}
+.note{font-size:9pt;color:#4a5568}

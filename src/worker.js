@@ -1,6 +1,6 @@
 // Cloudflare Worker: serves the API + WebSocket entry points. Static files come from Workers Static Assets.
 import { DurableObject } from 'cloudflare:workers';
-import { newRoom, reduce, viewForPlayer } from '../public/js/room.js';
+import { newRoom, reduce, viewForPlayer, viewForScreen } from '../public/js/room.js';
 
 const CODE_CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZ'; // no I/O look-alikes
 const ROOM_TTL_MS = 12 * 60 * 60 * 1000;
@@ -49,7 +49,7 @@ export class Room extends DurableObject {
   constructor(ctx, env) {
     super(ctx, env);
     this.room = null;
-    this.ready = ctx.blockConcurrencyWhile(async () => { this.room = (await ctx.storage.get('room')) || null; });
+    this.ready = ctx.blockConcurrencyWhile(async () => { const m = await ctx.storage.get(['room', 'log', 'undo']); const r = m.get('room'); this.room = r ? { ...r, log: m.get('log') || r.log || [], undo: m.get('undo') || r.undo || [] } : null; });
   }
 
   // A failed write must never swallow a move: retry once, and if storage is still unhappy keep going with the
@@ -58,7 +58,8 @@ export class Room extends DurableObject {
     this.room.updated = Date.now();
     for (let attempt = 1; attempt <= 2; attempt++) {
       try {
-        await this.ctx.storage.put('room', this.room);
+        const { log, undo, ...rest } = this.room;
+        await this.ctx.storage.put({ room: rest, log: log || [], undo: undo || [] }); // split: each value stays well under the per-value limit
         await this.ctx.storage.setAlarm(Date.now() + ROOM_TTL_MS);
         return true;
       } catch (e) {
@@ -102,7 +103,7 @@ export class Room extends DurableObject {
     for (const ws of this.ctx.getWebSockets()) {
       const a = ws.deserializeAttachment();
       if (!a?.who) continue;
-      this.send(ws, { type: 'view', view: viewForPlayer(this.room, a.playerId, connected) });
+      this.send(ws, { type: 'view', view: a.who === 'screen' ? viewForScreen(this.room, connected) : viewForPlayer(this.room, a.playerId, connected) });
     }
   }
 
@@ -125,6 +126,8 @@ export class Room extends DurableObject {
         await this.save();
         ws.serializeAttachment({ who: 'player', playerId: res.data.playerId });
         this.send(ws, { type: 'joined', ...res.data });
+      } else if (msg.screen) { // the shared table screen: public view only
+        ws.serializeAttachment({ who: 'screen' });
       } else {
         // Watching before joining: show the lobby so the join form knows the room is open.
         this.send(ws, { type: 'lobby', phase: this.room.phase, count: this.room.players.length }); return;
@@ -132,7 +135,7 @@ export class Room extends DurableObject {
       this.broadcast();
       return;
     }
-    if (!att.who) return;
+    if (!att.who || att.who === 'screen') return;
 
     // ---- actions ----
     const actor = { playerId: att.playerId };

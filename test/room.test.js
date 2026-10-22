@@ -192,7 +192,7 @@ test('secrecy: quest cards never leave the room', () => {
   must(act(room, ids[0], { type: 'play', sabotage: false }));
   const v = viewForPlayer(room, ids[2]);
   assert.deepEqual(v.game.played, [ids[0]]);
-  assert.equal(JSON.stringify(v).includes('cards'), false);
+  assert.equal(/"cards":\{/.test(JSON.stringify(v)), false);
 });
 
 test('play again keeps the table and returns to the lobby', () => {

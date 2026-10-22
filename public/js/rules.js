@@ -110,3 +110,12 @@ export function questWinner(results) {
   if (bad >= QUESTS_TO_WIN) return 'shadow';
   return null;
 }
+
+// The Lantern (optional, the classic loyalty-check token). It starts with the player to the right of the
+// first leader and is used after quests 2, 3 and 4. The holder learns one player's side; the Lantern then
+// passes to that player, and nobody who has held it can be looked at.
+export const LANTERN_AFTER = [2, 3, 4]; // number of finished quests at which the check happens
+export const sideOf = (roleId) => ROLES[roleId].side;
+
+// Game-specific house rules (all off by default). Common ones live in table.js.
+export const HOUSE_DEFAULTS = { lantern: false, hammerAuto: false };
