@@ -8,6 +8,22 @@ const rnd = (n) => { const a = new Uint32Array(1); crypto.getRandomValues(a); re
 const TIMER_PRESETS = [[30, '0:30'], [60, '1:00'], [120, '2:00'], [180, '3:00'], [300, '5:00']];
 const KIND_LABEL = { chat: '', claim: 'Claim', tool: 'Tools', sys: '', host: 'Host', game: '' };
 
+export function askConfirm(text) {
+  return new Promise((resolve) => {
+    const dlg = document.createElement('dialog'); dlg.className = 'confirm-sheet';
+    const msg = document.createElement('p'); msg.textContent = text;
+    const row = document.createElement('div'); row.className = 'btn-row';
+    const no = document.createElement('button'); no.type = 'button'; no.className = 'btn ghost'; no.dataset.a = 'confirmNo'; no.textContent = 'Cancel';
+    const yes = document.createElement('button'); yes.type = 'button'; yes.className = 'btn'; yes.dataset.a = 'confirmYes'; yes.textContent = 'Confirm';
+    row.append(no, yes); dlg.append(msg, row); document.body.append(dlg);
+    const done = (ok) => { dlg.close(); dlg.remove(); resolve(ok); };
+    yes.onclick = () => done(true); no.onclick = () => done(false);
+    dlg.addEventListener('cancel', (e) => { e.preventDefault(); done(false); });
+    dlg.addEventListener('click', (e) => { if (e.target === dlg) done(false); });
+    dlg.showModal(); yes.focus();
+  });
+}
+
 export function makeTable(ctx) {
   const { S, send, esc, ui, toast } = ctx;
   S.ui.tab ||= 'game'; S.ui.side ||= 'chat'; S.ui.dice ||= { count: 1, sides: 6 }; S.ui.private ||= null;
@@ -148,9 +164,9 @@ export function makeTable(ctx) {
       case 'counter': send({ type: 'counter', op: d.op, id: d.id }); return true;
       case 'counterAdd': send({ type: 'counter', op: 'add', label: d.v }); return true;
       case 'nudge': case 'mute': send({ type: a, id: d.id }); return true;
-      case 'handoff': if (confirm(`Make ${nameOf(S.view, d.id)} the host? You’ll stay at the table as a player.`)) send({ type: 'handoff', id: d.id }); return true;
-      case 'kick': if (confirm(S.view.phase === 'lobby' ? `Remove ${nameOf(S.view, d.id)}?` : `Open ${nameOf(S.view, d.id)}’s seat? The next person to join takes it over, with the same secret card.`)) send({ type: 'kick', id: d.id }); return true;
-      case 'abandon': if (confirm('End this game for everyone and go back to the lobby?')) send({ type: 'abandon' }); return true;
+      case 'handoff': askConfirm(`Make ${nameOf(S.view, d.id)} the host? You’ll stay at the table as a player.`).then((ok) => ok && send({ type: 'handoff', id: d.id })); return true;
+      case 'kick': askConfirm(S.view.phase === 'lobby' ? `Remove ${nameOf(S.view, d.id)}?` : `Open ${nameOf(S.view, d.id)}’s seat? The next person to join takes it over, with the same secret card.`).then((ok) => ok && send({ type: 'kick', id: d.id })); return true;
+      case 'abandon': askConfirm('End this game for everyone and go back to the lobby?').then((ok) => ok && send({ type: 'abandon' })); return true;
       default: return false;
     }
   }

@@ -5,7 +5,7 @@ import { ui } from './ui_icons.js';
 import { glyph } from './glyphs.js';
 import { art } from './art.js';
 import { ROLES, QUEST_SIZES, EVIL_COUNT, roleList, OPTIONAL, MIN_PLAYERS, MAX_PLAYERS, LANTERN_AFTER } from './rules.js';
-import { makeTable, faqPage, wireFaqSearch } from './table_ui.js';
+import { askConfirm, makeTable, faqPage, wireFaqSearch } from './table_ui.js';
 import { roleCards, ROLE_CARD, PIECES as CARD_PIECES } from './cards.js';
 import { FAQ } from './faq.js';
 import { fx } from './fx.js';
@@ -662,11 +662,11 @@ async function act(a, el) {
     case 'piece': send({ type: 'mode', mode: { play: 'hybrid', [d.k]: d.v } }); return;
     case 'tallyToggle': S.ui.tally[d.id] = !S.ui.tally[d.id]; render(); return;
     case 'tallySend': send({ type: 'tally', approve: Object.keys(S.ui.tally).filter((k) => S.ui.tally[k]) }); return;
-    case 'questResult': if (confirm(`${d.v} sabotage card${d.v === '1' ? '' : 's'}?`)) send({ type: 'questResult', fails: +d.v }); return;
-    case 'examine': if (confirm(`Use the Lantern on ${nameOf(S.view, d.id)}?`)) send({ type: 'examine', id: d.id }); return;
+    case 'questResult': askConfirm(`${d.v} sabotage card${d.v === '1' ? '' : 's'}?`).then((ok) => ok && send({ type: 'questResult', fails: +d.v })); return;
+    case 'examine': askConfirm(`Use the Lantern on ${nameOf(S.view, d.id)}?`).then((ok) => ok && send({ type: 'examine', id: d.id })); return;
     case 'hostStrike': S.ui.strike = d.id; toast(`${nameOf(S.view, d.id)} was named.`); render(); return;
     case 'strikeSend': send({ type: 'strikeResult', id: S.ui.strike, hit: d.v === '1' }); return;
-    case 'strike': if (confirm(`Strike ${nameOf(S.view, d.id)}? You only get one.`)) send({ type: 'strike', id: d.id }); return;
+    case 'strike': askConfirm(`Strike ${nameOf(S.view, d.id)}? You only get one.`).then((ok) => ok && send({ type: 'strike', id: d.id })); return;
     case 'skip': send({ type: 'skip', id: d.id }); return;
     case 'pick': case 'move': case 'ready': case 'skipReveal': case 'again': case 'shuffleSeats':
       send({ type: a, id: d.id, dir: d.dir }); return;

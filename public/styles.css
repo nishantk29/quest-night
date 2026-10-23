@@ -656,3 +656,9 @@ html[data-screen="1"] .round{width:min(100%,620px)}
   --font-voice:"Rubik",system-ui,-apple-system,"Segoe UI",sans-serif;
   --font-wordmark:"Rubik",system-ui,sans-serif;
 }
+
+/* ---- in-page confirm sheet (replaces native confirm(), which freezes phone tabs) ---- */
+.confirm-sheet{width:min(92vw,360px);margin:auto;padding:var(--s5);background:var(--panel);color:var(--candle);border:1px solid var(--rule-strong);border-radius:var(--r-block,20px)}
+.confirm-sheet::backdrop{background:rgba(0,0,0,.6)}
+.confirm-sheet p{margin:0 0 var(--s4);font-size:var(--fs-md)}
+.confirm-sheet .btn-row{justify-content:flex-end}
