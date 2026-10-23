@@ -30,9 +30,9 @@
 .vtiles{display:grid;grid-template-columns:1fr 1fr;gap:var(--s3);perspective:900px}
 .vtile{position:relative;transform-style:preserve-3d;border-radius:28px}
 .vt-face{display:grid;justify-items:center;align-content:center;gap:2px;min-height:112px;padding:var(--s3);border-radius:inherit;color:#F3EAD3;backface-visibility:hidden}
-.vt-face b{font:800 clamp(3.5rem,16vw,5.5rem)/1 var(--font-display);display:block}
+.vt-face b{font:900 clamp(4rem,20vw,6.5rem)/1 var(--font-display);letter-spacing:-.04em;display:block}
 .vt-face small{font:800 var(--fs-md) var(--font-ui);letter-spacing:.12em;text-transform:uppercase}
-.vtile.yes .vt-face{background:#2E5A94} .vtile.no .vt-face{background:#A8312B}
+.vtile.yes .vt-face{background:#2F6BD6} .vtile.no .vt-face{background:#B3131F}
 .vt-back{position:absolute;inset:0;border-radius:inherit;transform:rotateY(180deg);backface-visibility:hidden;background:repeating-linear-gradient(45deg,rgba(228,185,78,.16) 0 1px,transparent 1px 9px),#13213A;box-shadow:inset 0 0 0 3px #0A1322,inset 0 0 0 4px rgba(228,185,78,.6)}
 .vtile.fx-a{animation:vt-flip 620ms var(--spring) calc(0ms - var(--age,0ms)) both}
 @keyframes vt-flip{0%{transform:rotateY(180deg) scale(.86)}65%{transform:rotateY(-14deg) scale(1.07)}100%{transform:none}}
@@ -57,7 +57,7 @@
 
 /* the Lantern */
 .lantern-glow{position:absolute;inset:-20px;border-radius:50%;pointer-events:none;background:radial-gradient(circle,rgba(246,217,138,.9),rgba(228,185,78,.35) 45%,transparent 70%);animation:lg 1100ms ease-out calc(0ms - var(--age,0ms)) both;will-change:transform,opacity}
-.knight-lantern.is-glow .ico{animation:lg-icon 1100ms var(--spring) calc(0ms - var(--age,0ms)) both}
+.servant-lantern.is-glow .ico{animation:lg-icon 1100ms var(--spring) calc(0ms - var(--age,0ms)) both}
 @keyframes lg{0%{transform:scale(.3);opacity:0}25%{opacity:1}100%{transform:scale(1.9);opacity:0}}
 @keyframes lg-icon{0%{transform:scale(1)}30%{transform:scale(1.5)}100%{transform:scale(1)}}
 .fx-lite .lantern-glow{animation-name:lg-flat}
@@ -68,29 +68,23 @@
 [data-roll]{display:inline-block}
 
 /* ---------------------------------------------------------------- Liquid Glass */
-.glass,.dash,.pane-sec[aria-label="Table Tools"],.chat,.sticky-act .btn.big:not(.disabled):not([aria-disabled="true"]){
+.glass{
   position:relative;isolation:isolate;overflow:clip;
   -webkit-backdrop-filter:blur(16px) saturate(1.6);backdrop-filter:blur(16px) saturate(1.6);
   border:1px solid rgba(255,255,255,.24);
   box-shadow:inset 0 1px 0 rgba(255,255,255,.38),inset 0 0 0 1px rgba(255,255,255,.05),0 1px 0 rgba(0,0,0,.45),0 14px 26px -12px rgba(0,0,0,.7),0 30px 56px -30px rgba(0,0,0,.8)}
-.glass,.dash,.pane-sec[aria-label="Table Tools"],.chat{background:linear-gradient(155deg,rgba(255,255,255,.1),rgba(255,255,255,0) 42%),var(--glass-tint);border-radius:var(--r-panel);padding:var(--s4)}
-.sticky-act .btn.big:not(.disabled):not([aria-disabled="true"]){background:linear-gradient(160deg,rgba(255,255,255,.28),rgba(255,255,255,0) 50%),rgba(228,185,78,.86);border-color:rgba(255,255,255,.4);color:var(--on-brass)}
+.glass{background:linear-gradient(155deg,rgba(255,255,255,.1),rgba(255,255,255,0) 42%),var(--glass-tint);border-radius:var(--r-panel);padding:var(--s4)}
 /* soft specular highlight; --hx/--hy (-1..1) come from the tilt, so it slides with the card. Under the text, kept faint for contrast. */
-.glass::after,.dash::after,.pane-sec[aria-label="Table Tools"]::after,.chat::after,.sticky-act .btn.big:not(.disabled)::after{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;border-radius:inherit;
+.glass::after{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;border-radius:inherit;
   background:radial-gradient(closest-side at 35% 25%,rgba(255,255,255,.14),rgba(255,255,255,0));transform:translate(calc(var(--hx,-.4) * 14%),calc(var(--hy,-.4) * 14%));transition:transform 160ms ease-out}
-.chat .msgs{background:var(--panel);border-radius:12px;padding:var(--s2) var(--s3)} /* the feed stays solid */
-@supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){
-  .glass,.dash,.pane-sec[aria-label="Table Tools"],.chat{background:var(--glass-solid)}
-  .sticky-act .btn.big:not(.disabled):not([aria-disabled="true"]){background:var(--brass)}}
-.fx-lite .glass,.fx-lite .dash,.fx-lite .pane-sec[aria-label="Table Tools"],.fx-lite .chat,.fx-lite .sticky-act .btn.big{-webkit-backdrop-filter:none;backdrop-filter:none}
-.fx-lite .glass,.fx-lite .dash,.fx-lite .pane-sec[aria-label="Table Tools"],.fx-lite .chat{background:var(--glass-solid)}
-.fx-lite .sticky-act .btn.big:not(.disabled):not([aria-disabled="true"]){background:var(--brass)}
-.fx-lite .glass::after,.fx-lite .dash::after,.fx-lite .chat::after,.fx-lite .pane-sec::after{display:none}
+@supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){.glass{background:var(--glass-solid)}}
+.fx-lite .glass{-webkit-backdrop-filter:none;backdrop-filter:none;background:var(--glass-solid)}
+.fx-lite .glass::after{display:none}
 
 /* ---------------------------------------------------------------- the victory card */
 .fx-victory{position:absolute;inset:0;display:grid;place-items:center;padding:16px;background:rgba(6,11,20,.4)}
-.fx-victory.a-loyal{--glass-tint:rgba(30,60,110,.74);--team:#8EBAF3}
-.fx-victory.a-shadow{--glass-tint:rgba(98,26,36,.76);--team:#F46E62}
+.fx-victory.a-good{--glass-tint:rgba(30,60,110,.74);--team:#8EBAF3}
+.fx-victory.a-evil{--glass-tint:rgba(98,26,36,.76);--team:#F46E62}
 .vc-wrap{pointer-events:auto;perspective:900px;width:min(100%,420px)}
 .vc-tilt{display:grid;justify-items:center;gap:var(--s3);padding:var(--s5) var(--s4) var(--s4);border-radius:32px;text-align:center;max-height:calc(100dvh - 32px);overflow:auto;transform-style:preserve-3d;
   transform:rotateX(var(--rx,0deg)) rotateY(var(--ry,0deg));transition:transform 160ms ease-out;
@@ -102,7 +96,7 @@
 .vc-status{padding:.15em .8em;border-radius:999px;background:#E4B94E;color:#0C1626;font:800 var(--fs-xl)/1.2 var(--font-display);transform:translateZ(24px)}
 .vc-roles{list-style:none;display:grid;grid-template-columns:1fr 1fr;gap:6px;width:100%;max-height:30dvh;overflow:auto;padding:0;margin:0;text-align:left}
 .vc-roles li{display:flex;align-items:center;gap:8px;padding:6px 10px;border-radius:14px;background:rgba(8,14,26,.55);border:1px solid rgba(255,255,255,.14)}
-.vc-roles li.a-loyal{border-left:4px solid #8EBAF3} .vc-roles li.a-shadow{border-left:4px solid #F46E62}
+.vc-roles li.a-good{border-left:4px solid #8EBAF3} .vc-roles li.a-evil{border-left:4px solid #F46E62}
 .vc-roles .ico{width:24px;height:24px;flex:none;color:#F3EAD3}
 .vc-roles span{display:grid;line-height:1.15;min-width:0} .vc-roles b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#F3EAD3} .vc-roles small{color:#C9D2E0}
 .vc-btns{display:grid;gap:var(--s2);width:100%}
@@ -122,5 +116,5 @@
 /* animations off (reduced motion or host toggle): nothing moves, everything is still readable */
 .fx-off .vc-tilt{transform:none;transition:none}
 .fx-off .vc-wrap,.fx-off .vc-roles li,.fx-off .rcard-tap.fx-pop,.fx-off .vtile,.fx-off .qcards .flip,.fx-off .qcards .flip::after,.fx-off .qcards .flip .ico,.fx-off .seal.is-pop,.fx-off .reveal.is-new{animation:none!important}
-.fx-off .glass::after,.fx-off .dash::after,.fx-off .chat::after,.fx-off .pane-sec::after,.fx-off .sticky-act .btn::after{transition:none;transform:none}
-@media (prefers-reduced-motion:reduce){.glass::after,.dash::after,.chat::after,.pane-sec::after{transition:none}.btn{transition:none!important}}
+.fx-off .glass::after{transition:none;transform:none}
+@media (prefers-reduced-motion:reduce){.glass::after{transition:none}.btn{transition:none!important}}

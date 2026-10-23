@@ -3,7 +3,7 @@
 const VERSION = 'quest-dev';
 const PRECACHE = ['/', '/styles.css', '/theme.css', '/fx.css', '/manifest.webmanifest',
   ...['app', 'glyphs', 'rules', 'ui_icons', 'art', 'cards', 'faq', 'table_ui', 'fx'].map((m) => `/js/${m}.js`),
-  ...['big-shoulders-display-var', 'alegreya-sans-400', 'alegreya-sans-500', 'alegreya-sans-700', 'alegreya-sans-800', 'alegreya-italic-var', 'cinzel-600', 'cinzel-800', 'cinzel-decorative-700'].map((f) => `/fonts/${f}.woff2`),
+  '/fonts/rubik-var.woff2',
   '/icons/favicon.svg', '/icons/icon-192.png', '/icons/icon-512.png'];
 const isLive = (u) => u.pathname.startsWith('/api/') || u.pathname.startsWith('/ws/');
 const storable = (r) => r && r.ok && r.status === 200 && !r.redirected && r.type === 'basic';

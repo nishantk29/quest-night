@@ -1,13 +1,8 @@
 /* Quest Night: same house style as Mafia Night ("the card room after midnight"), lit for a quest.
    Base tokens, type, buttons, fields, home and join styles are copied from Mafia Night so the two apps match.
-   Fonts (all SIL OFL 1.1, self-hosted): Big Shoulders Display, Alegreya Sans, Alegreya italic. */
+   Font: Rubik (SIL OFL 1.1, self-hosted, same as the Game Night home page). *
 /* ==================================================================== fonts */
-@font-face{font-family:"Big Shoulders Display";font-style:normal;font-weight:100 900;font-display:swap;src:url(/fonts/big-shoulders-display-var.woff2) format("woff2")}
-@font-face{font-family:"Alegreya Sans";font-style:normal;font-weight:400;font-display:swap;src:url(/fonts/alegreya-sans-400.woff2) format("woff2")}
-@font-face{font-family:"Alegreya Sans";font-style:normal;font-weight:500;font-display:swap;src:url(/fonts/alegreya-sans-500.woff2) format("woff2")}
-@font-face{font-family:"Alegreya Sans";font-style:normal;font-weight:700;font-display:swap;src:url(/fonts/alegreya-sans-700.woff2) format("woff2")}
-@font-face{font-family:"Alegreya Sans";font-style:normal;font-weight:800;font-display:swap;src:url(/fonts/alegreya-sans-800.woff2) format("woff2")}
-@font-face{font-family:"Alegreya";font-style:italic;font-weight:400 900;font-display:swap;src:url(/fonts/alegreya-italic-var.woff2) format("woff2")}
+@font-face{font-family:"Rubik";font-style:normal;font-weight:300 900;font-display:swap;src:url(/fonts/rubik-var.woff2) format("woff2")}
 
 /* =================================================================== tokens */
 :root{
@@ -360,15 +355,15 @@ html[data-phase="night"] .phase-badge .ui-ico{color:var(--town)}
 #toast.on{opacity:1;transform:translate(-50%, 0)}
 
 /* ======================================================= Quest Night extras */
-/* Sides: the Loyal wear moonlight (the Town ink), the Shadow wear rouge (the Mafia ink). Same shape rules:
-   Loyal = solid edge, Shadow = double edge. */
-.a-loyal{--team:var(--town);--team-dim:var(--town-dim)}
-.a-shadow{--team:var(--mafia);--team-dim:var(--mafia-dim)}
-.rcard.a-loyal,.cardart.a-loyal{--c1:#2C4466;--c2:#16233A;--c3:#0C121D;--ink:#D7E6FA;--glow:rgba(141,182,232,.55)}
-.rcard.a-shadow,.cardart.a-shadow{--c1:#7A1F26;--c2:#33090D;--c3:#12040A;--ink:#FFD0CE;--glow:rgba(242,107,102,.55)}
+/* Sides: the Loyal Servants wear moonlight (the Town ink), Evil wear rouge (the Mafia ink). Same shape rules:
+   Loyal = solid edge, Evil = double edge. */
+.a-good{--team:var(--town);--team-dim:var(--town-dim)}
+.a-evil{--team:var(--mafia);--team-dim:var(--mafia-dim)}
+.rcard.a-good,.cardart.a-good{--c1:#2C4466;--c2:#16233A;--c3:#0C121D;--ink:#D7E6FA;--glow:rgba(141,182,232,.55)}
+.rcard.a-evil,.cardart.a-evil{--c1:#7A1F26;--c2:#33090D;--c3:#12040A;--ink:#FFD0CE;--glow:rgba(242,107,102,.55)}
 .side-tag{display:inline-flex;align-items:center;gap:var(--s2);font-weight:700;font-size:var(--fs-sm);color:var(--team)}
 .side-tag::before{content:"";width:10px;height:10px;border-radius:50%;border:2px solid var(--team)}
-.side-tag.a-shadow::before{border:3px double var(--team)}
+.side-tag.a-evil::before{border:3px double var(--team)}
 
 .home .wordmark{letter-spacing:.01em}
 .home .wordmark span{display:block;color:var(--brass);font-size:.42em;letter-spacing:.32em;font-weight:700;margin-top:.35em}
@@ -407,26 +402,26 @@ html[data-phase="night"] .phase-badge .ui-ico{color:var(--town)}
 .round-felt .ico{width:34%;height:34%;color:rgba(241,230,210,.18);position:absolute}
 .round-felt p{position:relative;font-family:var(--font-voice);font-style:italic;color:var(--felt-muted);font-size:var(--fs-sm);line-height:1.35}
 .round-felt p b{font-family:var(--font-ui);font-style:normal;color:var(--candle)}
-.knight{position:absolute;width:min(23%,104px);transform:translate(-50%,-50%);display:grid;justify-items:center;gap:2px;padding:0;border:0;background:none;color:var(--candle);text-align:center}
-.knight-disc{position:relative;display:grid;place-items:center;width:min(62px,15vw);aspect-ratio:1;border-radius:50%;background:var(--panel-2);border:2px solid var(--rule-strong);
+.servant{position:absolute;width:min(23%,104px);transform:translate(-50%,-50%);display:grid;justify-items:center;gap:2px;padding:0;border:0;background:none;color:var(--candle);text-align:center}
+.servant-disc{position:relative;display:grid;place-items:center;width:min(62px,15vw);aspect-ratio:1;border-radius:50%;background:var(--panel-2);border:2px solid var(--rule-strong);
   font-family:var(--font-display);font-weight:800;font-size:clamp(1.2rem,5vw,1.6rem);transition:transform var(--t-press)}
-.knight-name{max-width:100%;font-weight:700;font-size:var(--fs-xs);line-height:1.15;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.knight.is-me .knight-name{color:var(--brass)}
-.knight.is-off .knight-disc{opacity:.45}
-.knight.on-team .knight-disc{background:var(--card);color:var(--card-ink);border-color:var(--card);box-shadow:0 0 0 3px rgba(244,233,211,.25), 0 0 18px rgba(244,233,211,.35)}
-.knight.can-pick{cursor:pointer}
-.knight.can-pick:active .knight-disc{transform:scale(.94)}
-.knight.can-pick:focus-visible{outline:none}
-.knight.can-pick:focus-visible .knight-disc{outline:3px solid var(--focus);outline-offset:2px}
-.knight-crown{position:absolute;top:-14px;left:50%;transform:translateX(-50%);width:26px;height:26px;color:var(--brass);filter:drop-shadow(0 2px 2px rgba(0,0,0,.6))}
-.knight-crown .ico{width:100%;height:100%}
-.knight-mark{position:absolute;bottom:-6px;right:-6px;display:grid;place-items:center;width:24px;height:24px;border-radius:50%;background:var(--room);border:2px solid var(--rule-strong)}
-.knight-mark .ui-ico,.knight-mark .ico{width:14px;height:14px;vertical-align:0}
-.knight-mark.is-shadow{border:3px double var(--mafia);color:var(--mafia)}
-.knight-mark.is-seer{border-color:var(--town);color:var(--town)}
-.knight-mark.is-done{border-color:var(--town);color:var(--town)}
-.knight-mark.vote-yes{background:var(--town);border-color:var(--town);color:var(--room)}
-.knight-mark.vote-no{background:var(--mafia);border-color:var(--mafia);color:var(--room)}
+.servant-name{max-width:100%;font-weight:700;font-size:var(--fs-xs);line-height:1.15;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.servant.is-me .servant-name{color:var(--brass)}
+.servant.is-off .servant-disc{opacity:.45}
+.servant.on-team .servant-disc{background:var(--card);color:var(--card-ink);border-color:var(--card);box-shadow:0 0 0 3px rgba(244,233,211,.25), 0 0 18px rgba(244,233,211,.35)}
+.servant.can-pick{cursor:pointer}
+.servant.can-pick:active .servant-disc{transform:scale(.94)}
+.servant.can-pick:focus-visible{outline:none}
+.servant.can-pick:focus-visible .servant-disc{outline:3px solid var(--focus);outline-offset:2px}
+.servant-crown{position:absolute;top:-14px;left:50%;transform:translateX(-50%);width:26px;height:26px;color:var(--brass);filter:drop-shadow(0 2px 2px rgba(0,0,0,.6))}
+.servant-crown .ico{width:100%;height:100%}
+.servant-mark{position:absolute;bottom:-6px;right:-6px;display:grid;place-items:center;width:24px;height:24px;border-radius:50%;background:var(--room);border:2px solid var(--rule-strong)}
+.servant-mark .ui-ico,.servant-mark .ico{width:14px;height:14px;vertical-align:0}
+.servant-mark.is-evil{border:3px double var(--mafia);color:var(--mafia)}
+.servant-mark.is-merlin{border-color:var(--town);color:var(--town)}
+.servant-mark.is-done{border-color:var(--town);color:var(--town)}
+.servant-mark.vote-yes{background:var(--town);border-color:var(--town);color:var(--room)}
+.servant-mark.vote-no{background:var(--mafia);border-color:var(--mafia);color:var(--room)}
 
 /* phase panel */
 .stage{display:grid;gap:var(--s4)}
@@ -464,8 +459,8 @@ html[data-phase="night"] .phase-badge .ui-ico{color:var(--town)}
 .sees{list-style:none;display:grid;gap:var(--s2);width:min(100%,360px)}
 .sees li{display:flex;align-items:center;gap:var(--s2);padding:var(--s2) var(--s3);border-radius:var(--r-control);background:var(--panel);border:1px solid var(--rule)}
 .sees li .ico{width:22px;height:22px}
-.sees li.is-shadow{border:3px double var(--mafia)} .sees li.is-shadow .ico{color:var(--mafia)}
-.sees li.is-seer{border-color:var(--town)} .sees li.is-seer .ico{color:var(--town)}
+.sees li.is-evil{border:3px double var(--mafia)} .sees li.is-evil .ico{color:var(--mafia)}
+.sees li.is-merlin{border-color:var(--town)} .sees li.is-merlin .ico{color:var(--town)}
 .hand{display:grid;gap:var(--s4);justify-items:center}
 .rcard-tap{all:unset;display:block;width:min(100%,300px);cursor:pointer;border-radius:6% / 4.3%}
 .rcard-tap:focus-visible{outline:3px solid var(--focus);outline-offset:4px}
@@ -496,7 +491,7 @@ html[data-phase="night"] .phase-badge .ui-ico{color:var(--town)}
 .winner h1{font-size:var(--fs-2xl);color:var(--team)}
 .roles-list{list-style:none;display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:var(--s2)}
 .roles-list li{display:flex;align-items:center;gap:var(--s2);padding:var(--s2) var(--s3);border-radius:var(--r-control);background:var(--panel);border:1px solid var(--team)}
-.roles-list li.a-shadow{border:3px double var(--team)}
+.roles-list li.a-evil{border:3px double var(--team)}
 .roles-list .ico{width:26px;height:26px;color:var(--team);flex:none}
 .roles-list span{display:grid;line-height:1.2} .roles-list small{color:var(--smoke)}
 .sticky-act{position:sticky;bottom:calc(var(--s3) + env(safe-area-inset-bottom));z-index:15}
@@ -631,49 +626,26 @@ html[data-screen="1"] .round{width:min(100%,620px)}
 .faq-a{padding:0 0 var(--s4) 1.4em;display:grid;gap:var(--s2);color:var(--candle);max-width:var(--measure)}
 .faq-a ul{padding-left:1.2em;display:grid;gap:4px}
 .screen-lobby{text-align:center;display:grid;gap:var(--s4);justify-items:center;padding-top:var(--s7)}
-.knight-lantern{position:absolute;top:-12px;left:-10px;width:22px;height:22px;color:var(--brass)}
-.knight-lantern .ico{width:100%;height:100%}
-.knight-mark.is-loyal{border-color:var(--town);color:var(--town)}
+.servant-lantern{position:absolute;top:-12px;left:-10px;width:22px;height:22px;color:var(--brass)}
+.servant-lantern .ico{width:100%;height:100%}
+.servant-mark.is-good{border-color:var(--town);color:var(--town)}
 #toast{bottom:calc(var(--tabbar-h) + 16px + env(safe-area-inset-bottom))}
 @media (min-width:1100px){#toast{bottom:24px}}
 .appbar-title{font-size:var(--fs-sm)}
 
-/* ================================================= Quest Night theme: night-blue, gold and parchment
-   Original palette in the spirit of the classic Arthurian box (deep navy, gold leaf, parchment; blue for the
-   Loyal, red for the Shadow). Display face: Cinzel (SIL OFL), a Roman-capital serif with an Arthurian feel.
-   Every text colour pair below is at least 4.5:1 (checked by scripts/contrast.mjs). */
-@font-face{font-family:"Cinzel";font-style:normal;font-weight:600;font-display:swap;src:url(/fonts/cinzel-600.woff2) format("woff2")}
-@font-face{font-family:"Cinzel";font-style:normal;font-weight:800;font-display:swap;src:url(/fonts/cinzel-800.woff2) format("woff2")}
-@font-face{font-family:"Cinzel Decorative";font-style:normal;font-weight:700;font-display:swap;src:url(/fonts/cinzel-decorative-700.woff2) format("woff2")}
+/* ================================================= Quest Night theme: dark base, bold full-colour cards
+   Same language as the Game Night home page (Transit-style): near-black base, each panel a saturated rounded card in
+   the quest palette (navy, indigo, plum, gold), heavy Rubik titles, big numbers. Blue = Loyal Servants of Arthur,
+   red = Minions of Mordred. Every text colour pair below is at least 4.5:1 (checked by scripts/contrast.mjs). */
 :root{
-  --room:#0C1626; --room-night:#0A1220; --panel:#13213A; --panel-2:#1A2C4B; --rule:#2A3F63; --rule-strong:#5D769E;
-  --candle:#F3EAD3; --smoke:#BAC4D4; --faint:#8C99AF;
-  --brass:#E4B94E; --brass-hi:#EFC96A; --brass-lo:#B78F2E; --on-brass:#0C1626; --focus:#F6D98A;
-  --card:#F2E6C8; --card-ink:#17202F; --lacquer:#0E1A2E;
-  --baize:#1A345E; --baize-lit:#244677; --baize-deep:#102342; --rail:#0A1322; --felt-muted:#DDE4EF;
-  --town:#8EBAF3; --mafia:#F46E62; --town-dim:#1E3556; --mafia-dim:#46202A;
-  --font-display:"Cinzel","Alegreya",Georgia,serif;
-  --font-wordmark:"Cinzel Decorative","Cinzel",Georgia,serif;
+  --room:#0B0B0D; --room-night:#0B0B0D; --panel:#17317E; --panel-2:#10256A; --rule:#3A55AE; --rule-strong:#9DB1EE;
+  --candle:#FFFFFF; --smoke:#CFD8F6; --faint:#B4C0EA;
+  --brass:#FFD25A; --brass-hi:#FFDE82; --brass-lo:#B58E1E; --on-brass:#0E1F5C; --focus:#FFE08A;
+  --card:#FFF4E6; --card-ink:#1B1B3A; --lacquer:#0E1A2E;
+  --baize:#17317E; --baize-lit:#1F3F9A; --baize-deep:#0E1F5C; --rail:#0B0B0D; --felt-muted:#DDE4F7;
+  --town:#8EBAF3; --mafia:#FF8A80; --town-dim:#1E3556; --mafia-dim:#46202A;
+  --font-display:"Rubik",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --font-ui:"Rubik",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --font-voice:"Rubik",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --font-wordmark:"Rubik",system-ui,sans-serif;
 }
-.wordmark{font-family:var(--font-wordmark);font-weight:700;font-size:clamp(2.6rem,1.6rem + 5vw,5.6rem);letter-spacing:.01em}
-.home .wordmark span{font-family:var(--font-display);letter-spacing:.18em}
-.phase-title{font-weight:800;font-size:clamp(1.9rem,1.5rem + 2vw,3rem);letter-spacing:.01em}
-.block-title,.path-title,.reveal-h{font-weight:800;letter-spacing:.02em}
-.room-code{font-size:clamp(3rem,15vw,6rem);letter-spacing:.08em}
-.code{font-family:var(--font-display);letter-spacing:.08em}
-.seal{background:radial-gradient(circle at 40% 35%, #22385c, #0d1a30);border-color:rgba(228,185,78,.35)}
-.seal.is-success{background:radial-gradient(circle at 40% 35%, #b6d2f7, #3e68a6 70%, #1b3360);border-color:#e8f0fb;color:#0c1626}
-.seal.is-fail{background:radial-gradient(circle at 40% 35%, #ff9d92, #b8322b 70%, #4a1016);border-color:#ffd6cf;color:#160608}
-.seals{box-shadow:inset 0 0 0 3px #0a1322, inset 0 0 0 4px rgba(228,185,78,.55), var(--lift-1)}
-.round-felt{box-shadow:inset 0 0 0 10px #0a1322, inset 0 0 0 12px rgba(228,185,78,.55), var(--lift-2)}
-.knight-disc{font-family:var(--font-display);background:#1d3152;border-color:#6d84ab}
-.rcard-front .cardart{position:relative}
-.cardart .crest{position:absolute;inset:8%;width:84%;height:84%;opacity:.18;color:var(--ink)}
-.rcard.a-loyal,.cardart.a-loyal{--c1:#2E5A94;--c2:#17305A;--c3:#0B1730;--ink:#DCE9FB;--glow:rgba(142,186,243,.6)}
-.rcard.a-shadow,.cardart.a-shadow{--c1:#8A2630;--c2:#3A0C14;--c3:#14050A;--ink:#FFD6CF;--glow:rgba(244,110,98,.55)}
-.choice.success{background:linear-gradient(160deg,#2E5A94,#17305A)}
-.choice.sabotage{background:linear-gradient(160deg,#8A2630,#3A0C14)}
-.flip.s{background:linear-gradient(160deg,#2E5A94,#17305A)} .flip.f{background:linear-gradient(160deg,#8A2630,#3A0C14)}
-.t-loyal{color:var(--town)} .t-shadow{color:var(--mafia)}
-.rcard-back{background:repeating-linear-gradient(45deg, rgba(228,185,78,.12) 0 1px, transparent 1px 9px),repeating-linear-gradient(-45deg, rgba(228,185,78,.12) 0 1px, transparent 1px 9px),radial-gradient(circle at 50% 45%, #1a2f52, var(--lacquer))}
-.choice .ico.art{width:56px;height:56px}

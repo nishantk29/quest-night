@@ -106,9 +106,10 @@ document.addEventListener('animationend', (e) => { if (e.target.classList?.conta
 
 // ---------------------------------------------------------------- tilt: pointer, and device orientation while a card is up
 let tiltEl = null; let tiltRaf = 0; let tiltXY = null;
+const CARDS = '[data-tilt], .stage, .track, .reveal, .round, .winner, .path'; // [data-tilt] = the secret card and victory card
 const setTilt = (el, nx, ny) => { // nx, ny in -1..1
-  const k = lite ? 0 : 1;
-  el.style.setProperty('--ry', `${(nx * 7 * k).toFixed(2)}deg`); el.style.setProperty('--rx', `${(-ny * 7 * k).toFixed(2)}deg`);
+  const k = lite ? 0 : el.matches('[data-tilt]') ? 7 : 3; // big section cards tilt gently
+  el.style.setProperty('--ry', `${(nx * k).toFixed(2)}deg`); el.style.setProperty('--rx', `${(-ny * k).toFixed(2)}deg`);
   el.style.setProperty('--hx', nx.toFixed(2)); el.style.setProperty('--hy', ny.toFixed(2));
 };
 function queueTilt(el, nx, ny) {
@@ -117,12 +118,32 @@ function queueTilt(el, nx, ny) {
   tiltRaf = raf(() => { tiltRaf = 0; if (tiltEl?.isConnected) setTilt(tiltEl, ...tiltXY); });
 }
 document.addEventListener('pointermove', (e) => {
-  if (!enabled()) return;
-  const el = e.target.closest?.('[data-tilt]'); if (!el) return;
+  if (!enabled() || e.pointerType === 'touch') return; // touch gets the press-lift and the phone's tilt sensor instead
+  const el = e.target.closest?.(CARDS); if (!el) return;
   const r = el.getBoundingClientRect();
   queueTilt(el, Math.max(-1, Math.min(1, ((e.clientX - r.left) / r.width - 0.5) * 2)), Math.max(-1, Math.min(1, ((e.clientY - r.top) / r.height - 0.5) * 2)));
 }, { passive: true });
-document.addEventListener('pointerout', (e) => { const el = e.target.closest?.('[data-tilt]'); if (el && !el.contains(e.relatedTarget)) queueTilt(el, 0, 0); }, { passive: true });
+document.addEventListener('pointerout', (e) => { const el = e.target.closest?.(CARDS); if (el && !el.contains(e.relatedTarget)) queueTilt(el, 0, 0); }, { passive: true });
+
+// Phone tilt for every card at once: two custom properties on <html>, written at most once per frame.
+// iOS asks for permission, so it is requested on the first tap; denied or unsupported just means flat cards.
+let sensor = false; let sensorRaf = 0; let sensorXY = [0, 0];
+const sensorTick = () => { sensorRaf = 0; root.style.setProperty('--dry', `${(sensorXY[0] * 3).toFixed(2)}deg`); root.style.setProperty('--drx', `${(-sensorXY[1] * 3).toFixed(2)}deg`); };
+const onSensor = (e) => {
+  if (e.gamma == null || !enabled()) return;
+  const x = Math.round(Math.max(-1, Math.min(1, e.gamma / 30)) * 20) / 20; const y = Math.round(Math.max(-1, Math.min(1, ((e.beta || 0) - 45) / 30)) * 20) / 20;
+  if (x === sensorXY[0] && y === sensorXY[1]) return;
+  sensorXY = [x, y]; if (!sensorRaf) sensorRaf = raf(sensorTick);
+};
+function startSensor() {
+  if (sensor || lite || !enabled() || !window.DeviceOrientationEvent) return; sensor = true;
+  addEventListener('deviceorientation', onSensor, { passive: true });
+}
+if (!lite && window.DeviceOrientationEvent) {
+  if (typeof DeviceOrientationEvent.requestPermission === 'function') {
+    document.addEventListener('pointerup', () => { DeviceOrientationEvent.requestPermission().then((r) => { if (r === 'granted') startSensor(); }).catch(() => {}); }, { once: true });
+  } else startSensor();
+}
 
 // ---------------------------------------------------------------- the victory card
 let vic = null;

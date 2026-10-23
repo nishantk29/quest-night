@@ -48,13 +48,13 @@ async function until(fn, what, ms = 4000) {
 }
 
 const problems = [];
-const stats = { loyal: 0, shadow: 0, reasons: {}, roles: new Set(), sizes: {} };
+const stats = { good: 0, evil: 0, reasons: {}, roles: new Set(), sizes: {} };
 
 async function game(g) {
   const n = 5 + (g % 6);
   const sabP = [0.1, 0.4, 0.8][g % 3];
   const approveP = g % 4 === 3 ? 0.15 : 0.65;
-  const settings = { seer: rnd() < 0.85, herald: rnd() < 0.5, enchantress: rnd() < 0.4, usurper: rnd() < 0.35, outcast: rnd() < 0.3 };
+  const settings = { merlin: rnd() < 0.85, percival: rnd() < 0.5, morgana: rnd() < 0.4, mordred: rnd() < 0.35, oberon: rnd() < 0.3 };
   const r = await fetch(`${BASE}/api/create`, { method: 'POST' }).then((x) => x.json());
   const seats = [];
   const used = new Set();
@@ -70,11 +70,11 @@ async function game(g) {
   if (!host.view.me.host || seats.slice(1).some((s) => s.view.me.host)) fail('host flag wrong');
   host.send({ type: 'settings', settings });
   await sleep(30);
-  // Too many shadow roles for small tables: drop optional ones until it deals.
+  // Too many evil roles for small tables: drop optional ones until it deals.
   host.send({ type: 'start' });
   await sleep(60);
   if (host.view.phase === 'lobby') {
-    host.send({ type: 'settings', settings: { enchantress: false, usurper: false, outcast: false } }); await sleep(30);
+    host.send({ type: 'settings', settings: { morgana: false, mordred: false, oberon: false } }); await sleep(30);
     host.send({ type: 'start' });
   }
   await until(() => seats.every((s) => s.view?.phase === 'reveal'), 'reveal');
@@ -107,10 +107,10 @@ async function game(g) {
     if (v.phase !== 'propose') fail(`unexpected phase ${v.phase}`);
     const q = v.game.quest;
     const leader = seats.find((s) => s.id === v.game.leader);
-    // Leader picks: shadow leaders slip a teammate in, loyal leaders pick at random.
+    // Leader picks: evil leaders slip a teammate in, good leaders pick at random.
     const pool = seats.map((s) => s.id);
     let team = [];
-    if (side(leader.id) === 'shadow') team.push(leader.id);
+    if (side(leader.id) === 'evil') team.push(leader.id);
     while (team.length < sizes[q]) { const c = pick(pool); if (!team.includes(c)) team.push(c); }
     // Use pick toggles half the time, the direct form otherwise.
     if (rnd() < 0.5) { for (const id of team) leader.send({ type: 'pick', id }); await until(() => host.view.game.team.length === team.length, 'picks'); leader.send({ type: 'propose' }); }
@@ -118,9 +118,9 @@ async function game(g) {
     await until(() => seats.every((s) => s.view.phase === 'vote'), 'vote');
     const votes = {};
     for (const s of seats) {
-      const hasShadow = team.some((id) => side(id) === 'shadow');
-      let yes = rnd() < (side(s.id) === 'shadow' ? (hasShadow ? 0.9 : 0.3) : approveP);
-      if (rejectsInRow === 4 && approveP > 0.5) yes = side(s.id) === 'loyal' ? true : yes;
+      const hasEvil = team.some((id) => side(id) === 'evil');
+      let yes = rnd() < (side(s.id) === 'evil' ? (hasEvil ? 0.9 : 0.3) : approveP);
+      if (rejectsInRow === 4 && approveP > 0.5) yes = side(s.id) === 'good' ? true : yes;
       votes[s.id] = yes; s.send({ type: 'vote', approve: yes });
     }
     const approvals = Object.values(votes).filter(Boolean).length;
@@ -130,19 +130,19 @@ async function game(g) {
     if (lv.passed !== passed || lv.approve.length !== approvals) fail('vote tally wrong');
     if (!passed) {
       rejectsInRow++;
-      if (rejectsInRow === 5) { await until(() => host.view.phase === 'over', 'over after 5'); if (host.view.game.winner !== 'shadow' || host.view.game.reason !== 'rejects') fail('5 rejects should hand the shadow the game'); break; }
+      if (rejectsInRow === 5) { await until(() => host.view.phase === 'over', 'over after 5'); if (host.view.game.winner !== 'evil' || host.view.game.reason !== 'rejects') fail('5 rejects should hand the evil the game'); break; }
       await until(() => host.view.phase === 'propose', 'next propose');
       if (host.view.game.leader === leader.id) fail('leader did not rotate');
       continue;
     }
     rejectsInRow = 0;
     await until(() => seats.every((s) => s.view.phase === 'quest'), 'quest');
-    // A loyal knight trying to sabotage must be refused.
-    const loyalOn = team.find((id) => side(id) === 'loyal');
-    if (loyalOn) { const s = seats.find((x) => x.id === loyalOn); const before = s.errors.length; s.send({ type: 'play', sabotage: true }); await until(() => s.errors.length > before, 'loyal sabotage refused'); }
+    // A good servant trying to sabotage must be refused.
+    const loyalOn = team.find((id) => side(id) === 'good');
+    if (loyalOn) { const s = seats.find((x) => x.id === loyalOn); const before = s.errors.length; s.send({ type: 'play', sabotage: true }); await until(() => s.errors.length > before, 'good sabotage refused'); }
     let fails = 0;
     for (const id of team) {
-      const sab = side(id) === 'shadow' && rnd() < sabP;
+      const sab = side(id) === 'evil' && rnd() < sabP;
       if (sab) fails++;
       seats.find((s) => s.id === id).send({ type: 'play', sabotage: sab });
     }
@@ -155,15 +155,15 @@ async function game(g) {
   }
   let v = host.view;
   if (v.phase === 'assassin') {
-    if (!settings.seer && !Object.values(mine).includes('assassin')) fail('assassin phase without assassin');
+    if (!settings.merlin && !Object.values(mine).includes('assassin')) fail('assassin phase without assassin');
     const assassin = seats.find((s) => mine[s.id] === 'assassin');
     if (v.game.assassin !== assassin.id) fail('wrong assassin shown');
-    const targets = seats.filter((s) => side(s.id) === 'loyal');
-    const t = rnd() < 0.4 ? targets.find((s) => mine[s.id] === 'seer') : pick(targets);
+    const targets = seats.filter((s) => side(s.id) === 'good');
+    const t = rnd() < 0.4 ? targets.find((s) => mine[s.id] === 'merlin') : pick(targets);
     assassin.send({ type: 'strike', id: t.id });
     await until(() => host.view.phase === 'over', 'over after strike');
     v = host.view;
-    const w = mine[t.id] === 'seer' ? 'shadow' : 'loyal';
+    const w = mine[t.id] === 'merlin' ? 'evil' : 'good';
     if (v.game.winner !== w) fail('strike outcome wrong');
   } else if (v.phase === 'over' && v.game.reason === 'quests') {
     const ok = expectResults.filter((x) => x === 'success').length;
@@ -183,6 +183,6 @@ for (let g = 0; g < GAMES; g++) {
   try { await game(g); clean++; } catch (e) { problems.push(e.message); console.log('PROBLEM', e.message); }
 }
 console.log(`games: ${GAMES}, clean: ${clean}, problems: ${problems.length}`);
-console.log(`winners: loyal ${stats.loyal}, shadow ${stats.shadow}; reasons ${JSON.stringify(stats.reasons)}; sizes ${JSON.stringify(stats.sizes)}`);
+console.log(`winners: good ${stats.good}, evil ${stats.evil}; reasons ${JSON.stringify(stats.reasons)}; sizes ${JSON.stringify(stats.sizes)}`);
 console.log(`roles dealt: ${stats.roles.size} of ${Object.keys(ROLES).length} (${[...stats.roles].sort().join(', ')})`);
 process.exit(problems.length ? 1 : 0);
