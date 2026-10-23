@@ -3,7 +3,7 @@
 // - Navigations: network-first, falling back to the cached app shell.
 // - /api/* and /ws/* never touch the cache.
 // VERSION is a content hash of every precached file, so it changes whenever a file does.
-const VERSION = '0b210fcbea';
+const VERSION = '74808f25a0';
 const PREFIX = 'quest-';
 const CACHE = PREFIX + VERSION;
 
@@ -74,11 +74,22 @@ self.addEventListener('install', (event) => {
 });
 
 self.addEventListener('activate', (event) => {
-  event.waitUntil((async () => {
+  const done = (async () => {
     const keys = await caches.keys();
-    await Promise.all(keys.filter((k) => k.startsWith(PREFIX) && k !== CACHE).map((k) => caches.delete(k)));
+    const stale = keys.filter((k) => k.startsWith(PREFIX) && k !== CACHE);
+    await Promise.all(stale.map((k) => caches.delete(k)));
     await self.clients.claim();
-  })());
+    return stale.length > 0;
+  })();
+  event.waitUntil(done);
+  // On an update (an older cache existed), pages already open were drawn from the old cache and may be running old
+  // HTML with no controllerchange listener, so reload them once. Not inside waitUntil: their navigation fetch waits
+  // for activation to finish, so awaiting it there would deadlock.
+  done.then(async (updated) => {
+    if (!updated) return;
+    const wins = await self.clients.matchAll({ type: 'window' });
+    wins.forEach((c) => c.navigate(c.url).catch(() => {}));
+  }).catch(() => {});
 });
 
 self.addEventListener('fetch', (event) => {
@@ -90,7 +101,7 @@ self.addEventListener('fetch', (event) => {
   if (req.mode === 'navigate') {
     event.respondWith((async () => {
       try {
-        const res = await fetch(req);
+        const res = await fetch(req, { cache: 'no-cache' }); // HTML always revalidated, never a stale HTTP-cache copy
         if (url.pathname === SHELL && storable(res)) {
           const copy = res.clone();
           caches.open(CACHE).then((c) => c.put(SHELL, copy));

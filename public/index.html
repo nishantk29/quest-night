@@ -25,7 +25,7 @@
 <link rel="icon" href="/icons/favicon-32.png" sizes="32x32" type="image/png">
 <link rel="icon" href="/icons/favicon.svg" type="image/svg+xml">
 <script type="module" src="/pwa-install.js"></script>
-<script>if('serviceWorker'in navigator)addEventListener('load',function(){navigator.serviceWorker.register('/sw.js',{scope:'/'}).catch(function(){})});</script>
+<script>if('serviceWorker'in navigator){var hadSW=!!navigator.serviceWorker.controller,swReloaded=false;navigator.serviceWorker.addEventListener('controllerchange',function(){if(!hadSW||swReloaded)return;swReloaded=true;location.reload()});addEventListener('load',function(){navigator.serviceWorker.register('/sw.js',{scope:'/',updateViaCache:'none'}).then(function(r){r.update()}).catch(function(){})})}</script>
 <!-- pwa:end -->
 </head>
 <body>

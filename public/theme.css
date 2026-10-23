@@ -4,7 +4,7 @@
    Four radii by role: pills and inputs 999, lead panel 32, blocks 20, rows and strips 14. Spacing is the --s scale
    (4 8 12 16 24 32 48): tight inside a group, --s5 between groups. Flat colour, no lip or drop shadows.
    Cards tilt and lift with CSS transforms only. Liquid Glass lives only on overlays (fx.css).
-   Flat fallbacks: html.fx-off (reduced motion / host toggle) and html.fx-lite (weak phones). */
+   Flat fallbacks: html.fx-off (reduced motion / host toggle). */
 @font-face{font-family:"Rubik Fallback";src:local("Arial"),local("Helvetica");size-adjust:104%;ascent-override:93%;descent-override:25%;line-gap-override:0%}
 :root{--font-display:"Rubik","Rubik Fallback",system-ui,sans-serif;--font-ui:"Rubik","Rubik Fallback",system-ui,-apple-system,"Segoe UI",sans-serif;--font-voice:var(--font-ui);--blue-block:#2F6BD6;--red-block:#B3131F;--r-lead:32px;--r-block:20px;--r-row:14px;--pop:cubic-bezier(.34,1.56,.64,1);--quiet:rgba(255,255,255,.16)}
 body{background:var(--room)}
@@ -213,8 +213,6 @@ a{text-decoration-color:rgba(255,255,255,.4);text-decoration-thickness:2px;text-
 
 /* ---- flat fallbacks: reduced motion, animations off, weak phones */
 .fx-off .stage,.fx-off .track,.fx-off .reveal,.fx-off .winner,.fx-off .round,.fx-off .path,
-.fx-lite .stage,.fx-lite .track,.fx-lite .reveal,.fx-lite .winner,.fx-lite .round,.fx-lite .path{transform:none;transition:none}
-.fx-lite .stage::after{display:none}
 @media (prefers-reduced-motion:reduce){
   .stage,.track,.reveal,.winner,.round,.path{transform:none!important;transition:none}
   .btn,.choice,.tabbar button{transition:none!important}
