@@ -98,9 +98,10 @@ test('good cannot sabotage; one sabotage fails a normal quest', () => {
   const evil = ids.filter((id) => side(room, id) === 'evil');
   proposeAndVote(room, ids, [good[0], evil[0]], () => true);
   assert.equal(room.phase, 'quest');
-  assert.ok(act(room, good[0], { type: 'play', sabotage: true }).error);
   assert.ok(act(room, good[1], { type: 'play', sabotage: false }).error, 'not on the team');
-  must(act(room, good[0], { type: 'play', sabotage: false }));
+  // A Loyal Sabotage is accepted silently and counts as Success (no error toast to give them away).
+  must(act(room, good[0], { type: 'play', sabotage: true }));
+  assert.equal(room.game.cards[good[0]], false);
   must(act(room, evil[0], { type: 'play', sabotage: true }));
   assert.deepEqual(room.game.results, ['fail']);
   assert.equal(room.game.lastQuest.fails, 1);
