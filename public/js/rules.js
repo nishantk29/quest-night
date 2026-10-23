@@ -65,6 +65,7 @@ export function roleList(players, settings) {
   if (!Number.isInteger(n) || n < MIN_PLAYERS) return { error: `You need at least ${MIN_PLAYERS} players.` };
   if (n > MAX_PLAYERS) return { error: `At most ${MAX_PLAYERS} players can play.` };
   const s = cleanSettings(settings);
+  if (s.percival && !s.merlin) return { error: 'Percival needs Merlin. Turn Merlin on, or turn Percival off.' };
   const evilN = EVIL_COUNT[n];
   const loyalN = n - evilN;
   const evil = [];
@@ -118,4 +119,4 @@ export const LANTERN_AFTER = [2, 3, 4]; // number of finished quests at which th
 export const sideOf = (roleId) => ROLES[roleId].side;
 
 // Game-specific house rules (all off by default). Common ones live in table.js.
-export const HOUSE_DEFAULTS = { lantern: false, hammerAuto: false };
+export const HOUSE_DEFAULTS = { lantern: false };

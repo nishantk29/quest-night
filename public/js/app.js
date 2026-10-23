@@ -368,7 +368,7 @@ function stage(v) {
   if (v.phase === 'assassin') {
     if (!g.appRoles) return `<section class="stage"><h1 class="phase-title">The Assassin takes aim</h1>${say('Evil, show your cards. The Assassin names one servant.')}${host ? `<p class="note">Tap who the Assassin named, then say if they were Merlin.</p>${S.ui.strike ? `<div class="choice-pair"><button class="choice no" data-a="strikeSend" data-v="1">They were Merlin</button><button class="choice yes" data-a="strikeSend" data-v="0">Not Merlin</button></div>` : ''}` : ''}</section>`;
     if (g.assassin === me.id) return `<section class="stage"><h1 class="phase-title">Name Merlin</h1>${say('Three quests succeeded. Talk it over with Evil, then tap the one you believe is Merlin. You get one strike.')}</section>`;
-    return `<section class="stage"><h1 class="phase-title">The Assassin takes aim</h1>${say(`${esc(nameOf(v, g.assassin))} will name one servant. If it is Merlin, the Minions of Mordred win.`)}</section>`;
+    return `<section class="stage"><h1 class="phase-title">The Assassin takes aim</h1>${say(`${g.assassin ? esc(nameOf(v, g.assassin)) : 'The Assassin'} will name one servant. If it is Merlin, the Minions of Mordred win.`)}</section>`;
   }
   if (v.phase === 'over') return over(v);
   return '';
