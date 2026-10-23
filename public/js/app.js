@@ -48,7 +48,11 @@ function render() {
   // If the browser never calls back (tab hidden mid-transition), paint anyway so the screen can't freeze.
   let painted = false; const once = () => { if (painted) return; painted = true; vtBusy = false; paint(); };
   const guard = setTimeout(once, 500);
-  try { document.startViewTransition(() => { clearTimeout(guard); once(); }).finished.catch(() => {}); } catch { clearTimeout(guard); once(); }
+  try {
+    const vt = document.startViewTransition(() => { clearTimeout(guard); once(); });
+    // An aborted transition (e.g. viewport resized mid-animation) rejects these; the DOM update still runs via once().
+    for (const p of [vt.ready, vt.updateCallbackDone, vt.finished]) p.catch(() => {});
+  } catch { clearTimeout(guard); once(); }
 }
 function paint() {
   const y = window.scrollY;
