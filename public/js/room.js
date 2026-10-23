@@ -146,6 +146,7 @@ function gameReduce(room, actor, msg, rng, now) {
     case 'tally': { // physical votes: the host taps who approved (votes are public in this game)
       if (!isHost) return err('Only the host enters the table’s votes.');
       if (room.phase !== 'vote') return err('There is no vote right now.');
+      if (room.mode.votes !== 'physical') return err('Votes are cast in the app in this game.');
       const yes = new Set(Array.isArray(msg.approve) ? msg.approve : []);
       g.votes = Object.fromEntries(seat(room).map((id) => [id, yes.has(id)]));
       resolveVote(room, now); return ok();
@@ -164,6 +165,7 @@ function gameReduce(room, actor, msg, rng, now) {
     case 'questResult': { // physical quest cards: the host enters how many sabotage cards were turned up
       if (!isHost) return err('Only the host enters the quest result.');
       if (room.phase !== 'quest') return err('No quest is under way.');
+      if (room.mode.cards !== 'physical') return err('Quest cards are played in the app in this game.');
       const f = Math.round(Number(msg.fails));
       if (!(f >= 0 && f <= g.team.length)) return err(`Between 0 and ${g.team.length} sabotage cards.`);
       resolveQuest(room, f, now); return ok();
@@ -268,9 +270,10 @@ function publicGame(room) {
   };
 }
 
-function endReveal(room, view) {
+function endReveal(room, view, viewerId = null) {
   const g = room.game;
-  if (g && room.phase === 'assassin' && g.roles) {
+  // Before the strike only Evil players may see the Evil team; Good players and the table screen may not.
+  if (g && room.phase === 'assassin' && g.roles && viewerId && g.roles[viewerId] && sideOf(g.roles[viewerId]) === 'evil') {
     view.game.evil = seat(room).filter((id) => sideOf(g.roles[id]) === 'evil');
     view.game.assassin = seat(room).find((id) => g.roles[id] === 'assassin');
   }
@@ -290,7 +293,7 @@ export function viewForPlayer(room, playerId, connected = new Set()) {
   if (g && me && room.phase === 'quest' && me.id in g.cards) view.me.played = true;
   // A storyteller who sits out is the moderator: they see the whole deal on their own phone.
   if (g && me?.host && me.watch && g.roles) view.moderator = { roles: Object.fromEntries(seat(room).map((id) => [id, roleView(g.roles[id])])) };
-  endReveal(room, view);
+  endReveal(room, view, playerId);
   return view;
 }
 
