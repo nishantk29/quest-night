@@ -45,10 +45,11 @@ function render() {
   for (const el of $app.querySelectorAll('[data-scroll]')) el.scrollTop = el.scrollHeight;
 }
 document.addEventListener('focusout', () => { if (pending) setTimeout(render, 50); });
-const T = makeTable({ S, send, esc, ui, toast, render });
+const OWN_ICONS = ['table', 'crown']; // tab-bar icons drawn for Quest Night instead of the stock set
+const T = makeTable({ S, send, esc, ui: (n, c) => (OWN_ICONS.includes(n) ? art(n, c) : ui(n, c)), toast, render });
 
 function screen() {
-  if (S.fatal) return `<main class="wrap"><div class="empty">${ui('warning')}<h1 class="phase-title">${esc(S.fatal)}</h1><a class="btn" href="#/">Go to the home page</a></div></main>`;
+  if (S.fatal) return `<main class="wrap"><div class="empty">${ui('warning')}<h1 class="phase-title">${esc(S.fatal)}</h1><a class="btn big" href="#/">Go to the home page</a></div></main>`;
   if (S.mode === 'home') return home();
   if (S.mode === 'rules') return rulesPage();
   if (S.mode === 'faq') return faqPage(FAQ, esc, ui);
@@ -62,28 +63,28 @@ function screen() {
   return banner + appbar(v) + layout(v);
 }
 
-const cardBack = () => `<span class="rcard-back"><span class="rcard-back-mark">${art('crown')}</span></span>`;
-
 function home() {
   const mine = Object.keys(localStorage).filter((k) => k.startsWith(`${KEY}.player.`)).map((k) => k.slice(KEY.length + 8));
+  const seals = [['ok', 'chalice'], ['bad', 'broken'], ['ok', 'chalice'], ['now', 'crown'], ['wait', '']].map(([c, a]) => `<span class="hseal ${c}">${a ? art(a) : ''}</span>`).join('');
   return `<main class="wrap home">
     <div class="home-hero">
-      <div class="card-fan" aria-hidden="true">${cardBack().repeat(3)}</div>
-      <h1 class="wordmark">Quest Night <span>A table of servants. A few minions.</span></h1>
-      <p class="lede">Pick a party, vote it through, and see who sabotages the quest. 5 to 10 players. Play on phones, with real cards, or a mix of both.</p>
+      <div class="home-art" aria-hidden="true">${seals}</div>
+      <h1 class="wordmark"><span>Quest</span> <span>Night</span></h1>
+      <p class="tagline">A table of servants. A few minions.</p>
+      <p class="lede">Pick a party for each quest, vote it through, and find out who sabotaged it. For 5 to 10 players, on phones, with real cards, or both.</p>
     </div>
     <div class="home-paths">
-      <section class="path"><h2 class="path-title">Host a game</h2>
+      <section class="path"><h2 class="path-title">Host a table</h2>
         <p class="muted">You can play too, or sit out as the storyteller. Everyone else joins with a 6‑letter code.</p>
         <label class="field"><span>Your name</span><input data-i="hostName" maxlength="20" autocomplete="nickname" enterkeyhint="go" value="${esc(S.ui.draft.hostName || store.get(`${KEY}.name`) || '')}"></label>
         <button type="button" class="btn big" data-a="host">Open a table</button>
         ${mine.map((c) => `<p class="resume-row"><a class="resume" href="#/play/${esc(c)}">Back to table <b class="code">${esc(c)}</b></a></p>`).join('')}</section>
-      <section class="path"><h2 class="path-title">Join a game</h2>
-        <div class="join-row"><label class="field"><span>Room code</span><input class="code-input" data-i="joinCode" maxlength="6" autocapitalize="characters" autocomplete="off" spellcheck="false" enterkeyhint="go" placeholder="ABCDEF" value="${esc(S.ui.draft.joinCode || '')}"></label>
-        <button type="button" class="btn ghost" data-a="goJoin">Join</button></div></section>
-      <p class="home-faq"><a class="path-link" href="#/rules">How to play</a> · <a class="path-link" href="#/faq">FAQ</a> · <a class="path-link" href="/print.html" target="_blank" rel="noopener">Print cards</a></p>
+      <section class="path"><h2 class="path-title">Join a table</h2>
+        <div class="join-row"><label class="field"><span>Room code</span><input class="code-input" data-i="joinCode" maxlength="6" autocapitalize="characters" autocomplete="off" spellcheck="false" enterkeyhint="go" placeholder="6 letters" value="${esc(S.ui.draft.joinCode || '')}"></label>
+        <button type="button" class="btn" data-a="goJoin">Join</button></div></section>
+      <p class="home-faq"><a class="path-link" href="#/rules">How to play</a><a class="path-link" href="#/faq">FAQ</a><a class="path-link" href="/print.html" target="_blank" rel="noopener">Print cards</a></p>
     </div>
-    <p class="credits">Same table as <a href="https://mafia-app.hatethespurs.workers.dev">Mafia Night</a> and <a href="https://council-night.hatethespurs.workers.dev">Council Night</a>. Crown, chalice, lantern and crest icons drawn for Quest Night. Role icons from <a href="https://game-icons.net" target="_blank" rel="noopener">game-icons.net</a> by Lorc, Delapouite and contributors (<a href="https://creativecommons.org/licenses/by/3.0/" target="_blank" rel="noopener">CC BY 3.0</a>) and <a href="https://phosphoricons.com" target="_blank" rel="noopener">Phosphor</a> (MIT). Fonts: Cinzel and Alegreya (SIL OFL).</p>
+    <p class="credits">Same table as <a href="https://mafia-app.hatethespurs.workers.dev">Mafia Night</a> and <a href="https://council-night.hatethespurs.workers.dev">Council Night</a>. Crown, chalice, lantern and crest icons drawn for Quest Night. Role icons from <a href="https://game-icons.net" target="_blank" rel="noopener">game-icons.net</a> by Lorc, Delapouite and contributors (<a href="https://creativecommons.org/licenses/by/3.0/" target="_blank" rel="noopener">CC BY 3.0</a>) and <a href="https://phosphoricons.com" target="_blank" rel="noopener">Phosphor</a> (MIT). Font: Rubik (SIL OFL).</p>
   </main>`;
 }
 
@@ -116,13 +117,14 @@ function joinForm() {
     <p class="muted" style="margin-top:var(--s4)">If the game has started you’ll watch, unless the host opened a seat for you. <a href="#/">Back</a></p></main>`;
 }
 
-const PHASE = { lobby: ['Gathering', 'table'], reveal: ['Secret cards', 'cards'], propose: ['Choosing a party', 'crown'], vote: ['Vote', 'hand'],
-  quest: ['On the quest', 'game'], lantern: ['The Lantern', 'eye'], assassin: ['Last strike', 'crosshair'], over: ['Game over', 'trophy'] };
+// Phase badges use the icons drawn for Quest Night (art.js), not the stock set.
+const PHASE = { lobby: ['Gathering', 'table'], reveal: ['Secret cards', 'good'], propose: ['Choosing a party', 'crown'], vote: ['Vote', 'approve'],
+  quest: ['On the quest', 'chalice'], lantern: ['The Lantern', 'lantern'], assassin: ['Last strike', 'broken'], over: ['Game over', 'chalice'] };
 function appbar(v) {
-  const [label, icon] = PHASE[v.phase] || ['', 'game'];
+  const [label, icon] = PHASE[v.phase] || ['', 'crown'];
   return `<header class="appbar"><a class="appbar-mark" href="#/" aria-label="Home">${art('crown')}</a>
     <div class="appbar-title">Table <span class="code">${esc(v.code)}</span></div>
-    ${T.timerChip(v)}<span class="phase-badge">${ui(icon)}${label}</span></header>`;
+    ${T.timerChip(v)}<span class="phase-badge">${art(icon)}${label}</span></header>`;
 }
 
 const nameOf = (v, id) => v.players.find((p) => p.id === id)?.name || '?';
@@ -504,7 +506,7 @@ function hostPane(v) {
 // ---------------------------------------------------------------- shared table screen (TV / laptop)
 function tableScreen(v) {
   const g = v.game;
-  const head = `<header class="appbar"><span class="appbar-mark">${art('crown')}</span><div class="appbar-title">Quest Night · <span class="code">${esc(v.code)}</span></div>${T.timerChip(v)}<span class="phase-badge">${ui(PHASE[v.phase]?.[1] || 'game')}${PHASE[v.phase]?.[0] || ''}</span></header>`;
+  const head = `<header class="appbar"><span class="appbar-mark">${art('crown')}</span><div class="appbar-title">Quest Night · <span class="code">${esc(v.code)}</span></div>${T.timerChip(v)}<span class="phase-badge">${art(PHASE[v.phase]?.[1] || 'crown')}${PHASE[v.phase]?.[0] || ''}</span></header>`;
   if (!g) return `${head}<main class="wrap screen-lobby"><h1 class="phase-title">Join at ${esc(location.host)}</h1><p class="room-code">${esc(v.code)}</p><p class="say">${v.players.filter((p) => !p.watch).map((p) => esc(p.name)).join(' · ') || 'Nobody yet.'}</p></main>`;
   const lines = phaseScript(v).slice(0, 2);
   return `${head}<div class="layout is-screen"><main class="col col-main wrap game">${track(v)}${roundTable({ ...v, me: null })}${v.phase === 'over' ? over(v) : `<section class="stage"><p class="say">${esc(lines.join(' '))}</p></section>`}${lastReveals(v)}</main>
