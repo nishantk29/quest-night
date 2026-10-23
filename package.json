@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "wrangler dev",
     "test": "node --test test/*.test.js",
-    "deploy": "node /workspace/code-team/shared/pwa/make-pwa.mjs public pwa/pwa.json && wrangler deploy"
+    "deploy": "wrangler deploy"
   },
   "devDependencies": {
     "wrangler": "^4"
