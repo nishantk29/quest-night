@@ -4,7 +4,7 @@
 @font-face{font-family:"Alegreya Sans";font-weight:400;src:url(/fonts/alegreya-sans-400.woff2) format("woff2")}
 @font-face{font-family:"Alegreya Sans";font-weight:700;src:url(/fonts/alegreya-sans-700.woff2) format("woff2")}
 @font-face{font-family:"Alegreya";font-style:italic;font-weight:400 900;src:url(/fonts/alegreya-italic-var.woff2) format("woff2")}
-@page{size:letter;margin:6mm 10mm}
+@page{margin:6mm 10mm}
 *{box-sizing:border-box}
 body{margin:0;font:400 11pt/1.4 "Alegreya Sans",sans-serif;color:#17202F;background:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact}
 .bar{display:flex;flex-wrap:wrap;gap:12px;align-items:center;padding:10px 16px;background:#0C1626;color:#F3EAD3;font-size:14px}
@@ -35,3 +35,22 @@ th{background:#E9EEF6}
 .back .ci{background:#0E1A2E;justify-content:center}
 .back .ci .ico{color:#E4B94E}
 .note{font-size:9pt;color:#4a5568}
+/* On screen only: the sheet fits a phone (390px). Print keeps the mm sizes above, so A4 and Letter both fit. */
+@media screen{.sheet{padding-left:16px;padding-right:16px}.sheet.cardpage{padding:0}}
+@media screen and (max-width:700px){
+  .sheet{padding-left:14px;padding-right:14px}
+  table{font-size:10.5pt}
+  tr:first-child{display:none}
+  table,tbody,tr,td{display:block;width:100%}
+  tr{border:0.6pt solid #9aa7bd;margin:0 0 3mm;padding:1mm 0}
+  td{border:0;padding:1mm 2.5mm;overflow-wrap:anywhere}
+  td[data-label]::before{content:attr(data-label);display:block;font:600 8.5pt Cinzel,serif;letter-spacing:.08em;color:#8a6d22}
+  .cards{grid-template-columns:repeat(2,minmax(0,1fr));grid-auto-rows:auto;justify-content:stretch;gap:12px}
+  .c{width:auto;height:auto;padding:0;border:0;container-type:inline-size;aspect-ratio:63/88}
+  .ci{border-width:4.5cqi;border-radius:5cqi;padding:9cqi 6cqi 7cqi;outline-width:.5px;outline-offset:-4cqi}
+  .ci .ico{width:34cqi;height:34cqi}
+  .ci .crest{left:12cqi;right:12cqi;top:14cqi;height:52cqi}
+  .ci b{font-size:10cqi}
+  .ci small{font-size:7.5cqi;max-width:92cqi}
+  .ci .side{font-size:6cqi;letter-spacing:.16em}
+}

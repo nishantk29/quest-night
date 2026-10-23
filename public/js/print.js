@@ -1,43 +1,64 @@
 // The printable card guide (standard 52-card deck) and the Quest Night card sheet, both built from the same
-// data the app uses (rules.js, cards.js), so the paper and the app can never disagree.
-import { ROLES, QUEST_SIZES, EVIL_COUNT, failsNeeded } from './rules.js';
-import { roleCards, RECOMMENDED, ROLE_CARD, PIECES } from './cards.js';
+// data the app uses (rules.js, cards.js, print-guide.js), so the paper and the app can never disagree.
+import { ROLES } from './rules.js';
+import { roleCards, RECOMMENDED } from './cards.js';
+import { MODES, MODE_NOTE, KEY, ROLE_ROWS, tableRows, RECOMMENDED_NOTE, openingScript } from './print-guide.js';
 import { glyph } from './glyphs.js';
 import { art } from './art.js';
 
 const part = new URLSearchParams(location.search).get('part');
+// Suits in colour: hearts and diamonds red, spades and clubs black.
+const suits = (s) => s.replace(/[♥♦]\w*/g, (m) => `<span class="red">${m}</span>`).replace(/[♣♠]\w*/g, (m) => `<span class="blk">${m}</span>`);
 const red = (c) => `<span class="${/[♥♦]/.test(c) ? 'red' : 'blk'}">${c}</span>`;
 const L = (id) => ROLES[id].name;
 
+// Each table size's role cards, in the order the app deals them (recommended mix, see RECOMMENDED_NOTE).
+const cardsFor = (n) => {
+  const r = roleCards(n, RECOMMENDED(n));
+  const side = (s) => r.cards.filter((c) => ROLES[c.role].side === s).map((c) => `${red(c.card)} ${L(c.role)}`).join('<br>');
+  return { loyal: side('good'), evil: side('evil') };
+};
+
 function guide() {
-  const rows = [5, 6, 7, 8, 9, 10].map((n) => {
-    const r = roleCards(n, RECOMMENDED(n));
-    const good = r.cards.filter((c) => ROLES[c.role].side === 'good'); const evil = r.cards.filter((c) => ROLES[c.role].side === 'evil');
-    return `<tr><td><b>${n}</b></td><td>${good.map((c) => `${red(c.card)} ${L(c.role)}`).join('<br>')}</td><td>${evil.map((c) => `${red(c.card)} ${L(c.role)}`).join('<br>')}</td>
-      <td>♥A–♥${n === 10 ? '10' : n} approve<br>♠A–♠${n === 10 ? '10' : n} reject</td><td>${QUEST_SIZES[n].map((s, i) => `${s}${failsNeeded(n, i) === 2 ? '*' : ''}`).join(' · ')}</td></tr>`;
+  const modes = MODES.map((m) => `<tr><td data-label="Mode"><b>${m.name}</b></td><td data-label="Cards">${m.cards}</td><td data-label="How it works">${m.how}</td></tr>`).join('');
+  const key = KEY.map((k) => `<tr><td data-label="Piece">${k.piece}</td><td data-label="Cards">${suits(k.cards)}</td></tr>`).join('');
+  const roles = ROLE_ROWS.map((r) => `<tr><td data-label="Role"><b>${r.name}</b></td><td data-label="Card">${suits(r.cards)}${r.more || ''}</td><td data-label="Side">${r.side}</td><td data-label="Sees">${r.sees}</td></tr>`).join('');
+  const rows = tableRows().map((t) => {
+    const c = cardsFor(t.n);
+    return `<tr><td data-label="Players"><b>${t.n}</b></td><td data-label="Loyal cards">${c.loyal}</td><td data-label="Evil cards">${c.evil}</td>
+      <td data-label="Votes">${suits(`♥A–${t.n}`)} and ${suits(`♠A–${t.n}`)}</td><td data-label="Party sizes">${t.sizes.map((s) => `${s.size}${s.twoFails ? '*' : ''}`).join(' · ')}</td></tr>`;
   }).join('');
-  return `<section class="sheet"><h1>Quest Night</h1><p><b>Card guide: play with one regular deck of cards.</b> Use it with the app in “All physical” or “Hybrid” mode (the host’s phone keeps the board, the crown and the narration), or with no phone at all.</p>
+  const script = openingScript(['merlin', 'percival', 'morgana', 'mordred', 'oberon']).map((l) => `<li>${l}</li>`).join('');
+  return `<section class="sheet"><h1>Quest Night</h1>
+  <p class="lede"><b>Card guide.</b> Play with phones only, with real cards, or with both. Start by choosing a mode.</p>
+  <h2>Choose a mode</h2>
+  <table><tr><th>Mode</th><th>Cards</th><th>How it works</th></tr>${modes}</table>
+  <p><b>Phones Mode needs no cards.</b> Skip to the Host section, or open Quest Night on every phone and start.</p>
+  <p class="note">${MODE_NOTE}</p>
+  <h2>The Host</h2>
+  <ul>
+    <li>The Host opens the table on their phone and sets the mode, the special roles and the seat order to match the real table.</li>
+    <li>The Host plays too and gets a card. The house rule Host sits out is off by default. When it is on, the Host gets no card and sees the whole deal.</li>
+    <li>In Hybrid and Host-Only Mode, the Host enters only what the whole table already sees: votes, sabotage cards played and the Assassin’s pick.</li>
+    <li>The Host reads the opening script below, then each phase script on the Host tab.</li>
+  </ul>
   <h2>The key</h2>
   <table><tr><th>Piece</th><th>Cards</th></tr>
-    <tr><td>Role cards</td><td><b>Red = Loyal, black = Evil.</b> ${Object.entries(ROLE_CARD).map(([k, c]) => `${c.split(' / ').map(red).join(' / ')} ${L(k)}`).join(' · ')}</td></tr>
-    <tr><td>Votes</td><td>${PIECES.approve}. ${PIECES.reject}.</td></tr>
-    <tr><td>Quest cards</td><td>${PIECES.success}. ${PIECES.sabotage}.</td></tr>
-    <tr><td>The crown</td><td>${PIECES.crown}.</td></tr>
-    <tr><td>The Lantern (optional)</td><td>${PIECES.lantern}. ${PIECES.loyalty}. Deal each player a loyalty card matching the colour of their role card.</td></tr></table>
-  <h2>What to pull for each table (classic setup)</h2>
-  <table><tr><th>Players</th><th>Loyal cards</th><th>Evil cards</th><th>Votes</th><th>Party sizes</th></tr>${rows}</table>
-  <p class="note">* Quest 4 at 7 or more players needs two Sabotage cards to fail. Five rejected parties in a row on one quest and the Minions of Mordred win. Turning on other special cards: swap a Loyal Servant of Arthur for Percival (Q♥), or a Minion of Mordred for Morgana (Q♠), Mordred (J♠) or Oberon (K♣). The app’s lobby lists the exact cards for any mix.</p>
-  <h2>Setup</h2><ol><li>Pull the role cards for your table, shuffle them face down and deal one to each player. Look at your own card in secret.</li>
-  <li>Give every player one approve card (a heart) and one reject card (a spade), and put the diamond and club quest cards near the table.</li>
-  <li>Choose the first leader at random (the app’s coin or picker works) and give them the ♣10 as the crown. It passes left.</li>
-  <li>Read the eyes-closed script below, then play: the leader names a party, everyone votes at once, the party plays one quest card each face down (Loyal must play a diamond), and the leader shuffles and turns them over.</li></ol>
-  <h2>Eyes-closed script (read aloud)</h2><ol class="script">
-   <li>Everyone, close your eyes and put your hand in a fist on the table.</li>
-   <li>Evil (black cards), except Oberon, open your eyes and look around. These are your allies. … Evil, close your eyes.</li>
-   <li>Evil, except Mordred, raise your thumb. Merlin, open your eyes and see who serves Evil. … Merlin, close your eyes. Evil, thumbs down.</li>
-   <li>If Percival is in play: Merlin and Morgana, raise your thumb. Percival, open your eyes: one of these is Merlin. … Percival, close your eyes. Thumbs down.</li>
-   <li>Everyone, open your eyes.</li></ol>
-  <p class="note">Leave out any line for a card that isn’t in the game. Quest Night is an original game in the hidden-minion quest family; names, wording and art are its own.</p></section>`;
+    <tr><td data-label="Piece">Role cards</td><td data-label="Cards"><b>Red = Loyal, black = Evil.</b> The face cards carry the roles, see below.</td></tr>
+    ${key}</table>
+  <h2>Role cards</h2>
+  <table><tr><th>Role</th><th>Card</th><th>Side</th><th>Sees</th></tr>${roles}</table>
+  <h2>Party sizes and cards by table size</h2>
+  <table><tr><th>Players</th><th>Loyal cards</th><th>Evil cards</th><th>Votes</th><th>Party sizes, quests 1–5</th></tr>${rows}</table>
+  <p class="note">* Quest 4 at 7 or more players needs two sabotage cards to fail. Five rejected parties in a row on one quest and the Minions of Mordred win.</p>
+  <p class="note">${RECOMMENDED_NOTE} The app’s lobby lists the exact cards for any mix.</p>
+  <h2>Setup</h2><p>For Hybrid and Host-Only Mode, set up the pieces you set to Physical.</p><ol>
+  <li>If the role cards are physical, pull them for your table (see the table above). Shuffle them face down and deal one to each player. Look at your own card in secret.</li>
+  <li>If the votes are physical, give each player one approve card and one reject card. If the quest cards are physical, put them near the table.</li>
+  <li>Choose the first leader at random (the app’s coin or picker works). The crown passes left after every failed vote and every quest.</li>
+  <li>Read the opening script below, then play: the leader names a party, everyone votes at once, each party member plays one quest card face down (Loyal Servants must play success), and the leader shuffles and turns them over. The Host enters the result in the app.</li></ol>
+  <h2>Opening script (eyes closed, read aloud by the Host)</h2><ol class="script">${script}</ol>
+  <p class="note">Leave out the lines about roles that are not in your game, and “except Oberon” or “except Mordred” when that role is out. Quest Night is an original game in the hidden-minion quest family; names, wording and art are its own.</p></section>`;
 }
 
 const card = (cls, icon, name, side, blurb) => `<div class="c ${cls}"><div class="ci">${cls === 'good' || cls === 'evil' ? art(cls, 'crest') : ''}<span class="side">${side}</span>${icon}<b>${name}</b><small>${blurb || ''}</small></div></div>`;
