@@ -8,6 +8,10 @@ export function fanout(room, sockets, connected, wasOver = false) {
   for (const { ws, att } of sockets) {
     if (!att?.who) continue;
     const screen = att.who === 'screen';
+    if (!screen && !room.players.some((p) => p.id === att.playerId)) { // removed by the host: send them back to the join form
+      try { ws.send(JSON.stringify({ type: 'fatal', error: 'The host removed you from the table.', clear: true })); ws.serializeAttachment?.({ who: null }); } catch { /* socket gone */ }
+      continue;
+    }
     const view = screen ? viewForScreen(room, connected) : viewForPlayer(room, att.playerId, connected);
     try {
       ws.send(JSON.stringify({ type: 'view', view }));

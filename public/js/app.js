@@ -568,7 +568,7 @@ function onView(v) {
 
 // ---------------------------------------------------------------- routing
 async function route() {
-  S.transport?.close(); S.transport = null; S.view = null; S.fatal = null; S.conn = true; S.ui.showCard = false;
+  S.transport?.close(); S.transport = null; S.view = null; fx.closeVictory(); S.fatal = null; S.conn = true; S.ui.showCard = false;
   const [kind, arg] = location.hash.replace(/^#\/?/, '').split('/');
   if ((kind === 'play' || kind === 'join' || kind === 'screen') && /^[A-Za-z]{6}$/.test(arg || '')) {
     S.mode = kind === 'screen' ? 'screen' : 'play'; S.code = arg.toUpperCase();
