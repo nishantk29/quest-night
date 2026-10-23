@@ -1,7 +1,7 @@
 /* Quest Night animations and Liquid Glass. Pairs with js/fx.js.
    Rules: animate only transform and opacity; will-change only while animating (.fx-a / .is-fx); no idle loops.
    html.fx-off  = reduced motion or the host turned animations off: no animation at all.
-   html.fx-lite = weak phone (<=4 cores or <=4 GB): flat 2D pops, no blur, fewer particles. */
+   html.fx-noblur = phone reporting <=2 GB: solid panels instead of frosted glass. Motion is never cut by device. */
 :root{--spring:cubic-bezier(.34,1.56,.64,1);--glass-tint:rgba(19,33,58,.7);--glass-solid:rgba(15,27,48,.97)}
 
 /* ---------------------------------------------------------------- overlay layer, particles, stamp, glow */
@@ -21,8 +21,6 @@
 /* role card: flip (existing) + spring pop with a little lift */
 .rcard-tap.fx-pop{animation:fx-pop 700ms var(--spring) both}
 @keyframes fx-pop{0%{transform:perspective(900px) translateY(18px) translateZ(-60px) rotateX(18deg) scale(.82)}55%{transform:perspective(900px) translateY(-6px) translateZ(30px) rotateX(-3deg) scale(1.07)}78%{transform:perspective(900px) scale(.98)}100%{transform:none}}
-.fx-lite .rcard-tap.fx-pop{animation-name:fx-pop-flat}
-@keyframes fx-pop-flat{0%{transform:scale(.85);opacity:.4}60%{transform:scale(1.05);opacity:1}100%{transform:none}}
 .rcard-tap[data-tilt] .rcard{transition:transform 160ms ease-out}
 .rcard-tap[data-tilt] .rcard{transform:rotateX(var(--rx,0deg)) rotateY(var(--ry,0deg))}
 
@@ -36,9 +34,6 @@
 .vt-back{position:absolute;inset:0;border-radius:inherit;transform:rotateY(180deg);backface-visibility:hidden;background:repeating-linear-gradient(45deg,rgba(228,185,78,.16) 0 1px,transparent 1px 9px),#13213A;box-shadow:inset 0 0 0 3px #0A1322,inset 0 0 0 4px rgba(228,185,78,.6)}
 .vtile.fx-a{animation:vt-flip 620ms var(--spring) calc(0ms - var(--age,0ms)) both}
 @keyframes vt-flip{0%{transform:rotateY(180deg) scale(.86)}65%{transform:rotateY(-14deg) scale(1.07)}100%{transform:none}}
-.fx-lite .vtile.fx-a{animation-name:vt-pop}
-.fx-lite .vt-back{display:none}
-@keyframes vt-pop{0%{transform:scale(.8);opacity:0}65%{transform:scale(1.06);opacity:1}100%{transform:none}}
 
 /* quest cards: shuffle in a stack, then pop out one by one, face up */
 .qcards{--w:56px;--gap:8px;perspective:900px}
@@ -50,18 +45,12 @@
 @keyframes qc-pop{0%{transform:translateX(var(--off)) translateY(10px) rotateY(180deg) scale(.9)}55%{transform:translateX(calc(var(--off) * .05)) translateY(-16px) rotateY(-12deg) scale(1.14)}80%{transform:translateY(2px) scale(.97)}100%{transform:none}}
 @keyframes qc-back{from{opacity:1}to{opacity:0}}
 @keyframes qc-ico{from{opacity:0}to{opacity:1}}
-.fx-lite .qcards.fx-q .flip{animation:qc-flat 260ms ease-out calc(var(--i) * var(--step) - var(--age,0ms)) both}
-.fx-lite .qcards.fx-q .flip::after{display:none}
-.fx-lite .qcards.fx-q .flip .ico{animation:none}
-@keyframes qc-flat{0%{transform:scale(.7);opacity:0}70%{transform:scale(1.08);opacity:1}100%{transform:none}}
 
 /* the Lantern */
 .lantern-glow{position:absolute;inset:-20px;border-radius:50%;pointer-events:none;background:radial-gradient(circle,rgba(246,217,138,.9),rgba(228,185,78,.35) 45%,transparent 70%);animation:lg 1100ms ease-out calc(0ms - var(--age,0ms)) both;will-change:transform,opacity}
 .servant-lantern.is-glow .ico{animation:lg-icon 1100ms var(--spring) calc(0ms - var(--age,0ms)) both}
 @keyframes lg{0%{transform:scale(.3);opacity:0}25%{opacity:1}100%{transform:scale(1.9);opacity:0}}
 @keyframes lg-icon{0%{transform:scale(1)}30%{transform:scale(1.5)}100%{transform:scale(1)}}
-.fx-lite .lantern-glow{animation-name:lg-flat}
-@keyframes lg-flat{0%,100%{opacity:0}30%{opacity:1}}
 
 /* seals and number rolls */
 .seal.is-pop{animation:seal-pop 700ms var(--spring) both}
@@ -78,8 +67,8 @@
 .glass::after{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;border-radius:inherit;
   background:radial-gradient(closest-side at 35% 25%,rgba(255,255,255,.14),rgba(255,255,255,0));transform:translate(calc(var(--hx,-.4) * 14%),calc(var(--hy,-.4) * 14%));transition:transform 160ms ease-out}
 @supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){.glass{background:var(--glass-solid)}}
-.fx-lite .glass{-webkit-backdrop-filter:none;backdrop-filter:none;background:var(--glass-solid)}
-.fx-lite .glass::after{display:none}
+.fx-noblur .glass{-webkit-backdrop-filter:none;backdrop-filter:none;background:var(--glass-solid)}
+.fx-noblur .glass::after{display:none}
 
 /* ---------------------------------------------------------------- the victory card */
 .fx-victory{position:absolute;inset:0;display:grid;place-items:center;padding:16px;background:rgba(6,11,20,.4)}
@@ -106,12 +95,6 @@
 .is-fx .vc-roles li{animation:vc-chip 420ms var(--spring) calc(650ms + var(--i) * 45ms) both;will-change:transform,opacity}
 @keyframes vc-in{0%{transform:translateY(60px) translateZ(-160px) rotateX(38deg) scale(.7);opacity:0}30%{opacity:1}58%{transform:translateY(-10px) translateZ(20px) rotateX(-6deg) scale(1.06)}80%{transform:rotateX(2deg) scale(.985)}100%{transform:none;opacity:1}}
 @keyframes vc-chip{0%{transform:rotateX(90deg) scale(.8);opacity:0}100%{transform:none;opacity:1}}
-.fx-lite .vc-tilt{transform:none;transform-style:flat}
-.fx-lite .vc-crest,.fx-lite .vc-tilt h2,.fx-lite .vc-status{transform:none}
-.fx-lite .is-fx .vc-wrap{animation-name:vc-in-flat}
-.fx-lite .is-fx .vc-roles li{animation-name:vc-chip-flat}
-@keyframes vc-in-flat{0%{transform:scale(.8);opacity:0}60%{transform:scale(1.04);opacity:1}100%{transform:none}}
-@keyframes vc-chip-flat{from{opacity:0}to{opacity:1}}
 
 /* animations off (reduced motion or host toggle): nothing moves, everything is still readable */
 .fx-off .vc-tilt{transform:none;transition:none}

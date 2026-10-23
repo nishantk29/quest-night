@@ -2,16 +2,17 @@
 // card. CSS 3D transforms only; only transform and opacity are animated; will-change exists only while
 // something is animating; nothing loops (tilt reacts to pointer/device events through one rAF).
 // Everything here is cosmetic and runs on public information (or the viewer's own card on their own phone).
-// Off when the OS asks for reduced motion or the host switches animations off; flat and lighter on weak phones.
+// Off only when the OS asks for reduced motion or the host switches animations off (no core-count check: iPhones
+// report 4 cores). The one downgrade left: no blur on phones reporting <=2 GB (navigator.deviceMemory, Android Chrome).
 
 const KEY = 'quest.fx';
 const root = document.documentElement;
 const mq = window.matchMedia?.('(prefers-reduced-motion: reduce)');
 const store = { get: () => { try { return localStorage.getItem(KEY); } catch { return null; } }, set: (v) => { try { localStorage.setItem(KEY, v); } catch { /* blocked */ } } };
-const lite = (navigator.hardwareConcurrency || 99) <= 4 || (navigator.deviceMemory || 99) <= 4;
+const noBlur = (navigator.deviceMemory || 99) <= 2;
 let userOn = store.get() !== '0';
 const enabled = () => userOn && !mq?.matches;
-const sync = () => { root.classList.toggle('fx-off', !enabled()); root.classList.toggle('fx-lite', lite); };
+const sync = () => { root.classList.toggle('fx-off', !enabled()); root.classList.toggle('fx-noblur', noBlur); };
 mq?.addEventListener?.('change', sync);
 sync();
 
@@ -48,7 +49,7 @@ const st = (key) => { const a = on(key); return a < 0 ? '' : ` style="--age:${a}
 const PALETTE = { gold: ['#E4B94E', '#F6D98A', '#F3EAD3', '#EFC96A'], red: ['#F46E62', '#A8312B', '#F6D98A', '#FFD6CF'], blue: ['#8EBAF3', '#2E5A94', '#F6D98A', '#DCE9FB'] };
 function burst(x, y, kind = 'gold', n = 16) {
   if (!enabled()) return;
-  const count = Math.min(MAX_PARTS, lite ? Math.ceil(n / 3) : n); const L = $layer(); const cols = PALETTE[kind] || PALETTE.gold;
+  const count = Math.min(MAX_PARTS, n); const L = $layer(); const cols = PALETTE[kind] || PALETTE.gold;
   for (let i = 0; i < count; i++) {
     const p = document.createElement('i'); p.className = `fx-p ${kind === 'gold' || i % 3 ? 'spark' : 'chip'}`;
     p.style.cssText = `left:${x}px;top:${y}px;background:${cols[i % cols.length]}`;
@@ -77,9 +78,7 @@ function stamp(text, tone = 'red') {
   if (!enabled()) return;
   const s = Object.assign(document.createElement('div'), { className: `fx-stamp is-${tone}`, textContent: text });
   s.setAttribute('aria-hidden', 'true'); $layer().appendChild(s);
-  const flat = lite;
-  play(s, flat ? [{ transform: 'translate(-50%,-50%) rotate(-9deg) scale(1.3)', opacity: 0 }, { transform: 'translate(-50%,-50%) rotate(-9deg) scale(1)', opacity: 1, offset: 0.2 }, { opacity: 1, offset: 0.8 }, { transform: 'translate(-50%,-50%) rotate(-9deg) scale(1)', opacity: 0 }]
-    : [{ transform: 'translate(-50%,-50%) rotate(-9deg) scale(2.6)', opacity: 0 }, { transform: 'translate(-50%,-50%) rotate(-9deg) scale(.9)', opacity: 1, offset: 0.2, easing: 'cubic-bezier(.3,1.6,.5,1)' },
+  play(s, [{ transform: 'translate(-50%,-50%) rotate(-9deg) scale(2.6)', opacity: 0 }, { transform: 'translate(-50%,-50%) rotate(-9deg) scale(.9)', opacity: 1, offset: 0.2, easing: 'cubic-bezier(.3,1.6,.5,1)' },
       { transform: 'translate(-50%,-50%) rotate(-9deg) scale(1)', opacity: 1, offset: 0.3 }, { transform: 'translate(-50%,-50%) rotate(-9deg) scale(1)', opacity: 1, offset: 0.8 }, { transform: 'translate(-50%,-50%) rotate(-9deg) scale(1.04)', opacity: 0 }],
   { duration: 1200, easing: 'ease-out' }).then(() => s.remove());
   setTimeout(shake, 240);
@@ -108,7 +107,7 @@ document.addEventListener('animationend', (e) => { if (e.target.classList?.conta
 let tiltEl = null; let tiltRaf = 0; let tiltXY = null;
 const CARDS = '[data-tilt], .stage, .track, .reveal, .round, .winner, .path'; // [data-tilt] = the secret card and victory card
 const setTilt = (el, nx, ny) => { // nx, ny in -1..1
-  const k = lite ? 0 : el.matches('[data-tilt]') ? 7 : 3; // big section cards tilt gently
+  const k = el.matches('[data-tilt]') ? 7 : 3; // big section cards tilt gently
   el.style.setProperty('--ry', `${(nx * k).toFixed(2)}deg`); el.style.setProperty('--rx', `${(-ny * k).toFixed(2)}deg`);
   el.style.setProperty('--hx', nx.toFixed(2)); el.style.setProperty('--hy', ny.toFixed(2));
 };
@@ -136,10 +135,10 @@ const onSensor = (e) => {
   sensorXY = [x, y]; if (!sensorRaf) sensorRaf = raf(sensorTick);
 };
 function startSensor() {
-  if (sensor || lite || !enabled() || !window.DeviceOrientationEvent) return; sensor = true;
+  if (sensor || !enabled() || !window.DeviceOrientationEvent) return; sensor = true;
   addEventListener('deviceorientation', onSensor, { passive: true });
 }
-if (!lite && window.DeviceOrientationEvent) {
+if (window.DeviceOrientationEvent) {
   if (typeof DeviceOrientationEvent.requestPermission === 'function') {
     document.addEventListener('pointerup', () => { DeviceOrientationEvent.requestPermission().then((r) => { if (r === 'granted') startSensor(); }).catch(() => {}); }, { once: true });
   } else startSensor();
@@ -176,7 +175,7 @@ function victory(o) {
   const on_ = enabled();
   el.classList.toggle('is-fx', on_);
   if (on_) {
-    if (!lite && window.DeviceOrientationEvent && typeof DeviceOrientationEvent.requestPermission !== 'function') addEventListener('deviceorientation', orient, { passive: true });
+    if (window.DeviceOrientationEvent && typeof DeviceOrientationEvent.requestPermission !== 'function') addEventListener('deviceorientation', orient, { passive: true });
     raf(() => { const [x, y] = centre(vic?.tilt); burst(x, y - 60, 'gold', 20); });
     setTimeout(() => el.classList.remove('is-fx'), 1500); // will-change (in the .is-fx rules) ends with the pop
   }
@@ -184,7 +183,7 @@ function victory(o) {
 }
 
 export const fx = {
-  enabled, lite, mark, on, st, cue, burst, burstAt, shake, stamp, glow, rolls, victory, closeVictory,
+  enabled, mark, on, st, cue, burst, burstAt, shake, stamp, glow, rolls, victory, closeVictory,
   isUserOn: () => userOn,
   setUserOn(v) { userOn = !!v; store.set(v ? '1' : '0'); sync(); },
   after(rootEl) { rolls(rootEl); },
