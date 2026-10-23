@@ -119,6 +119,23 @@ test('motion CSS is gated: @supports, reduced motion and the Animations switch',
   assert.match(read('js/app.js'), /fx\.enabled\(\) && canTransition/);
 });
 
+test('every startViewTransition use handles aborted transitions and still paints', () => {
+  const files = fs.readdirSync(new URL('../public/js/', import.meta.url)).filter((f) => f.endsWith('.js'));
+  const uses = files.flatMap((f) => [...read(`js/${f}`).matchAll(/startViewTransition\(/g)].map(() => f));
+  assert.ok(uses.length > 0, 'expected at least one startViewTransition call');
+  for (const f of new Set(uses)) {
+    const src = read(`js/${f}`);
+    const call = src.indexOf('startViewTransition(');
+    const block = src.slice(src.lastIndexOf('try {', call), src.indexOf('catch {', call) + 'catch { clearTimeout(guard); once(); }'.length);
+    assert.match(block, /^try \{/, `${f}: startViewTransition must be wrapped in try/catch`);
+    assert.match(block, /catch \{ clearTimeout\(guard\); once\(\); \}$/, `${f}: a synchronous throw must still paint`);
+    for (const p of ['ready', 'updateCallbackDone', 'finished']) {
+      assert.match(block, new RegExp(`vt\\.${p}\\b`), `${f}: ${p} must be observed`);
+      assert.match(block, new RegExp(`p\\.catch\\(`), `${f}: ${p} rejection must be caught`);
+    }
+  }
+});
+
 test('theme display font is declared and preloaded', () => {
   assert.match(read('theme.css'), /--font-display:"Rubik"/);
   assert.match(read('styles.css'), /@font-face\{font-family:"Rubik"[^}]*rubik-var\.woff2/);
