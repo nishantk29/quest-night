@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "wrangler dev",
     "test": "node --test test/*.test.js",
-    "deploy": "node -e \"const f=require('fs'),s='public/sw.js',q=String.fromCharCode(39);f.writeFileSync(s,f.readFileSync(s,'utf8').replace(/const VERSION = '[^']*'/,'const VERSION = '+q+'quest-'+Date.now()+q))\" && wrangler deploy"
+    "deploy": "wrangler deploy"
   },
   "devDependencies": {
     "wrangler": "^4"
