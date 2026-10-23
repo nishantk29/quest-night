@@ -360,8 +360,6 @@ html[data-phase="night"] .phase-badge .ui-ico{color:var(--town)}
 .side-tag::before{content:"";width:10px;height:10px;border-radius:50%;border:2px solid var(--team)}
 .side-tag.a-evil::before{border:3px double var(--team)}
 
-.home .wordmark{letter-spacing:.01em}
-.home .wordmark span{display:block;color:var(--brass);font-size:.42em;letter-spacing:.32em;font-weight:700;margin-top:.35em}
 
 /* game page */
 .wrap.game{max-width:46rem;display:grid;gap:var(--s6)}
@@ -634,7 +632,7 @@ html[data-screen="1"] .round{width:min(100%,620px)}
    red = Minions of Mordred. Every text colour pair below is at least 4.5:1 (checked by scripts/contrast.mjs). */
 :root{
   --room:#0B0B0D; --room-night:#0B0B0D; --panel:#17317E; --panel-2:#10256A; --rule:#3A55AE; --rule-strong:#9DB1EE;
-  --candle:#FFFFFF; --smoke:#CFD8F6; --faint:#B4C0EA;
+  --candle:#FFFFFF; --smoke:#E6EBFB; --faint:#C9D3F2;
   --brass:#FFD25A; --brass-hi:#FFDE82; --brass-lo:#B58E1E; --on-brass:#0E1F5C; --focus:#FFE08A;
   --card:#FFF4E6; --card-ink:#1B1B3A; --lacquer:#0E1A2E;
   --baize:#17317E; --baize-lit:#1F3F9A; --baize-deep:#0E1F5C; --rail:#0B0B0D; --felt-muted:#DDE4F7;

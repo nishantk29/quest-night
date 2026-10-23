@@ -65,7 +65,8 @@ function screen() {
 
 function home() {
   const mine = Object.keys(localStorage).filter((k) => k.startsWith(`${KEY}.player.`)).map((k) => k.slice(KEY.length + 8));
-  const seals = [['ok', 'chalice'], ['bad', 'broken'], ['ok', 'chalice'], ['now', 'crown'], ['wait', '']].map(([c, a]) => `<span class="hseal ${c}">${a ? art(a) : ''}</span>`).join('');
+  // a sample quest track at 5 players: seal size follows party size, the last two show their quest's party size
+  const seals = QUEST_SIZES[5].map((n, i) => `<span class="hseal ${['ok', 'bad', 'ok', 'now', 'wait'][i]}" style="--n:${n}">${i < 3 ? art(['chalice', 'broken', 'chalice'][i]) : n}</span>`).join('');
   return `<main class="wrap home">
     <div class="home-hero">
       <div class="home-art" aria-hidden="true">${seals}</div>
