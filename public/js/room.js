@@ -156,8 +156,8 @@ function gameReduce(room, actor, msg, rng, now) {
       if (room.mode.cards !== 'app') return err('Quest cards are played at the table in this game.');
       if (!me || !g.team.includes(me.id)) return err('Only the quest team plays cards.');
       if (me.id in g.cards) return err('You have already played your card.');
-      const sabotage = !!msg.sabotage;
-      if (sabotage && g.roles && sideOf(g.roles[me.id]) === 'good') return err('The Loyal Servants can only play Success.');
+      // A Loyal Servant's Sabotage silently counts as Success: no error, so their phone moves on exactly like everyone's.
+      const sabotage = !!msg.sabotage && !(g.roles && sideOf(g.roles[me.id]) === 'good');
       g.cards[me.id] = sabotage;
       if (Object.keys(g.cards).length >= g.team.length) resolveQuest(room, Object.values(g.cards).filter(Boolean).length, now);
       return ok();

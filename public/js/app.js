@@ -728,8 +728,8 @@ async function act(a, el) {
     case 'propose': if (el.classList.contains('disabled')) { toast('Choose the whole party first.'); return; } send({ type: 'propose' }); return;
     case 'vote': haptic(15); send({ type: 'vote', approve: d.v === '1' }); return;
     case 'play':
-      if (d.v === '1' && S.view?.me?.role?.side === 'good') { toast('The Loyal Servants can only play Success.'); return; }
-      haptic(15); send({ type: 'play', sabotage: d.v === '1' }); return;
+      // Same buzz and same next screen for both buttons; a Loyal Servant's Sabotage counts as Success (the room enforces it too).
+      haptic(15); send({ type: 'play', sabotage: d.v === '1' && S.view?.me?.role?.side !== 'good' }); return;
     case 'piece': send({ type: 'mode', mode: { play: 'hybrid', [d.k]: d.v } }); return;
     case 'tallyToggle': S.ui.tally[d.id] = !S.ui.tally[d.id]; render(); return;
     case 'tallySend': send({ type: 'tally', approve: Object.keys(S.ui.tally).filter((k) => S.ui.tally[k]) }); return;
