@@ -198,7 +198,7 @@ export function wireFaqSearch(root) {
   root.addEventListener('input', (e) => {
     if (e.target.dataset.faq !== 'search') return;
     const q = e.target.value.trim().toLowerCase(); let any = false;
-    for (const d of root.querySelectorAll('.faq-q')) { const hit = !q || d.textContent.toLowerCase().includes(q); d.hidden = !hit; if (hit) any = true; if (q && hit) d.open = true; }
+    for (const d of root.querySelectorAll('.faq-q')) { const hit = !q || d.textContent.toLowerCase().includes(q); d.hidden = !hit; if (hit) any = true; if (q && hit && !d.open) { d.open = true; d.dataset.s = '1'; } if (!q && d.dataset.s) { d.open = false; delete d.dataset.s; } }
     for (const s of root.querySelectorAll('.faq-group')) s.hidden = ![...s.querySelectorAll('.faq-q')].some((d) => !d.hidden);
     const none = root.querySelector('[data-faq="none"]'); if (none) none.hidden = any;
   });

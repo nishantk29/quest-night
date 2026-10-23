@@ -223,6 +223,7 @@ function gameReduce(room, actor, msg, rng, now) {
     case 'again': case 'abandon': {
       if (!isHost) return err('Only the host can do that.');
       if (msg.type === 'again' && room.phase !== 'over') return err('Finish this game first.');
+      for (const p of room.players) p.watch = !!(p.host && room.house.sitOut); // late watchers get a seat in the next game
       room.game = null; room.phase = 'lobby'; room.undo = []; room.timer = null; room.talk = null; room.paused = null;
       if (msg.type === 'abandon') log(room, 'host', 'The host ended the game.', null, now);
       return ok();
