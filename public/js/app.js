@@ -9,6 +9,10 @@ import { askConfirm, makeTable, faqPage, wireFaqSearch } from './table_ui.js';
 import { roleCards, ROLE_CARD, PIECES as CARD_PIECES } from './cards.js';
 import { FAQ } from './faq.js';
 import { fx } from './fx.js';
+import { createReveal } from './reveal.js';
+import { haptic, createWakeLock, wantsWakeLock, canFullscreen, enterFullscreen } from './device.js';
+import { screenKey, canTransition, stepAt } from './motion.js';
+import { qrSvg } from './qr.js';
 
 const $app = document.getElementById('app');
 const $toast = document.getElementById('toast');
@@ -30,11 +34,23 @@ let toastT;
 function toast(m) { $toast.textContent = String(m); $toast.classList.add('on'); clearTimeout(toastT); toastT = setTimeout(() => $toast.classList.remove('on'), 3200); }
 
 // ---------------------------------------------------------------- render
-let pending = false;
+let pending = false; let lastKey = null; let vtBusy = false;
 function render() {
   const a = document.activeElement;
   if (a && $app.contains(a) && /^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName) && a.type !== 'checkbox' && a.type !== 'radio') { pending = true; return; }
   pending = false;
+  if (vtBusy) return; // the pending transition paints the latest state when it starts
+  const key = screenKey(S);
+  const animate = lastKey !== null && key !== lastKey && fx.enabled() && canTransition();
+  lastKey = key;
+  if (!animate) { paint(); return; }
+  vtBusy = true;
+  // If the browser never calls back (tab hidden mid-transition), paint anyway so the screen can't freeze.
+  let painted = false; const once = () => { if (painted) return; painted = true; vtBusy = false; paint(); };
+  const guard = setTimeout(once, 500);
+  try { document.startViewTransition(() => { clearTimeout(guard); once(); }).finished.catch(() => {}); } catch { clearTimeout(guard); once(); }
+}
+function paint() {
   const y = window.scrollY;
   $html.dataset.phase = S.view?.phase || S.mode;
   $html.dataset.screen = S.mode === 'screen' ? '1' : '';
@@ -43,7 +59,12 @@ function render() {
   window.scrollTo(0, y);
   fx.after($app);
   for (const el of $app.querySelectorAll('[data-scroll]')) el.scrollTop = el.scrollHeight;
+  const how = $app.querySelector('.how');
+  if (how && S.ui.how) how.scrollLeft = S.ui.how * stepOf(how);
+  wake.set(wantsWakeLock(S.view));
 }
+const wake = createWakeLock();
+const stepOf = (how) => (how.children[1] ? how.children[1].offsetLeft - how.children[0].offsetLeft : how.clientWidth);
 document.addEventListener('focusout', () => { if (pending) setTimeout(render, 50); });
 const OWN_ICONS = ['table', 'crown']; // tab-bar icons drawn for Quest Night instead of the stock set
 const T = makeTable({ S, send, esc, ui: (n, c) => (OWN_ICONS.includes(n) ? art(n, c) : ui(n, c)), toast, render });
@@ -52,7 +73,7 @@ function screen() {
   if (S.fatal) return `<main class="wrap"><div class="empty">${ui('warning')}<h1 class="phase-title">${esc(S.fatal)}</h1><a class="btn big" href="#/">Go to the home page</a></div></main>`;
   if (S.mode === 'home') return home();
   if (S.mode === 'rules') return rulesPage();
-  if (S.mode === 'faq') return faqPage(FAQ, esc, ui);
+  if (S.mode === 'faq') return faqPage(FAQ, esc, ui, 'Rules & FAQ');
   const banner = !S.conn ? `<div class="banner" role="status">${ui('wifi-off')} Reconnecting to the room…</div>` : '';
   const v = S.view;
   if (!v) {
@@ -74,26 +95,27 @@ function home() {
       <div class="home-art" aria-hidden="true">${seals}</div>
       <h1 class="wordmark"><span>Quest</span> <span>Night</span></h1>
       <p class="tagline">A table of servants. A few minions.</p>
-      <p class="lede">Pick a party for each quest, vote it through, and find out who sabotaged it. For 5 to 10 players, on phones, with real cards, or both.</p>
+      <p class="lede">Pick a party for each quest, vote it through, and find out who sabotaged it. For 5–10 players. Play on phones, with real cards, or both.</p>
     </div>
     <div class="home-paths">
-      <section class="path"><h2 class="path-title">Host a table</h2>
-        <p class="muted">You can play too, or sit out as the storyteller. Everyone else joins with a 6‑letter code.</p>
-        <label class="field"><span>Your name</span><input data-i="hostName" maxlength="20" autocomplete="nickname" enterkeyhint="go" value="${esc(S.ui.draft.hostName || store.get(`${KEY}.name`) || '')}"></label>
-        <button type="button" class="btn big" data-a="host">Open a table</button>
+      <section class="path"><h2 class="path-title">Host a Table</h2>
+        <p class="muted">You’re the Host. Play too, or sit out. Everyone else joins with a 6-letter room code.</p>
+        <label class="field"><span>Your Name</span><input data-i="hostName" maxlength="20" autocomplete="nickname" enterkeyhint="go" value="${esc(S.ui.draft.hostName || store.get(`${KEY}.name`) || '')}"></label>
+        <button type="button" class="btn big" data-a="host">Open Table</button>
         ${mine.map((c) => `<p class="resume-row"><a class="resume" href="#/play/${esc(c)}">Back to table <b class="code">${esc(c)}</b></a></p>`).join('')}</section>
-      <section class="path"><h2 class="path-title">Join a table</h2>
-        <div class="join-row"><label class="field"><span>Room code</span><input class="code-input" data-i="joinCode" maxlength="6" autocapitalize="characters" autocomplete="off" spellcheck="false" enterkeyhint="go" placeholder="6 letters" value="${esc(S.ui.draft.joinCode || '')}"></label>
-        <button type="button" class="btn" data-a="goJoin">Join</button></div></section>
-      <a class="side-card" href="#/faq"><span><b>Rules &amp; FAQ</b><small>Roles, table sizes and what to do when it gets weird.</small></span>${CHEV}</a>
+      <section class="path"><h2 class="path-title">Join a Table</h2>
+        <div class="join-row"><label class="field"><span>Room Code</span><input class="code-input" data-i="joinCode" maxlength="6" autocapitalize="characters" autocomplete="off" spellcheck="false" enterkeyhint="go" placeholder="6 letters" value="${esc(S.ui.draft.joinCode || '')}"></label>
+        <button type="button" class="btn" data-a="goJoin">Join Table</button></div></section>
+      <a class="side-card" href="#/faq"><span><b>Rules &amp; FAQ</b><small>Roles, table sizes, and what to do when it gets weird.</small></span>${CHEV}</a>
       <section class="how-sec"><h2 class="block-title">How to Play</h2>
-        <ol class="how">
+        <div class="how-wrap"><ol class="how" tabindex="0" aria-label="How to play. Swipe for the next step.">
           <li><h3>Join</h3><p>Everyone joins with the 6-letter code. Each player gets a secret card: Loyal Servant or Minion of Mordred.</p></li>
           <li><h3>Choose</h3><p>The leader (the crown) picks a party. Everyone votes, and a strict majority sends it out.</p></li>
           <li><h3>Quest</h3><p>Party members play Success or Sabotage face down. One Sabotage fails the quest, or two on quest 4 with 7+ players.</p></li>
           <li><h3>Win</h3><p>Three successful quests win for the Loyal Servants, unless the Assassin names Merlin. Three failed quests, or five rejected parties in a row, win for the Minions.</p></li>
-        </ol></section>
-      <p class="home-faq"><a class="link tiny" href="/print.html" target="_blank" rel="noopener">Print cards</a></p>
+        </ol>
+        <div class="dots" role="group" aria-label="How to play steps">${['Join', 'Choose', 'Quest', 'Win'].map((t, i) => `<button type="button" data-a="howGo" data-i="${i}" aria-label="Step ${i + 1}: ${t}" aria-current="${(S.ui.how || 0) === i}"></button>`).join('')}</div></div></section>
+      <p class="home-faq"><a class="link tiny" href="/print.html" target="_blank" rel="noopener">Print Cards</a></p>
     </div>
     <p class="credits">Same table as <a href="https://mafia-app.hatethespurs.workers.dev">Mafia Night</a> and <a href="https://council-night.hatethespurs.workers.dev">Council Night</a>. Crown, chalice, lantern and crest icons drawn for Quest Night. Role icons from <a href="https://game-icons.net" target="_blank" rel="noopener">game-icons.net</a> by Lorc, Delapouite and contributors (<a href="https://creativecommons.org/licenses/by/3.0/" target="_blank" rel="noopener">CC BY 3.0</a>) and <a href="https://phosphoricons.com" target="_blank" rel="noopener">Phosphor</a> (MIT). Font: Rubik (SIL OFL).</p>
   </main>`;
@@ -102,35 +124,35 @@ function home() {
 function rulesPage() {
   const rows = Object.keys(QUEST_SIZES).map((n) => `<tr><td>${n}</td><td>${n - EVIL_COUNT[n]} / ${EVIL_COUNT[n]}</td><td>${QUEST_SIZES[n].map((s, i) => (n >= 7 && i === 3 ? `${s}*` : s)).join(' · ')}</td></tr>`).join('');
   const role = (id, extra) => `<li class="a-${ROLES[id].side}">${glyph(ROLES[id].icon)}<span><b>${ROLES[id].name}</b><small>${esc(extra)} · card ${ROLE_CARD[id]}</small></span></li>`;
-  return `<main class="wrap game">
-    <p><a class="link" href="#/">${ui('back')} Home</a> · <a class="link" href="#/faq">FAQ</a></p>
-    <section class="stage"><h1 class="phase-title">How to play</h1>
+  return `<main class="wrap game rules-page">
+    <p><a class="link" href="#/">${ui('back')} Home</a> · <a class="link" href="#/faq">Rules &amp; FAQ</a></p>
+    <section class="stage"><h1 class="phase-title">How to Play</h1>
       <p>Everyone gets a secret card. Most of you are <b class="t-good">the Loyal Servants</b>. A few are <b class="t-evil">the Minions of Mordred</b>, and they know each other.</p>
       <p>Each round a <b>leader</b> (the crown) picks a party for the quest. Everyone votes to approve or reject it, and the votes are shown together. A strict majority sends the party out; otherwise the crown passes left. <b>Five rejected parties in a row and the Minions of Mordred win.</b></p>
       <p>On a quest each member plays a card face down: Loyal must play <b>Success</b>, Evil may play <b>Sabotage</b>. One sabotage breaks the quest, except quest 4 at 7+ players, which needs two (marked *).</p>
       <p>Three successful quests and the Loyal Servants of Arthur win, unless Merlin is in play: then the Assassin gets one last strike, and naming Merlin steals the game.</p>
       <p><b>The Lantern</b> (optional): after quests 2, 3 and 4 its holder secretly learns one player’s side, and the Lantern passes to them. Nobody who has held it can be looked at.</p>
     </section>
-    <section class="stage"><h2 class="block-title">Table sizes</h2>
-      <table class="sizes"><thead><tr><th>Players</th><th>Loyal / Evil</th><th>Quest parties</th></tr></thead><tbody>${rows}</tbody></table></section>
+    <section class="stage"><h2 class="block-title">Table Sizes</h2>
+      <table class="sizes"><thead><tr><th>Players</th><th>Loyal / Evil</th><th>Quest Parties</th></tr></thead><tbody>${rows}</tbody></table></section>
     <section class="stage"><h2 class="block-title">Cards</h2><ul class="roles-list">
       ${role('servant', 'No special knowledge')}${role('merlin', 'Sees Evil (not Mordred)')}${role('percival', 'Sees Merlin and Morgana, not which is which')}
       ${role('minion', 'Knows Evil')}${role('assassin', 'Last strike at Merlin')}${role('morgana', 'Looks like Merlin to Percival')}
       ${role('mordred', 'Hidden from Merlin')}${role('oberon', 'Evil, but alone and unknown')}</ul>
-      <p class="muted">Playing with a regular deck? <a href="/print.html" target="_blank" rel="noopener">Print the card guide</a> (every table size, with the eyes-closed script).</p></section>
+      <p class="muted">Playing with a regular deck? <a href="/print.html" target="_blank" rel="noopener">Print the card guide</a>. It covers every table size, with the eyes-closed script.</p></section>
   </main>`;
 }
 
 function joinForm() {
-  return `<main class="wrap join"><h1 class="phase-title">Join table <span class="code">${esc(S.code)}</span></h1>
-    <label class="field"><span>Your name</span><input data-i="joinName" maxlength="20" autocomplete="nickname" enterkeyhint="go" value="${esc(S.ui.draft.joinName || store.get(`${KEY}.name`) || '')}"></label>
-    <button type="button" class="btn big" data-a="join">Take a seat</button>
-    <p class="muted" style="margin-top:var(--s4)">If the game has started you’ll watch, unless the host opened a seat for you. <a href="#/">Back</a></p></main>`;
+  return `<main class="wrap join"><h1 class="phase-title">Join Table <span class="code">${esc(S.code)}</span></h1>
+    <label class="field"><span>Your Name</span><input data-i="joinName" maxlength="20" autocomplete="nickname" enterkeyhint="go" value="${esc(S.ui.draft.joinName || store.get(`${KEY}.name`) || '')}"></label>
+    <button type="button" class="btn big" data-a="join">Take a Seat</button>
+    <p class="muted" style="margin-top:var(--s4)">If the game has started, you’ll watch unless the Host opens a seat for you. <a href="#/">Back</a></p></main>`;
 }
 
 // Phase badges use the icons drawn for Quest Night (art.js), not the stock set.
-const PHASE = { lobby: ['Gathering', 'table'], reveal: ['Secret cards', 'good'], propose: ['Choosing a party', 'crown'], vote: ['Vote', 'approve'],
-  quest: ['On the quest', 'chalice'], lantern: ['The Lantern', 'lantern'], assassin: ['Last strike', 'broken'], over: ['Game over', 'chalice'] };
+const PHASE = { lobby: ['Lobby', 'table'], reveal: ['Secret Cards', 'good'], propose: ['Choosing a Party', 'crown'], vote: ['Vote', 'approve'],
+  quest: ['On the Quest', 'chalice'], lantern: ['The Lantern', 'lantern'], assassin: ['Last Strike', 'broken'], over: ['Game Over', 'chalice'] };
 function appbar(v) {
   const [label, icon] = PHASE[v.phase] || ['', 'crown'];
   return `<header class="appbar"><a class="appbar-mark" href="#/" aria-label="Home">${art('crown')}</a>
@@ -149,7 +171,7 @@ function layout(v) {
   const sideKey = ['chat', 'tools', 'host'].includes(tab) ? tab : S.ui.side;
   const side = sideKey === 'tools' ? T.toolsPane(v) : sideKey === 'host' ? hostPane(v) : T.chatPane(v);
   return `<div class="layout" data-tab="${tab}">
-    <main class="col col-main wrap game" data-pane="game">${v.paused ? `<p class="note is-warn">${ui('pause')} The host paused the game.</p>` : ''}${main}</main>
+    <main class="col col-main wrap game" data-pane="game">${v.paused ? `<p class="note is-warn">${ui('pause')} The Host paused the game.</p>` : ''}${main}</main>
     <aside class="col col-log" data-pane="log">${T.logPane(v, v.game ? chronicle(v) : '')}</aside>
     <aside class="col col-side" data-pane="side"><div class="seg side-seg" role="tablist">${sideTabs.map(([k, l]) => `<button type="button" role="tab" data-a="side" data-v="${k}" aria-selected="${sideKey === k}">${l}</button>`).join('')}</div>${side}</aside>
   </div>${T.tabbar(v)}`;
@@ -160,7 +182,7 @@ function gameMain(v) {
   return [track(v), roundTable(v), stage(v), lastReveals(v), myCardBlock(v)].join('');
 }
 
-// ---------------------------------------------------------------- lobby (the setup part of the host dashboard)
+// ---------------------------------------------------------------- lobby (the setup part of the Host dashboard)
 const OPT_TEXT = {
   merlin: ['Merlin and the Assassin', 'Merlin sees Evil; the Assassin gets one last strike at them.', 'merlin'],
   percival: ['Percival', 'Knows who might be Merlin.', 'percival'],
@@ -168,26 +190,26 @@ const OPT_TEXT = {
   mordred: ['Mordred', 'An evil player Merlin can’t see.', 'mordred'],
   oberon: ['Oberon', 'An evil player nobody knows, who knows nobody.', 'oberon'],
 };
-const MODES = [['phone', 'Phones only', 'Every player uses their phone. Works for online play too.'],
+const MODES = [['phone', 'Phones Mode', 'Every player uses their own phone. Your role and cards stay hidden until you hold to reveal. Works online too.'],
   ['hybrid', 'Hybrid', 'Mix real cards and phones. Choose each piece below.'],
-  ['physical', 'All physical', 'Real cards on the table. This phone is the board, tracker and storyteller.']];
-const PIECE_TEXT = { roles: ['Secret cards', 'role'], votes: ['Approve / reject votes', 'vote'], cards: ['Success / sabotage cards', 'quest card'] };
+  ['physical', 'Host-Only Mode', 'Real cards on the table. This phone is the board and tracker.']];
+const PIECE_TEXT = { roles: ['Secret Cards', 'role'], votes: ['Approve / Reject Votes', 'vote'], cards: ['Success / Sabotage Cards', 'quest card'] };
 const HOUSE = [
-  ['lantern', 'The Lantern', 'Official optional rule: after quests 2, 3 and 4 the holder learns one player’s side. Best at 7+.'],
-  ['anonVotes', 'Anonymous votes', 'Show only the count of approves and rejects, not who voted how.'],
-  ['noClaims', 'No-claims mode', 'Turns off posting claims in the chat. Claims are made out loud.'],
-  ['sitOut', 'Storyteller sits out', 'The host doesn’t get a card and sees the whole deal on their own phone, like a moderator.'],
+  ['lantern', 'The Lantern', 'Official optional rule. After quests 2, 3, and 4, the holder learns one player’s side. Best at 7+.'],
+  ['anonVotes', 'Anonymous Votes', 'Show only the count of approves and rejects, not who voted how.'],
+  ['noClaims', 'No-Claims Mode', 'Turns off posting claims in the chat. Claims are made out loud.'],
+  ['sitOut', 'Host sits out', 'The Host doesn’t get a card and sees the whole deal on their own phone.'],
 ];
 function lobby(v) {
   const me = v.me; const seatedP = v.players.filter((p) => !p.watch); const n = seatedP.length; const host = me.host;
   const link = `${location.origin}/#/play/${v.code}`;
   const list = roleList(Math.max(5, Math.min(10, n)), v.settings);
-  const status = n < MIN_PLAYERS ? `<p class="note is-warn">${ui('info')} ${MIN_PLAYERS - n} more to start (5 to 10 players).</p>`
+  const status = n < MIN_PLAYERS ? `<p class="note is-warn">${ui('info')} ${MIN_PLAYERS - n} more to start (5–10 players).</p>`
     : list.error ? `<p class="note is-warn">${ui('warning')} ${esc(list.error)}</p>`
       : `<p class="note">${ui('check')} ${n - EVIL_COUNT[n]} Loyal and ${EVIL_COUNT[n]} Evil. Parties of ${QUEST_SIZES[n].join(', ')}${n >= 7 ? ' (quest 4 needs two sabotage cards)' : ''}.</p>`;
   const balance = n >= 5 && !list.error ? balanceTips(n, v.settings) : '';
   const seats = v.players.map((p, i) => `<li><span class="n">${p.watch ? '–' : i + 1}</span><span class="dot ${p.online || p.phoneless ? 'on' : ''}" title="${p.phoneless ? 'No phone' : p.online ? 'Connected' : 'Not connected'}"></span>
-      <span class="who">${esc(p.name)}${p.host ? ' <small class="muted">host</small>' : ''}${p.watch ? ' <small class="muted">storyteller</small>' : ''}${p.phoneless ? ' <small class="muted">no phone</small>' : ''}${p.id === me.id ? ' <small class="muted">you</small>' : ''}</span>
+      <span class="who">${esc(p.name)}${p.host ? ' <small class="muted">Host</small>' : ''}${p.watch ? ' <small class="muted">watching</small>' : ''}${p.phoneless ? ' <small class="muted">no phone</small>' : ''}${p.id === me.id ? ' <small class="muted">you</small>' : ''}</span>
       ${host ? `<button class="icon-btn" data-a="move" data-id="${p.id}" data-dir="up" aria-label="Move ${esc(p.name)} up" ${i === 0 ? 'disabled' : ''}>${ui('caret-down', 'flip-up')}</button>
       <button class="icon-btn" data-a="move" data-id="${p.id}" data-dir="down" aria-label="Move ${esc(p.name)} down" ${i === v.players.length - 1 ? 'disabled' : ''}>${ui('caret-down')}</button>
       ${p.host ? '' : `<button class="icon-btn" data-a="kick" data-id="${p.id}" aria-label="Remove ${esc(p.name)}">${ui('x')}</button>`}` : ''}</li>`).join('');
@@ -199,27 +221,28 @@ function lobby(v) {
   const house = HOUSE.map(([k, t, d]) => `<label class="toggle ${v.house[k] ? 'is-on' : ''}"><input type="checkbox" data-a="houseSet" data-k="${k}" ${v.house[k] ? 'checked' : ''} ${host ? '' : 'disabled'}><span><b>${t}</b><span class="muted">${d}</span></span></label>`).join('');
   const sel = (k, opts2) => `<select data-a="houseSel" data-k="${k}" ${host ? '' : 'disabled'}>${opts2.map(([val, l]) => `<option value="${val}" ${String(v.house[k]) === String(val) ? 'selected' : ''}>${l}</option>`).join('')}</select>`;
   const guide = m.roles === 'physical' && n >= 5 && !list.error ? cardGuideBlock(n, v.settings, v.house) : '';
-  return `<section class="join-code"><p class="muted">Room code</p><p class="room-code">${esc(v.code)}</p>
+  return `<section class="join-code"><p class="muted">Room Code</p><p class="room-code">${esc(v.code)}</p>
       <p class="muted join-link">${esc(link)}</p>
-      <div class="btn-row"><button class="btn ghost" data-a="copy" data-link="${esc(link)}">${ui('copy')} Copy invite link</button>
+      ${host ? `<button type="button" class="qr-tap" data-a="qrFull" data-link="${esc(link)}" data-code="${esc(v.code)}" aria-label="Show the join QR code full screen">${qrSvg(link, `QR code to join room ${v.code}`)}<span>Tap for Full Screen</span></button>` : ''}
+      <div class="btn-row"><button class="btn ghost" data-a="copy" data-link="${esc(link)}">${ui('copy')} Copy Link</button>
       ${navigator.share ? `<button class="btn ghost" data-a="share" data-link="${esc(link)}">Share</button>` : ''}</div></section>
-    <section class="stage"><h2 class="block-title">At the table (${n})</h2>
-      <p class="muted">Seat order is the order the crown travels. ${host ? 'Match it to how you are sitting.' : ''}</p>
+    <section class="stage"><h2 class="block-title">At the Table (${n})</h2>
+      <p class="muted">Seat order is the order the crown travels. ${host ? 'Match it to how everyone is sitting.' : ''}</p>
       <ul class="seat-list">${seats}</ul>${status}${balance}
-      ${host ? `<div class="add-seat"><label class="field"><span>Add a seat without a phone</span><input data-i="seatName" maxlength="20" placeholder="Name" enterkeyhint="done" value="${esc(S.ui.draft.seatName || '')}"></label><button class="btn ghost" data-a="addSeat">Add</button></div>
-      <div class="btn-row"><button class="btn ghost" data-a="shuffleSeats">${ui('shuffle')} Shuffle seats</button></div>` : ''}</section>
-    <section class="stage"><h2 class="block-title">How you’re playing</h2><div class="settings">${modes}</div>${pieces}
-      ${m.play !== 'phone' ? `<p class="muted">Real cards: <a href="/print.html" target="_blank" rel="noopener">print the card guide or the Quest Night cards</a>. Anything physical is entered by the host, who never sees a secret.</p>` : ''}</section>
-    <section class="stage"><h2 class="block-title">Special cards</h2>${host ? '' : '<p class="muted">The host picks these.</p>'}
+      ${host ? `<div class="add-seat"><label class="field"><span>Add a Seat Without a Phone</span><input data-i="seatName" maxlength="20" placeholder="Name" enterkeyhint="done" value="${esc(S.ui.draft.seatName || '')}"></label><button class="btn ghost" data-a="addSeat">Add Seat</button></div>
+      <div class="btn-row"><button class="btn ghost" data-a="shuffleSeats">${ui('shuffle')} Shuffle Seats</button></div>` : ''}</section>
+    <section class="stage"><h2 class="block-title">How You’re Playing</h2><div class="settings">${modes}</div>${pieces}
+      ${m.play !== 'phone' ? `<p class="muted">Real cards: <a href="/print.html" target="_blank" rel="noopener">print the card guide or the Quest Night cards</a>. The Host enters anything physical and never sees a secret.</p>` : ''}</section>
+    <section class="stage"><h2 class="block-title">Special Cards</h2>${host ? '' : '<p class="muted">The Host picks these.</p>'}
       <div class="settings">${opts}</div></section>
-    <section class="stage"><h2 class="block-title">House rules</h2><p class="muted">All off unless the host turns them on. The rules stay exactly the classic game otherwise.</p>
+    <section class="stage"><h2 class="block-title">House Rules</h2><p class="muted">All off unless the Host turns them on. Otherwise the rules are the classic game.</p>
       <div class="settings">${house}
-      <label class="toggle"><span><b>Phase timer</b><span class="muted">A countdown starts each phase. Nothing happens at zero; the host decides.</span></span>${sel('turnTimer', [[0, 'Off'], [60, '1 min'], [90, '1:30'], [120, '2 min'], [180, '3 min'], [300, '5 min']])}</label>
-      <label class="toggle"><span><b>Vote reveal delay</b><span class="muted">A short drumroll before votes are shown.</span></span>${sel('revealDelay', [[0, 'Off'], [3, '3 s'], [5, '5 s']])}</label>
-      <label class="toggle"><span><b>First leader</b><span class="muted">Who wears the crown first.</span></span>${sel('firstLeader', [['random', 'Random'], ['host', 'The host']])}</label></div></section>
+      <label class="toggle"><span><b>Phase Timer</b><span class="muted">A countdown starts each phase. Nothing happens at zero. The Host decides.</span></span>${sel('turnTimer', [[0, 'Off'], [60, '1 min'], [90, '1:30'], [120, '2 min'], [180, '3 min'], [300, '5 min']])}</label>
+      <label class="toggle"><span><b>Vote Reveal Delay</b><span class="muted">A short drumroll before votes are shown.</span></span>${sel('revealDelay', [[0, 'Off'], [3, '3 s'], [5, '5 s']])}</label>
+      <label class="toggle"><span><b>First Leader</b><span class="muted">Who wears the crown first.</span></span>${sel('firstLeader', [['random', 'Random'], ['host', 'The Host']])}</label></div></section>
     ${guide}
-    ${host ? `<div class="sticky-act"><button class="btn big ${n < 5 || list.error ? 'disabled' : ''}" data-a="start">${m.roles === 'app' ? 'Deal the cards' : 'Start the game'}</button></div>`
-    : '<div class="empty">Waiting for the host to start…</div>'}`;
+    ${host ? `<div class="sticky-act"><button class="btn big ${n < 5 || list.error ? 'disabled' : ''}" data-a="start">${m.roles === 'app' ? 'Deal Cards' : 'Start Game'}</button></div>`
+    : '<div class="empty">Waiting for the Host to start…</div>'}`;
 }
 
 function balanceTips(n, s) {
@@ -235,7 +258,7 @@ function balanceTips(n, s) {
 function cardGuideBlock(n, settings, house) {
   const rc = roleCards(n, settings);
   if (rc.error) return '';
-  return `<section class="stage"><h2 class="block-title">Playing-card setup for ${n}</h2>
+  return `<section class="stage"><h2 class="block-title">Card Setup for ${n}</h2>
     <p class="muted">Shuffle these ${n} cards and deal one face down to each player. Red is Loyal, black is Evil.</p>
     <ul class="card-key">${rc.cards.map((c) => `<li class="a-${ROLES[c.role].side}"><b class="pc ${/[♥♦]/.test(c.card) ? 'is-red' : ''}">${c.card}</b> ${esc(ROLES[c.role].name)}</li>`).join('')}</ul>
     <ul class="tips">${[CARD_PIECES.approve, CARD_PIECES.reject, CARD_PIECES.success, CARD_PIECES.sabotage, CARD_PIECES.crown, ...(house.lantern ? [CARD_PIECES.lantern, CARD_PIECES.loyalty] : [])].map((t) => `<li>${esc(t)}</li>`).join('')}</ul></section>`;
@@ -259,8 +282,9 @@ function track(v) {
 
 function marksFor(v) {
   const g = v.game; const m = {};
-  for (const k of v.me?.sees || []) m[k.id] = k.tag === 'evil' ? ['is-evil', art('evil'), 'Known Evil'] : ['is-merlin', glyph('merlin'), 'Merlin or Morgana'];
-  for (const k of v.me?.lanternSeen || []) m[k.id] = k.side === 'evil' ? ['is-evil', art('evil'), 'Lantern: Evil'] : ['is-good', art('good'), 'Lantern: Loyal'];
+  // what you know about others is private: it shows on the table only while your card is revealed
+  if (S.ui.showCard) for (const k of v.me?.sees || []) m[k.id] = k.tag === 'evil' ? ['is-evil', art('evil'), 'Known Evil'] : ['is-merlin', glyph('merlin'), 'Merlin or Morgana'];
+  if (S.ui.showCard) for (const k of v.me?.lanternSeen || []) m[k.id] = k.side === 'evil' ? ['is-evil', art('evil'), 'Lantern: Evil'] : ['is-good', art('good'), 'Lantern: Loyal'];
   if (v.moderator) for (const [id, r] of Object.entries(v.moderator.roles)) m[id] = [r.side === 'evil' ? 'is-evil' : 'is-good', glyph(r.icon), r.name];
   if (v.phase === 'vote') for (const id of g.voted) m[id] = ['is-done', ui('check'), 'Has voted'];
   if (v.phase === 'quest') for (const id of g.played) m[id] = ['is-done', ui('check'), 'Has played'];
@@ -319,33 +343,33 @@ function stage(v) {
   const role = me.role; const host = me.host;
   const say = (t) => `<p class="say">${t}</p>`;
   if (v.phase === 'reveal') {
-    if (!g.appRoles || !role) return `<section class="stage"><h1 class="phase-title">Secret cards</h1>${say(g.appRoles ? 'The players are reading their cards.' : 'Everyone looks at their own card. The host reads the eyes-closed script from the Host tab.')}
-      ${host ? '<button class="btn big" data-a="skipReveal">Everyone is ready: start</button>' : ''}</section>`;
+    if (!g.appRoles || !role) return `<section class="stage"><h1 class="phase-title">Secret Cards</h1>${say(g.appRoles ? 'The players are reading their cards.' : 'Everyone looks at their own card. The Host reads the eyes-closed script from the Host tab.')}
+      ${host ? '<button class="btn big" data-a="skipReveal">Everyone Is Ready</button>' : ''}</section>`;
     const ready = g.ready.includes(me.id);
-    return `<section class="stage"><h1 class="phase-title">Your secret card</h1>
-      ${say('Shield your screen, tap the card to turn it over, and remember who you are.')}
+    return `<section class="stage"><h1 class="phase-title">Your Secret Card</h1>
+      ${say('Shield your screen. Hold the card to see it, then let go.')}
       ${cardView(v, true)}
-      ${ready ? '<p class="muted center">Waiting for the others to read their cards…</p>' : '<button class="btn big" data-a="ready">I’ve read my card</button>'}
-      ${host && ready ? '<button class="btn ghost" data-a="skipReveal">Start without waiting</button>' : ''}</section>`;
+      ${ready ? '<p class="muted center">Waiting for the others to read their cards…</p>' : '<button class="btn big" data-a="ready">I’m Ready</button>'}
+      ${host && ready ? '<button class="btn ghost" data-a="skipReveal">Start Without Waiting</button>' : ''}</section>`;
   }
   if (v.phase === 'propose') {
     const leadP = v.players.find((p) => p.id === g.leader);
     const forLeader = host && g.leader !== me.id && (leadP?.phoneless || v.mode.play === 'physical');
-    if (g.leader !== me.id && !forLeader) return `<section class="stage"><h1 class="phase-title">${esc(nameOf(v, g.leader))} is choosing</h1>
+    if (g.leader !== me.id && !forLeader) return `<section class="stage"><h1 class="phase-title">${esc(nameOf(v, g.leader))} Is Choosing</h1>
       ${say(`A party of ${size} for quest ${g.quest + 1}. Argue your case out loud.`)}${g.rejects === g.maxRejects - 1 ? hammer() : ''}</section>`;
     const full = g.team.length === size;
-    return `<section class="stage"><h1 class="phase-title">${forLeader ? `Enter ${esc(nameOf(v, g.leader))}’s party` : 'You wear the crown'}</h1>
+    return `<section class="stage"><h1 class="phase-title">${forLeader ? `Enter ${esc(nameOf(v, g.leader))}’s Party` : 'You Wear the Crown'}</h1>
       ${say(forLeader ? `Tap the ${size} players ${esc(nameOf(v, g.leader))} names for quest ${g.quest + 1}.` : `Tap ${size} servants at the table for quest ${g.quest + 1}. You can choose yourself.`)}
       ${g.rejects === g.maxRejects - 1 ? hammer() : ''}
-      <div class="sticky-act"><button class="btn big ${full ? '' : 'disabled'}" data-a="propose">${full ? 'Put this party to the vote' : `Choose ${size - g.team.length} more`}</button></div></section>`;
+      <div class="sticky-act"><button class="btn big ${full ? '' : 'disabled'}" data-a="propose">${full ? 'Start Vote' : `Choose ${size - g.team.length} More`}</button></div></section>`;
   }
   if (v.phase === 'vote') {
-    const head = `<h1 class="phase-title">Send this party?</h1>${say(`${names(v, g.team)} for quest ${g.quest + 1}, chosen by ${esc(nameOf(v, g.leader))}.`)}${g.rejects === g.maxRejects - 1 ? hammer() : ''}`;
+    const head = `<h1 class="phase-title">Send This Party?</h1>${say(`${names(v, g.team)} for quest ${g.quest + 1}, chosen by ${esc(nameOf(v, g.leader))}.`)}${g.rejects === g.maxRejects - 1 ? hammer() : ''}`;
     if (v.mode.votes === 'physical') {
       if (!host) return `<section class="stage">${head}<p class="note">${ui('hand')} Vote with your cards at the table. On three, everyone turns theirs over.</p></section>`;
       const yes = Object.values(S.ui.tally).filter(Boolean).length;
       return `<section class="stage">${head}<p class="note">${ui('hand')} Tap everyone who showed <b>Approve</b> on the table above, then confirm.</p>
-        <div class="sticky-act"><button class="btn big" data-a="tallySend">Confirm: ${yes} approve, ${g.n - yes} reject</button></div></section>`;
+        <div class="sticky-act"><button class="btn big" data-a="tallySend">Confirm: ${yes} Approve, ${g.n - yes} Reject</button></div></section>`;
     }
     if (me.watch) return `<section class="stage">${head}</section>`;
     const voted = 'vote' in me;
@@ -355,19 +379,19 @@ function stage(v) {
   }
   if (v.phase === 'quest') {
     if (v.mode.cards === 'physical') {
-      const head = `<h1 class="phase-title">The party rides out</h1>${say(`${names(v, g.team)}: each take one Success and one Sabotage card, play one face down. The leader shuffles them and turns them over.`)}`;
+      const head = `<h1 class="phase-title">The Party Rides Out</h1>${say(`${names(v, g.team)}: each take one Success and one Sabotage card, play one face down. The leader shuffles them and turns them over.`)}`;
       if (!host) return `<section class="stage">${head}</section>`;
       return `<section class="stage">${head}<p class="note">How many Sabotage cards were turned up?${g.needs[g.quest] === 2 ? ' This quest needs two to fail.' : ''}</p>
         <div class="btn-row wrap big-nums">${Array.from({ length: g.team.length + 1 }, (_, i) => `<button class="btn ${i ? 'ghost' : ''}" data-a="questResult" data-v="${i}">${i}</button>`).join('')}</div></section>`;
     }
     const onIt = g.team.includes(me.id);
-    if (!onIt) return `<section class="stage"><h1 class="phase-title">The party rides out</h1>${say(`${names(v, g.team)} are choosing their cards in secret.`)}</section>`;
-    if (me.played) return `<section class="stage"><h1 class="phase-title">Card played</h1>${say('Face down and shuffled in. Waiting for the rest of the party.')}</section>`;
-    const good = role ? role.side === 'good' : false;
-    return `<section class="stage"><h1 class="phase-title">Play your card</h1>
-      ${say(!role ? 'Play Success or Sabotage. Loyal players must play Success (honour system: your role is on a real card).' : good ? 'You are Loyal. You can only play Success.' : `You serve Evil. Sabotage${g.needs[g.quest] === 2 ? ' (this quest needs two to fail)' : ''}, or play it safe.`)}
+    if (!onIt) return `<section class="stage"><h1 class="phase-title">The Party Rides Out</h1>${say(`${names(v, g.team)} are choosing their cards in secret.`)}</section>`;
+    if (me.played) return `<section class="stage"><h1 class="phase-title">Card Played</h1>${say('Face down and shuffled in. Waiting for the rest of the party.')}</section>`;
+    // Every player gets the same words and the same two buttons, so a glance at your phone shows nothing about your side.
+    return `<section class="stage"><h1 class="phase-title">Play Your Card</h1>
+      ${say(`Choose in secret. Loyal Servants can only play Success.${g.needs[g.quest] === 2 ? ' This quest needs two Sabotage cards to fail.' : ''}`)}
       <div class="choice-pair"><button class="choice success" data-a="play" data-v="0">${art('chalice')}Success</button>
-      <button class="choice sabotage" data-a="play" data-v="1" ${good ? 'aria-disabled="true"' : ''}>${art('broken')}Sabotage</button></div></section>`;
+      <button class="choice sabotage" data-a="play" data-v="1">${art('broken')}Sabotage</button></div></section>`;
   }
   if (v.phase === 'lantern') {
     const L = g.lantern; const holder = L.holder === me.id;
@@ -376,9 +400,9 @@ function stage(v) {
     return `<section class="stage"><h1 class="phase-title">The Lantern</h1>${say(`${esc(nameOf(v, L.holder))} will look into one player’s heart.`)}</section>`;
   }
   if (v.phase === 'assassin') {
-    if (!g.appRoles) return `<section class="stage"><h1 class="phase-title">The Assassin takes aim</h1>${say('Evil, show your cards. The Assassin names one servant.')}${host ? `<p class="note">Tap who the Assassin named, then say if they were Merlin.</p>${S.ui.strike ? `<div class="choice-pair"><button class="choice no" data-a="strikeSend" data-v="1">They were Merlin</button><button class="choice yes" data-a="strikeSend" data-v="0">Not Merlin</button></div>` : ''}` : ''}</section>`;
+    if (!g.appRoles) return `<section class="stage"><h1 class="phase-title">The Assassin Takes Aim</h1>${say('Evil, show your cards. The Assassin names one servant.')}${host ? `<p class="note">Tap who the Assassin named, then say if they were Merlin.</p>${S.ui.strike ? `<div class="choice-pair"><button class="choice no" data-a="strikeSend" data-v="1">It Was Merlin</button><button class="choice yes" data-a="strikeSend" data-v="0">Not Merlin</button></div>` : ''}` : ''}</section>`;
     if (g.assassin === me.id) return `<section class="stage"><h1 class="phase-title">Name Merlin</h1>${say('Three quests succeeded. Talk it over with Evil, then tap the one you believe is Merlin. You get one strike.')}</section>`;
-    return `<section class="stage"><h1 class="phase-title">The Assassin takes aim</h1>${say(`${g.assassin ? esc(nameOf(v, g.assassin)) : 'The Assassin'} will name one servant. If it is Merlin, the Minions of Mordred win.`)}</section>`;
+    return `<section class="stage"><h1 class="phase-title">The Assassin Takes Aim</h1>${say(`${g.assassin ? esc(nameOf(v, g.assassin)) : 'The Assassin'} will name one servant. If it is Merlin, the Minions of Mordred win.`)}</section>`;
   }
   if (v.phase === 'over') return over(v);
   return '';
@@ -394,8 +418,8 @@ function over(v) {
   const roles = g.roles ? v.players.filter((p) => g.roles[p.id]).map((p) => { const r = g.roles[p.id]; return `<li class="a-${r.side}">${glyph(r.icon)}<span><b>${esc(p.name)}</b><small>${esc(r.name)}</small></span></li>`; }).join('') : '';
   return `<section class="winner a-${side}">${art(side === 'good' ? 'chalice' : 'evil')}<h1>${side === 'good' ? 'The Loyal Servants of Arthur win' : 'The Minions of Mordred win'}</h1>
       <p class="say">${why}</p>${won}</section>
-    ${roles ? `<section class="stage"><h2 class="block-title">Who was who</h2><ul class="roles-list">${roles}</ul></section>` : '<section class="stage"><p class="say">Everyone, turn your cards over.</p></section>'}
-    ${me?.host ? '<div class="sticky-act"><button class="btn big" data-a="again">Play again with this table</button></div>' : v.kind === 'screen' ? '' : '<p class="muted center">The host can start another game.</p>'}`;
+    ${roles ? `<section class="stage"><h2 class="block-title">Who Was Who</h2><ul class="roles-list">${roles}</ul></section>` : '<section class="stage"><p class="say">Everyone, turn your cards over.</p></section>'}
+    ${me?.host ? '<div class="sticky-act"><button class="btn big" data-a="again">Play Again</button></div>' : v.kind === 'screen' ? '' : '<p class="muted center">The Host can start another game.</p>'}`;
 }
 
 // A deterministic cosmetic shuffle (so a re-render keeps the same order): the table sees how many sabotage cards
@@ -438,32 +462,43 @@ function lastReveals(v) {
   return out.join('');
 }
 
+// Private info (your card, who you see) is blurred until you hold the card (or tap it for a few seconds).
+// While hidden, the markup is the same for every role: same size, same words, same timing.
+const GHOST_ROWS = 3;
 function cardView(v) {
   const r = v.me.role; const shown = S.ui.showCard;
   const sees = (v.me.sees || []).map((k) => `<li class="${k.tag === 'evil' ? 'is-evil' : 'is-merlin'}">${k.tag === 'evil' ? art('evil') : glyph('merlin')}<span><b>${esc(nameOf(v, k.id))}</b> ${k.tag === 'evil' ? 'serves Evil' : 'is Merlin or Morgana'}</span></li>`).join('');
   const lan = (v.me.lanternSeen || []).map((k) => `<li class="${k.side === 'evil' ? 'is-evil' : 'is-good'}">${art('lantern')}<span>Lantern: <b>${esc(nameOf(v, k.id))}</b> is ${k.side === 'evil' ? 'of Evil' : 'Loyal'}</span></li>`).join('');
   const hint = { merlin: 'Mordred, if dealt, is hidden from you.', percival: 'One of these is Merlin. The other may be Morgana.', oberon: 'You know none of Evil.' }[r.id] || '';
-  const card = `<button type="button" class="rcard-tap ${S.ui.flip && shown && fx.enabled() ? 'fx-pop fx-a' : ''}" data-tilt data-a="flip" aria-label="${shown ? 'Hide your card' : 'Show your card'}">
-    <div class="rcard a-${r.side} ${S.ui.flip ? (shown ? 'is-flipping' : 'is-unflipping') : ''}" data-face="${shown ? 'front' : 'back'}"><div class="rcard-inner">
-      <div class="rcard-face rcard-front"><div class="cardart a-${r.side}">${art(r.side, 'crest')}${glyph(r.icon, 'big')}</div>
-        <div class="rcard-body"><h2 class="rcard-name">${esc(r.name)}</h2><span class="side-tag a-${r.side}">${esc(r.sideName)}</span><p class="rcard-blurb">${esc(r.blurb)}</p></div></div>
-      <div class="rcard-face rcard-back"><span class="rcard-back-mark">${art('crown')}</span></div></div></div></button>`;
-  return `<div class="hand">${card}${shown && (sees || hint || lan) ? `<ul class="sees">${sees}${lan}</ul>${hint ? `<p class="muted">${hint}</p>` : ''}` : ''}${shown ? '' : '<p class="muted">Tap to turn over</p>'}</div>`;
+  const face = shown
+    ? `<div class="cardart a-${r.side}">${art(r.side, 'crest')}${glyph(r.icon, 'big')}</div>
+        <div class="rcard-body"><h2 class="rcard-name">${esc(r.name)}</h2><span class="side-tag a-${r.side}">${esc(r.sideName)}</span><p class="rcard-blurb">${esc(r.blurb)}</p></div>`
+    : `<div class="cardart a-hidden">${art('crown')}</div>
+        <div class="rcard-body"><h2 class="rcard-name">Your Role</h2><span class="side-tag a-hidden">Hidden</span><p class="rcard-blurb">Only you can see this card. Hold it to look.</p></div>`;
+  const card = `<button type="button" class="rcard-tap" data-tilt data-a="flip" aria-pressed="${shown}" aria-label="${shown ? 'Your card is showing. Release to hide it.' : 'Hold to reveal your card'}">
+    <div class="rcard ${shown ? `is-shown a-${r.side}` : 'is-hidden a-hidden'}" data-face="front"><div class="rcard-inner">
+      <div class="rcard-face rcard-front">${face}</div>${shown ? '' : '<span class="reveal-cue">Hold to Reveal</span>'}</div></div></button>`;
+  const ghost = Array.from({ length: GHOST_ROWS }, () => `<li class="is-ghost" aria-hidden="true">${art('evil')}<span><b>Player name</b> hidden</span></li>`).join('');
+  const rows = sees + lan;
+  const box = shown
+    ? `<ul class="sees">${rows || '<li class="is-none"><span>You see nobody.</span></li>'}</ul>${hint ? `<p class="muted">${hint}</p>` : ''}`
+    : `<ul class="sees is-blur">${ghost}</ul><p class="muted">Who you see stays hidden too.</p>`;
+  return `<div class="hand">${card}<div class="sees-box" aria-live="polite">${box}</div><p class="muted reveal-hint">${shown ? 'Release to hide.' : 'Hold, or tap for a few seconds.'}</p></div>`;
 }
 
 function myCardBlock(v) {
   if (v.phase === 'reveal' || v.phase === 'over' || !v.me?.role) return '';
-  return `<section class="stage"><h2 class="block-title">Your card</h2>${cardView(v)}</section>`;
+  return `<section class="stage"><h2 class="block-title">Your Card</h2>${cardView(v)}</section>`;
 }
 
 function chronicle(v) {
   const g = v.game;
   if (!g.history.length) return '';
   const items = [...g.history].reverse().map((h) => `<li class="${h.passed ? 'ok' : 'bad'}">Quest ${h.quest + 1}, party ${h.attempt}: <b>${esc(nameOf(v, h.leader))}</b> chose ${names(v, h.team)}. ${h.passed ? 'Approved' : 'Rejected'} ${h.yes}–${h.no}${h.reject.length ? ` (against: ${names(v, h.reject)})` : ''}.${h.passed && g.results[h.quest] ? ` Quest ${g.results[h.quest] === 'success' ? 'succeeded' : `failed with ${g.questFails[h.quest]} sabotage`}.` : ''}</li>`).join('');
-  return `<h3 class="sub">The chronicle</h3><ul class="history">${items}</ul>`;
+  return `<h3 class="sub">The Chronicle</h3><ul class="history">${items}</ul>`;
 }
 
-// ---------------------------------------------------------------- storyteller script (read aloud)
+// ---------------------------------------------------------------- Host script (read aloud)
 function openingScript(roleSet, lantern) {
   const has = (r) => roleSet.includes(r);
   const L = ['Everyone, close your eyes and put your hand in a fist on the table.'];
@@ -497,20 +532,20 @@ function hostControls(v) {
   if (v.phase === 'reveal') idle = seats.filter((p) => !g.ready.includes(p.id) && !p.phoneless);
   if (v.phase === 'vote' && v.mode.votes === 'app') idle = seats.filter((p) => !g.voted.includes(p.id));
   if (v.phase === 'quest' && v.mode.cards === 'app') idle = seats.filter((p) => g.team.includes(p.id) && !g.played.includes(p.id));
-  const skipText = { reveal: 'Mark ready', vote: 'Skip (counts as reject)', quest: 'Skip (plays Success)' }[v.phase];
-  return `<h3 class="sub">This phase</h3>
+  const skipText = { reveal: 'Mark Ready', vote: 'Skip (Reject)', quest: 'Skip (Success)' }[v.phase];
+  return `<h3 class="sub">This Phase</h3>
     ${idle.length ? `<ul class="dash-list">${idle.map((p) => `<li><span class="who">${esc(p.name)} <small class="muted">waiting</small></span><span class="btn-row"><button class="btn ghost sm" data-a="nudge" data-id="${p.id}">Nudge</button><button class="btn ghost sm" data-a="skip" data-id="${p.id}">${skipText}</button></span></li>`).join('')}</ul>` : ''}
-    <div class="btn-row wrap">${v.phase === 'reveal' ? '<button class="btn ghost" data-a="skipReveal">Advance: start the first party</button>' : ''}
-    ${v.phase === 'propose' ? '<button class="btn ghost" data-a="skip">Pass the crown on</button>' : ''}${v.phase === 'lantern' ? '<button class="btn ghost" data-a="skip">Skip the Lantern this round</button>' : ''}</div>
+    <div class="btn-row wrap">${v.phase === 'reveal' ? '<button class="btn ghost" data-a="skipReveal">Start First Party</button>' : ''}
+    ${v.phase === 'propose' ? '<button class="btn ghost" data-a="skip">Pass the Crown</button>' : ''}${v.phase === 'lantern' ? '<button class="btn ghost" data-a="skip">Skip the Lantern</button>' : ''}</div>
     <p class="muted">Skips and undos are written in the log for everyone.</p>
-    ${v.moderator ? `<h3 class="sub">The deal (storyteller only)</h3><ul class="roles-list">${seats.map((p) => { const r = v.moderator.roles[p.id]; return r ? `<li class="a-${r.side}">${glyph(r.icon)}<span><b>${esc(p.name)}</b><small>${esc(r.name)}</small></span></li>` : ''; }).join('')}</ul>` : ''}`;
+    ${v.moderator ? `<h3 class="sub">The Deal (Host Only)</h3><ul class="roles-list">${seats.map((p) => { const r = v.moderator.roles[p.id]; return r ? `<li class="a-${r.side}">${glyph(r.icon)}<span><b>${esc(p.name)}</b><small>${esc(r.name)}</small></span></li>` : ''; }).join('')}</ul>` : ''}`;
 }
 
 function hostPane(v) {
   const g = v.game;
-  const script = g ? `${scriptHtml(phaseScript(v))}<details class="faq-q"><summary>Opening script (eyes closed)</summary>${scriptHtml(openingScript(g.roleSet, !!g.lantern))}</details>`
+  const script = g ? `${scriptHtml(phaseScript(v))}<details class="faq-q"><summary>Opening Script (Eyes Closed)</summary>${scriptHtml(openingScript(g.roleSet, !!g.lantern))}</details>`
     : `<p class="muted">Once you start, the lines to read aloud for each phase appear here.</p>`;
-  const toggle = `<label class="toggle fx-opt ${fx.isUserOn() ? 'is-on' : ''}"><input type="checkbox" data-a="fxSet" ${fx.isUserOn() ? 'checked' : ''}><span><b>Animations</b><span class="muted">Card flips, bursts and the victory card on this device. Always off if your device asks for reduced motion.</span></span></label>`;
+  const toggle = `<label class="toggle fx-opt ${fx.isUserOn() ? 'is-on' : ''}"><input type="checkbox" data-a="fxSet" ${fx.isUserOn() ? 'checked' : ''}><span><b>Animations</b><span class="muted">Reveals, bursts, scroll effects, and the victory card on this device. Always off if your device asks for reduced motion.</span></span></label>`;
   return T.hostPane(v, toggle + hostControls(v), script);
 }
 
@@ -547,12 +582,12 @@ function wsTransport(code, asScreen) {
   };
   open();
   return {
-    send: (a) => { if (ws?.readyState === 1) ws.send(JSON.stringify(a)); else toast('Not connected to the room yet. Try again in a moment.'); },
+    send: (a) => { if (ws?.readyState === 1) ws.send(JSON.stringify(a)); else toast('Couldn’t reach the room yet. Try again in a moment.'); },
     close: () => { closed = true; clearTimeout(timer); ws?.close(); },
   };
 }
 
-// The server's game-over event: every client (players, storytellers, the table screen) gets it at once.
+// The server's game-over event: every client (players, the Host, the table screen) gets it at once.
 function onGameOver(m) {
   const v = S.view; if (!v?.game) return;
   const g = v.game; const side = m.winner;
@@ -567,7 +602,7 @@ function onView(v) {
     if (v.game.results.length > p.game.results.length) S.ui.fresh.quest = true;
     if (v.game.history.length > p.game.history.length) S.ui.fresh.vote = true;
   }
-  if (v.phase !== p?.phase) { S.ui.showCard = false; S.ui.tally = {}; S.ui.strike = null; }
+  if (v.phase !== p?.phase) { rv.hide(); S.ui.showCard = false; S.ui.tally = {}; S.ui.strike = null; }
   if (p?.phase !== v.phase && navigator.vibrate && ['vote', 'quest', 'lantern', 'assassin', 'over'].includes(v.phase)) try { navigator.vibrate(30); } catch { /* ignore */ }
   if (v.phase !== 'over') fx.closeVictory();
   if (v.game?.lantern && v.phase === 'lantern' && p?.phase !== 'lantern') { fx.mark(`lantern:${v.game.lantern.checks}`); fx.glow(); }
@@ -578,7 +613,7 @@ function onView(v) {
 
 // ---------------------------------------------------------------- routing
 async function route() {
-  S.transport?.close(); S.transport = null; S.view = null; fx.closeVictory(); S.fatal = null; S.conn = true; S.ui.showCard = false;
+  S.transport?.close(); S.transport = null; S.view = null; fx.closeVictory(); S.fatal = null; S.conn = true; rv.hide(); S.ui.showCard = false;
   const [kind, arg] = location.hash.replace(/^#\/?/, '').split('/');
   if ((kind === 'play' || kind === 'join' || kind === 'screen') && /^[A-Za-z]{6}$/.test(arg || '')) {
     S.mode = kind === 'screen' ? 'screen' : 'play'; S.code = arg.toUpperCase();
@@ -599,6 +634,21 @@ window.addEventListener('hashchange', route);
 const rawSend = (msg) => S.transport?.send(msg);
 
 // ---------------------------------------------------------------- events
+const rv = createReveal({ onChange: (on) => { S.ui.showCard = on; render(); } });
+// Pointer events on document: the card is re-rendered while it is held, so the release lands on a new element.
+$app.addEventListener('pointerdown', (e) => { if (e.button > 0 || !e.target.closest('[data-a="flip"]')) return; e.preventDefault(); rv.press(); });
+for (const t of ['pointerup', 'pointercancel']) document.addEventListener(t, () => rv.release());
+$app.addEventListener('contextmenu', (e) => { if (e.target.closest('[data-a="flip"]')) e.preventDefault(); });
+document.addEventListener('visibilitychange', () => { if (document.hidden) rv.hide(); });
+window.addEventListener('blur', () => rv.hide());
+// the carousel on the home page: the dots follow the swipe
+$app.addEventListener('scroll', (e) => {
+  const how = e.target; if (!how.classList?.contains('how')) return;
+  const i = stepAt(how.scrollLeft, stepOf(how), how.children.length);
+  if (i === S.ui.how) return;
+  S.ui.how = i;
+  how.parentElement.querySelectorAll('.dots button').forEach((b, k) => b.setAttribute('aria-current', String(k === i)));
+}, true);
 wireFaqSearch($app);
 $app.addEventListener('input', (e) => { const k = e.target.dataset.i; if (k) S.ui.draft[k] = e.target.value; });
 $app.addEventListener('keydown', (e) => {
@@ -620,9 +670,25 @@ $app.addEventListener('click', (e) => {
   const el = e.target.closest('[data-a]');
   if (!el || ['set', 'houseSet', 'houseSel', 'modeSet', 'fxSet'].includes(el.dataset.a)) return;
   if (el.getAttribute('aria-disabled') === 'true') { if (el.dataset.a === 'play') toast('The Loyal Servants can only play Success.'); return; }
+  if (el.dataset.a === 'flip') { if (e.detail === 0) { rv.press(); rv.release(); } return; } // keyboard; touch and mouse use pointer events
   if (T.handle(el.dataset.a, el)) return;
   act(el.dataset.a, el);
 });
+
+// The join QR, full screen. It lives outside #app so the app's re-renders don't close it.
+function showQr(link, code) {
+  const o = document.createElement('div');
+  o.className = 'qr-full'; o.setAttribute('role', 'dialog'); o.setAttribute('aria-label', 'Join QR code');
+  o.innerHTML = `<div class="qr-card">${qrSvg(link, `QR code to join room ${code}`)}<p class="room-code">${esc(code)}</p><p class="muted">Scan to join, or enter the room code.</p><button type="button" class="btn ghost">Close</button></div>`;
+  const close = () => { document.removeEventListener('fullscreenchange', onFs); document.removeEventListener('keydown', onKey); if (document.fullscreenElement === o) document.exitFullscreen?.().catch(() => {}); o.remove(); };
+  const onFs = () => { if (!document.fullscreenElement) close(); };
+  const onKey = (e) => { if (e.key === 'Escape') close(); };
+  o.addEventListener('click', close);
+  document.body.append(o);
+  o.querySelector('button').focus();
+  if (canFullscreen(o)) { document.addEventListener('fullscreenchange', onFs); enterFullscreen(o); }
+  document.addEventListener('keydown', onKey);
+}
 
 async function act(a, el) {
   const d = el?.dataset || {};
@@ -652,13 +718,14 @@ async function act(a, el) {
     case 'addSeat': { const n = (S.ui.draft.seatName || '').trim(); if (!n) { toast('Type a name for the seat.'); return; } send({ type: 'addSeat', name: n }); S.ui.draft.seatName = ''; document.activeElement?.blur?.(); return; }
     case 'copy': try { await navigator.clipboard.writeText(d.link); toast('Invite link copied.'); } catch { toast(d.link); } return;
     case 'share': try { await navigator.share({ title: 'Quest Night', text: 'Join my Quest Night table', url: d.link }); } catch { /* cancelled */ } return;
-    case 'flip': S.ui.showCard = !S.ui.showCard; S.ui.flip = true; render();
-      if (S.ui.showCard) requestAnimationFrame(() => fx.burstAt('.rcard-tap', S.view?.me?.role?.side === 'evil' ? 'red' : 'blue', 10)); // your own phone only
-      return;
+    case 'howGo': { const how = $app.querySelector('.how'); if (how) how.scrollTo({ left: (+d.i) * stepOf(how), behavior: fx.enabled() ? 'smooth' : 'auto' }); return; }
+    case 'qrFull': showQr(d.link, d.code); return;
     case 'start': if (el.classList.contains('disabled')) { toast('Not ready to start yet.'); return; } send({ type: 'start' }); return;
     case 'propose': if (el.classList.contains('disabled')) { toast('Choose the whole party first.'); return; } send({ type: 'propose' }); return;
-    case 'vote': send({ type: 'vote', approve: d.v === '1' }); return;
-    case 'play': send({ type: 'play', sabotage: d.v === '1' }); return;
+    case 'vote': haptic(15); send({ type: 'vote', approve: d.v === '1' }); return;
+    case 'play':
+      if (d.v === '1' && S.view?.me?.role?.side === 'good') { toast('The Loyal Servants can only play Success.'); return; }
+      haptic(15); send({ type: 'play', sabotage: d.v === '1' }); return;
     case 'piece': send({ type: 'mode', mode: { play: 'hybrid', [d.k]: d.v } }); return;
     case 'tallyToggle': S.ui.tally[d.id] = !S.ui.tally[d.id]; render(); return;
     case 'tallySend': send({ type: 'tally', approve: Object.keys(S.ui.tally).filter((k) => S.ui.tally[k]) }); return;

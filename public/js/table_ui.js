@@ -1,5 +1,5 @@
 // The table layer's screens, shared by Quest Night and Council Night (identical copy in each repo):
-// tab bar, chat and claims, the game log, Table Tools, the host dashboard frame, timers, wake lock, nudges.
+// tab bar, chat and claims, the game log, Table Tools, the Host dashboard frame, timers, wake lock, nudges.
 // The game passes in its own pieces (script, physical-input controls, names); everything else is here.
 
 const mmss = (ms) => { const s = Math.max(0, Math.ceil(ms / 1000)); return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`; };
@@ -63,7 +63,7 @@ export function makeTable(ctx) {
       <ol class="msgs" data-scroll="chat">${msgs.map((m) => entry(v, m, isHost(v))).join('') || '<li class="muted">No messages yet.</li>'}</ol>
       ${can ? `<form class="chat-form" data-f="chat"><label class="sr-only" for="chat-in">Message</label><input id="chat-in" data-i="chat" maxlength="280" autocomplete="off" enterkeyhint="send" placeholder="${claims ? 'Say something, or post a claim' : 'Say something'}" value="${esc(S.ui.draft.chat || '')}">
         <button type="button" class="btn" data-a="chat">Send</button>${claims ? '<button type="button" class="btn ghost" data-a="claim" title="Put it in the claims log">Claim</button>' : ''}</form>`
-    : v.me?.muted ? '<p class="note is-warn">The host muted you in the chat.</p>' : ''}
+    : v.me?.muted ? '<p class="note is-warn">The Host muted you in the chat.</p>' : ''}
     </section>`;
   }
   function logPane(v, extra = '') {
@@ -107,7 +107,7 @@ export function makeTable(ctx) {
       ${t ? `<div class="timer-big"><span>${esc(t.label)}</span><b data-ends="${t.endsAt || ''}" data-left="${t.left ?? ''}">${mmss(left(t))}</b></div>` : ''}
       ${k ? `<div class="timer-big"><span>${esc(nameOf(v, k.order[k.i]))} is talking</span><b data-ends="${k.endsAt || ''}" data-left="${k.left ?? ''}">${mmss(left(k))}</b>${v.me && k.order[k.i] === v.me.id ? '<button class="btn" data-a="talkNext">I’m done</button>' : ''}</div>` : ''}
       ${v.counters.length ? `<ul class="counters">${v.counters.map((c) => `<li><span>${esc(c.label)}</span><b>${c.value}</b></li>`).join('')}</ul>` : ''}
-      <p class="muted">The host runs the shared timers, talk turns, tallies and counters.</p>`}
+      <p class="muted">The Host runs the shared timers, talk turns, tallies and counters.</p>`}
     </section>`;
   }
 
@@ -125,7 +125,7 @@ export function makeTable(ctx) {
         <button class="btn ghost ${v.canUndo ? '' : 'disabled'}" data-a="undo">${ui('reset')} Undo last step</button>
         <button class="btn ghost" data-a="abandon">End game</button></div>` : ''}
       ${gameControls || ''}
-      ${script ? `<h3 class="sub">Storyteller script</h3><div class="script">${script}</div>` : ''}
+      ${script ? `<h3 class="sub">Host script</h3><div class="script">${script}</div>` : ''}
       <h3 class="sub">Players</h3><ul class="dash-list">${players || '<li class="muted">Nobody else yet.</li>'}</ul>
       <p class="muted">“Replace” opens a seat mid-game: the next person who joins takes it over with the same secret card. “Make host” hands you off.</p>
       <h3 class="sub">Table screen</h3><p class="muted">Open this on a TV or laptop everyone can see. It never shows anything secret.</p>
@@ -164,7 +164,7 @@ export function makeTable(ctx) {
       case 'counter': send({ type: 'counter', op: d.op, id: d.id }); return true;
       case 'counterAdd': send({ type: 'counter', op: 'add', label: d.v }); return true;
       case 'nudge': case 'mute': send({ type: a, id: d.id }); return true;
-      case 'handoff': askConfirm(`Make ${nameOf(S.view, d.id)} the host? You’ll stay at the table as a player.`).then((ok) => ok && send({ type: 'handoff', id: d.id })); return true;
+      case 'handoff': askConfirm(`Make ${nameOf(S.view, d.id)} the Host? You’ll stay at the table as a player.`).then((ok) => ok && send({ type: 'handoff', id: d.id })); return true;
       case 'kick': askConfirm(S.view.phase === 'lobby' ? `Remove ${nameOf(S.view, d.id)}?` : `Open ${nameOf(S.view, d.id)}’s seat? The next person to join takes it over, with the same secret card.`).then((ok) => ok && send({ type: 'kick', id: d.id })); return true;
       case 'abandon': askConfirm('End this game for everyone and go back to the lobby?').then((ok) => ok && send({ type: 'abandon' })); return true;
       default: return false;
@@ -190,7 +190,7 @@ export function makeTable(ctx) {
   }
   setInterval(tick, 250);
   function onView(prev, v) {
-    if (prev?.me && v.me && v.me.nudged > prev.me.nudged) { toast('The host is waiting for you.'); try { navigator.vibrate?.([80, 60, 80]); } catch { /* */ } }
+    if (prev?.me && v.me && v.me.nudged > prev.me.nudged) { toast('The Host is waiting for you.'); try { navigator.vibrate?.([80, 60, 80]); } catch { /* */ } }
     if (prev && v.log.length && prev.log.length && v.log.at(-1).n !== prev.log.at(-1)?.n) {
       const last = v.log.at(-1); if (last.kind === 'tool' && S.ui.tab !== 'log') toast(last.text);
     }
