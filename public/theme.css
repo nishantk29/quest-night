@@ -151,7 +151,6 @@ a{text-decoration-color:rgba(255,255,255,.4);text-decoration-thickness:2px;text-
 .history li.ok::before{background:var(--town)} .history li.bad::before{border:2px solid var(--mafia)}
 /* fields and the buttons beside them share one height (56); fields are 14px-radius boxes, buttons are pills */
 .field input,.chat-form input,.code-input,.search{min-height:56px;padding-inline:var(--s4);border:2px solid var(--rule-strong);border-radius:var(--r-row);background:var(--panel-2);color:#fff}
-.field > span{padding-left:18px} /* label starts where the typed text starts: 2px border + 16px padding */
 .field select,.field textarea,.toggle select{border:2px solid var(--rule-strong);border-radius:var(--r-row);background:var(--panel-2);color:#fff}
 .search-field .search{padding-left:52px}
 .faq-q{border-bottom:1px solid var(--rule)}
