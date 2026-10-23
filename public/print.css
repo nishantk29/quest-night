@@ -25,7 +25,7 @@ th{background:#E9EEF6}
 .cards{display:grid;grid-template-columns:repeat(3,63mm);grid-auto-rows:88mm;gap:0;justify-content:center}
 .c{position:relative;width:63mm;height:88mm;padding:4mm;border:0.3pt dashed #999;break-inside:avoid}
 .ci{position:relative;height:100%;border-radius:3.5mm;overflow:hidden;display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:5mm 3mm 4mm;text-align:center;color:#F3EAD3;background:var(--c2);border:1.6mm solid var(--c3);outline:0.4mm solid #E4B94E;outline-offset:-2mm}
-.c.loyal{--c1:#2E5A94;--c2:#17305A;--c3:#0B1730}.c.shadow{--c1:#8A2630;--c2:#3A0C14;--c3:#14050A}.c.gold{--c1:#1a2f52;--c2:#0E1A2E;--c3:#08101E}
+.c.good{--c1:#2E5A94;--c2:#17305A;--c3:#0B1730}.c.evil{--c1:#8A2630;--c2:#3A0C14;--c3:#14050A}.c.gold{--c1:#1a2f52;--c2:#0E1A2E;--c3:#08101E}
 .ci .ico{width:30mm;height:30mm;fill:currentColor;color:#F3EAD3}
 .ci .crest{position:absolute;left:8mm;right:8mm;top:12mm;width:auto;height:46mm;color:var(--c1)!important;opacity:1}
 .ci > :not(.crest){position:relative}

@@ -4,7 +4,7 @@
 import { ui } from './ui_icons.js';
 import { glyph } from './glyphs.js';
 import { art } from './art.js';
-import { ROLES, QUEST_SIZES, SHADOW_COUNT, roleList, OPTIONAL, MIN_PLAYERS, MAX_PLAYERS, LANTERN_AFTER } from './rules.js';
+import { ROLES, QUEST_SIZES, EVIL_COUNT, roleList, OPTIONAL, MIN_PLAYERS, MAX_PLAYERS, LANTERN_AFTER } from './rules.js';
 import { makeTable, faqPage, wireFaqSearch } from './table_ui.js';
 import { roleCards, ROLE_CARD, PIECES as CARD_PIECES } from './cards.js';
 import { FAQ } from './faq.js';
@@ -69,7 +69,7 @@ function home() {
   return `<main class="wrap home">
     <div class="home-hero">
       <div class="card-fan" aria-hidden="true">${cardBack().repeat(3)}</div>
-      <h1 class="wordmark">Quest Night <span>A table of knights. A few traitors.</span></h1>
+      <h1 class="wordmark">Quest Night <span>A table of servants. A few minions.</span></h1>
       <p class="lede">Pick a party, vote it through, and see who sabotages the quest. 5 to 10 players. Play on phones, with real cards, or a mix of both.</p>
     </div>
     <div class="home-paths">
@@ -88,23 +88,23 @@ function home() {
 }
 
 function rulesPage() {
-  const rows = Object.keys(QUEST_SIZES).map((n) => `<tr><td>${n}</td><td>${n - SHADOW_COUNT[n]} / ${SHADOW_COUNT[n]}</td><td>${QUEST_SIZES[n].map((s, i) => (n >= 7 && i === 3 ? `${s}*` : s)).join(' · ')}</td></tr>`).join('');
+  const rows = Object.keys(QUEST_SIZES).map((n) => `<tr><td>${n}</td><td>${n - EVIL_COUNT[n]} / ${EVIL_COUNT[n]}</td><td>${QUEST_SIZES[n].map((s, i) => (n >= 7 && i === 3 ? `${s}*` : s)).join(' · ')}</td></tr>`).join('');
   const role = (id, extra) => `<li class="a-${ROLES[id].side}">${glyph(ROLES[id].icon)}<span><b>${ROLES[id].name}</b><small>${esc(extra)} · card ${ROLE_CARD[id]}</small></span></li>`;
   return `<main class="wrap game">
     <p><a class="link" href="#/">${ui('back')} Home</a> · <a class="link" href="#/faq">FAQ</a></p>
     <section class="stage"><h1 class="phase-title">How to play</h1>
-      <p>Everyone gets a secret card. Most of you are <b class="t-loyal">the Loyal</b>. A few are <b class="t-shadow">the Shadow</b>, and they know each other.</p>
-      <p>Each round a <b>leader</b> (the crown) picks a party for the quest. Everyone votes to approve or reject it, and the votes are shown together. A strict majority sends the party out; otherwise the crown passes left. <b>Five rejected parties in a row and the Shadow wins.</b></p>
-      <p>On a quest each member plays a card face down: Loyal must play <b>Success</b>, the Shadow may play <b>Sabotage</b>. One sabotage breaks the quest, except quest 4 at 7+ players, which needs two (marked *).</p>
-      <p>Three successful quests and the Loyal win, unless the Seer is in play: then the Assassin gets one last strike, and naming the Seer steals the game.</p>
+      <p>Everyone gets a secret card. Most of you are <b class="t-good">the Loyal Servants</b>. A few are <b class="t-evil">the Minions of Mordred</b>, and they know each other.</p>
+      <p>Each round a <b>leader</b> (the crown) picks a party for the quest. Everyone votes to approve or reject it, and the votes are shown together. A strict majority sends the party out; otherwise the crown passes left. <b>Five rejected parties in a row and the Minions of Mordred win.</b></p>
+      <p>On a quest each member plays a card face down: Loyal must play <b>Success</b>, Evil may play <b>Sabotage</b>. One sabotage breaks the quest, except quest 4 at 7+ players, which needs two (marked *).</p>
+      <p>Three successful quests and the Loyal Servants of Arthur win, unless Merlin is in play: then the Assassin gets one last strike, and naming Merlin steals the game.</p>
       <p><b>The Lantern</b> (optional): after quests 2, 3 and 4 its holder secretly learns one player’s side, and the Lantern passes to them. Nobody who has held it can be looked at.</p>
     </section>
     <section class="stage"><h2 class="block-title">Table sizes</h2>
-      <table class="sizes"><thead><tr><th>Players</th><th>Loyal / Shadow</th><th>Quest parties</th></tr></thead><tbody>${rows}</tbody></table></section>
+      <table class="sizes"><thead><tr><th>Players</th><th>Loyal / Evil</th><th>Quest parties</th></tr></thead><tbody>${rows}</tbody></table></section>
     <section class="stage"><h2 class="block-title">Cards</h2><ul class="roles-list">
-      ${role('knight', 'No special knowledge')}${role('seer', 'Sees the Shadow (not the Usurper)')}${role('herald', 'Sees the Seer and the Enchantress, not which is which')}
-      ${role('traitor', 'Knows the Shadow')}${role('assassin', 'Last strike at the Seer')}${role('enchantress', 'Looks like the Seer to the Herald')}
-      ${role('usurper', 'Hidden from the Seer')}${role('outcast', 'Shadow, but alone and unknown')}</ul>
+      ${role('servant', 'No special knowledge')}${role('merlin', 'Sees Evil (not Mordred)')}${role('percival', 'Sees Merlin and Morgana, not which is which')}
+      ${role('minion', 'Knows Evil')}${role('assassin', 'Last strike at Merlin')}${role('morgana', 'Looks like Merlin to Percival')}
+      ${role('mordred', 'Hidden from Merlin')}${role('oberon', 'Evil, but alone and unknown')}</ul>
       <p class="muted">Playing with a regular deck? <a href="/print.html" target="_blank" rel="noopener">Print the card guide</a> (every table size, with the eyes-closed script).</p></section>
   </main>`;
 }
@@ -149,11 +149,11 @@ function gameMain(v) {
 
 // ---------------------------------------------------------------- lobby (the setup part of the host dashboard)
 const OPT_TEXT = {
-  seer: ['The Seer and the Assassin', 'The Seer sees the Shadow; the Assassin gets one last strike at them.', 'seer'],
-  herald: ['The Herald', 'Knows who might be the Seer.', 'herald'],
-  enchantress: ['The Enchantress', 'Looks like the Seer to the Herald. Best with the Herald.', 'enchantress'],
-  usurper: ['The Usurper', 'A Shadow the Seer can’t see.', 'usurper'],
-  outcast: ['The Outcast', 'A Shadow nobody knows, who knows nobody.', 'outcast'],
+  merlin: ['Merlin and the Assassin', 'Merlin sees Evil; the Assassin gets one last strike at them.', 'merlin'],
+  percival: ['Percival', 'Knows who might be Merlin.', 'percival'],
+  morgana: ['Morgana', 'Looks like Merlin to Percival. Best with Percival.', 'morgana'],
+  mordred: ['Mordred', 'An evil player Merlin can’t see.', 'mordred'],
+  oberon: ['Oberon', 'An evil player nobody knows, who knows nobody.', 'oberon'],
 };
 const MODES = [['phone', 'Phones only', 'Every player uses their phone. Works for online play too.'],
   ['hybrid', 'Hybrid', 'Mix real cards and phones. Choose each piece below.'],
@@ -171,7 +171,7 @@ function lobby(v) {
   const list = roleList(Math.max(5, Math.min(10, n)), v.settings);
   const status = n < MIN_PLAYERS ? `<p class="note is-warn">${ui('info')} ${MIN_PLAYERS - n} more to start (5 to 10 players).</p>`
     : list.error ? `<p class="note is-warn">${ui('warning')} ${esc(list.error)}</p>`
-      : `<p class="note">${ui('check')} ${n - SHADOW_COUNT[n]} Loyal and ${SHADOW_COUNT[n]} Shadow. Parties of ${QUEST_SIZES[n].join(', ')}${n >= 7 ? ' (quest 4 needs two sabotage cards)' : ''}.</p>`;
+      : `<p class="note">${ui('check')} ${n - EVIL_COUNT[n]} Loyal and ${EVIL_COUNT[n]} Evil. Parties of ${QUEST_SIZES[n].join(', ')}${n >= 7 ? ' (quest 4 needs two sabotage cards)' : ''}.</p>`;
   const balance = n >= 5 && !list.error ? balanceTips(n, v.settings) : '';
   const seats = v.players.map((p, i) => `<li><span class="n">${p.watch ? '–' : i + 1}</span><span class="dot ${p.online || p.phoneless ? 'on' : ''}" title="${p.phoneless ? 'No phone' : p.online ? 'Connected' : 'Not connected'}"></span>
       <span class="who">${esc(p.name)}${p.host ? ' <small class="muted">host</small>' : ''}${p.watch ? ' <small class="muted">storyteller</small>' : ''}${p.phoneless ? ' <small class="muted">no phone</small>' : ''}${p.id === me.id ? ' <small class="muted">you</small>' : ''}</span>
@@ -211,11 +211,11 @@ function lobby(v) {
 
 function balanceTips(n, s) {
   const tips = [];
-  if (!s.seer) tips.push('Without the Seer the Loyal have no information: the Shadow usually does well.');
-  if (s.herald && !s.enchantress) tips.push('The Herald without the Enchantress finds the Seer for sure, which helps the Loyal a lot.');
-  if (s.enchantress && !s.herald) tips.push('The Enchantress only matters if the Herald is in play.');
-  if (n <= 6 && (s.usurper || s.outcast)) tips.push('The Usurper and Outcast are strong at small tables.');
-  if (n >= 7 && s.seer && !s.herald) tips.push('At 7+ the classic setup adds the Herald and the Enchantress.');
+  if (!s.merlin) tips.push('Without Merlin the Loyal Servants have no information: Evil usually does well.');
+  if (s.percival && !s.morgana) tips.push('Percival without Morgana finds Merlin for sure, which helps the Loyal Servants a lot.');
+  if (s.morgana && !s.percival) tips.push('Morgana only matters if Percival is in play.');
+  if (n <= 6 && (s.mordred || s.oberon)) tips.push('Mordred and Oberon are strong at small tables.');
+  if (n >= 7 && s.merlin && !s.percival) tips.push('At 7+ the classic setup adds Percival and Morgana.');
   return tips.length ? `<ul class="tips">${tips.map((t) => `<li>${ui('info')} ${esc(t)}</li>`).join('')}</ul>` : '';
 }
 
@@ -223,7 +223,7 @@ function cardGuideBlock(n, settings, house) {
   const rc = roleCards(n, settings);
   if (rc.error) return '';
   return `<section class="stage"><h2 class="block-title">Playing-card setup for ${n}</h2>
-    <p class="muted">Shuffle these ${n} cards and deal one face down to each player. Red is Loyal, black is Shadow.</p>
+    <p class="muted">Shuffle these ${n} cards and deal one face down to each player. Red is Loyal, black is Evil.</p>
     <ul class="card-key">${rc.cards.map((c) => `<li class="a-${ROLES[c.role].side}"><b class="pc ${/[♥♦]/.test(c.card) ? 'is-red' : ''}">${c.card}</b> ${esc(ROLES[c.role].name)}</li>`).join('')}</ul>
     <ul class="tips">${[CARD_PIECES.approve, CARD_PIECES.reject, CARD_PIECES.success, CARD_PIECES.sabotage, CARD_PIECES.crown, ...(house.lantern ? [CARD_PIECES.lantern, CARD_PIECES.loyalty] : [])].map((t) => `<li>${esc(t)}</li>`).join('')}</ul></section>`;
 }
@@ -236,7 +236,7 @@ function track(v) {
     const cls = r === 'success' ? 'is-success' : r === 'fail' ? 'is-fail' : i === g.quest && v.phase !== 'over' && v.phase !== 'assassin' ? 'is-now' : '';
     const pop = S.ui.fresh.quest && i === g.results.length - 1 ? ' is-pop' : '';
     const inner = r === 'success' ? art('chalice') : r === 'fail' ? art('broken') : `<b>${s}</b>`;
-    return `<div class="seal ${cls}${pop}" aria-label="Quest ${i + 1}: ${r || `${s} knights`}">${inner}${g.needs[i] === 2 ? '<span class="two-fail" title="Needs two sabotage cards to fail">2</span>' : ''}<small>Quest ${i + 1}</small></div>`;
+    return `<div class="seal ${cls}${pop}" aria-label="Quest ${i + 1}: ${r || `${s} servants`}">${inner}${g.needs[i] === 2 ? '<span class="two-fail" title="Needs two sabotage cards to fail">2</span>' : ''}<small>Quest ${i + 1}</small></div>`;
   }).join('');
   const pips = Array.from({ length: g.maxRejects }, (_, i) => `<i class="${i < g.rejects ? 'on' : ''} ${i === g.maxRejects - 1 ? 'last' : ''}"></i>`).join('');
   return `<section class="track" aria-label="Quests"><div class="seals">${seals}</div>
@@ -246,20 +246,20 @@ function track(v) {
 
 function marksFor(v) {
   const g = v.game; const m = {};
-  for (const k of v.me?.sees || []) m[k.id] = k.tag === 'shadow' ? ['is-shadow', art('shadow'), 'Known Shadow'] : ['is-seer', glyph('seer'), 'Seer or Enchantress'];
-  for (const k of v.me?.lanternSeen || []) m[k.id] = k.side === 'shadow' ? ['is-shadow', art('shadow'), 'Lantern: Shadow'] : ['is-loyal', art('loyal'), 'Lantern: Loyal'];
-  if (v.moderator) for (const [id, r] of Object.entries(v.moderator.roles)) m[id] = [r.side === 'shadow' ? 'is-shadow' : 'is-loyal', glyph(r.icon), r.name];
+  for (const k of v.me?.sees || []) m[k.id] = k.tag === 'evil' ? ['is-evil', art('evil'), 'Known Evil'] : ['is-merlin', glyph('merlin'), 'Merlin or Morgana'];
+  for (const k of v.me?.lanternSeen || []) m[k.id] = k.side === 'evil' ? ['is-evil', art('evil'), 'Lantern: Evil'] : ['is-good', art('good'), 'Lantern: Loyal'];
+  if (v.moderator) for (const [id, r] of Object.entries(v.moderator.roles)) m[id] = [r.side === 'evil' ? 'is-evil' : 'is-good', glyph(r.icon), r.name];
   if (v.phase === 'vote') for (const id of g.voted) m[id] = ['is-done', ui('check'), 'Has voted'];
   if (v.phase === 'quest') for (const id of g.played) m[id] = ['is-done', ui('check'), 'Has played'];
   if (v.phase === 'reveal') for (const id of g.ready) m[id] = ['is-done', ui('check'), 'Ready'];
-  if (v.phase === 'assassin' && g.shadow) { for (const id of g.shadow) m[id] = ['is-shadow', art('shadow'), 'Shadow']; m[g.assassin] = ['is-shadow', glyph('assassin'), 'Assassin']; }
-  if (v.phase === 'over' && g.roles) for (const [id, r] of Object.entries(g.roles)) m[id] = [r.side === 'shadow' ? 'is-shadow' : 'is-loyal', glyph(r.icon), r.name];
+  if (v.phase === 'assassin' && g.evil) { for (const id of g.evil) m[id] = ['is-evil', art('evil'), 'Evil']; m[g.assassin] = ['is-evil', glyph('assassin'), 'Assassin']; }
+  if (v.phase === 'over' && g.roles) for (const [id, r] of Object.entries(g.roles)) m[id] = [r.side === 'evil' ? 'is-evil' : 'is-good', glyph(r.icon), r.name];
   return m;
 }
 
 function lanternMark(g) {
   const key = `lantern:${g.lantern.checks}`; const a = fx.on(key);
-  return `<span class="knight-lantern ${a >= 0 ? 'is-glow' : ''}" title="Holds the Lantern"${fx.st(key)}>${a >= 0 ? '<i class="lantern-glow"></i>' : ''}${art('lantern')}</span>`;
+  return `<span class="servant-lantern ${a >= 0 ? 'is-glow' : ''}" title="Holds the Lantern"${fx.st(key)}>${a >= 0 ? '<i class="lantern-glow"></i>' : ''}${art('lantern')}</span>`;
 }
 
 function roundTable(v) {
@@ -278,16 +278,16 @@ function roundTable(v) {
     const x = 50 + 41 * Math.cos(ang); const y = 50 + 41 * Math.sin(ang);
     const onTeam = g.team.includes(p.id);
     const canLantern = lanterning && p.id !== g.lantern.holder && !g.lantern.held.includes(p.id);
-    const canPick = picking || (striking && !g.shadow?.includes(p.id)) || hostStrike || canLantern || tallying;
+    const canPick = picking || (striking && !g.evil?.includes(p.id)) || hostStrike || canLantern || tallying;
     const act = picking ? 'pick' : striking ? 'strike' : hostStrike ? 'hostStrike' : canLantern ? 'examine' : tallying ? 'tallyToggle' : '';
     const yes = tallying && S.ui.tally[p.id];
-    const mk = tallying ? (yes ? ['is-loyal', art('approve'), 'Approved'] : ['is-shadow', art('reject'), 'Rejected']) : marks[p.id];
+    const mk = tallying ? (yes ? ['is-good', art('approve'), 'Approved'] : ['is-evil', art('reject'), 'Rejected']) : marks[p.id];
     const tag = canPick ? 'button' : 'div';
     const label = `${p.name}${g.leader === p.id ? ', leader' : ''}${onTeam ? ', on the party' : ''}${mk ? `, ${mk[2]}` : ''}`;
-    return `<${tag} class="knight ${p.id === v.me?.id ? 'is-me' : ''} ${onTeam ? 'on-team' : ''} ${canPick ? 'can-pick' : ''} ${p.online || p.phoneless ? '' : 'is-off'}" style="left:${x.toFixed(2)}%;top:${y.toFixed(2)}%"
+    return `<${tag} class="servant ${p.id === v.me?.id ? 'is-me' : ''} ${onTeam ? 'on-team' : ''} ${canPick ? 'can-pick' : ''} ${p.online || p.phoneless ? '' : 'is-off'}" style="left:${x.toFixed(2)}%;top:${y.toFixed(2)}%"
       ${canPick ? `type="button" data-a="${act}" data-id="${p.id}" aria-pressed="${onTeam || !!yes}"` : ''} aria-label="${esc(label)}">
-      <span class="knight-disc">${initial(p.name)}${g.leader === p.id && v.phase !== 'over' ? `<span class="knight-crown">${art('crown')}</span>` : ''}${g.lantern?.holder === p.id && v.phase !== 'over' ? lanternMark(g) : ''}${mk ? `<span class="knight-mark ${mk[0]}" title="${esc(mk[2])}">${mk[1]}</span>` : ''}</span>
-      <span class="knight-name">${esc(p.name)}</span></${tag}>`;
+      <span class="servant-disc">${initial(p.name)}${g.leader === p.id && v.phase !== 'over' ? `<span class="servant-crown">${art('crown')}</span>` : ''}${g.lantern?.holder === p.id && v.phase !== 'over' ? lanternMark(g) : ''}${mk ? `<span class="servant-mark ${mk[0]}" title="${esc(mk[2])}">${mk[1]}</span>` : ''}</span>
+      <span class="servant-name">${esc(p.name)}</span></${tag}>`;
   }).join('');
   let felt = '';
   const size = g.sizes[g.quest];
@@ -296,8 +296,8 @@ function roundTable(v) {
   else if (v.phase === 'quest') felt = v.mode.cards === 'app' ? `${g.played.length} of ${g.team.length} cards played` : 'Quest cards at the table';
   else if (v.phase === 'reveal') felt = g.appRoles ? `${g.ready.length} of ${n} have read their card` : 'Look at your card';
   else if (v.phase === 'lantern') felt = `<b>${esc(nameOf(v, g.lantern.holder))}</b> raises the Lantern`;
-  else if (v.phase === 'assassin') felt = 'The Shadow stands revealed.';
-  else if (v.phase === 'over') felt = g.winner === 'loyal' ? 'The realm is saved.' : 'The Shadow prevails.';
+  else if (v.phase === 'assassin') felt = 'Evil stands revealed.';
+  else if (v.phase === 'over') felt = g.winner === 'good' ? 'The realm is saved.' : 'Evil prevails.';
   return `<section class="round" aria-label="The table"><div class="round-felt">${art('table')}<p>${felt}</p></div>${seatEls}</section>`;
 }
 
@@ -322,7 +322,7 @@ function stage(v) {
       ${say(`A party of ${size} for quest ${g.quest + 1}. Argue your case out loud.`)}${g.rejects === g.maxRejects - 1 ? hammer() : ''}</section>`;
     const full = g.team.length === size;
     return `<section class="stage"><h1 class="phase-title">${forLeader ? `Enter ${esc(nameOf(v, g.leader))}’s party` : 'You wear the crown'}</h1>
-      ${say(forLeader ? `Tap the ${size} players ${esc(nameOf(v, g.leader))} names for quest ${g.quest + 1}.` : `Tap ${size} knights at the table for quest ${g.quest + 1}. You can choose yourself.`)}
+      ${say(forLeader ? `Tap the ${size} players ${esc(nameOf(v, g.leader))} names for quest ${g.quest + 1}.` : `Tap ${size} servants at the table for quest ${g.quest + 1}. You can choose yourself.`)}
       ${g.rejects === g.maxRejects - 1 ? hammer() : ''}
       <div class="sticky-act"><button class="btn big ${full ? '' : 'disabled'}" data-a="propose">${full ? 'Put this party to the vote' : `Choose ${size - g.team.length} more`}</button></div></section>`;
   }
@@ -350,11 +350,11 @@ function stage(v) {
     const onIt = g.team.includes(me.id);
     if (!onIt) return `<section class="stage"><h1 class="phase-title">The party rides out</h1>${say(`${names(v, g.team)} are choosing their cards in secret.`)}</section>`;
     if (me.played) return `<section class="stage"><h1 class="phase-title">Card played</h1>${say('Face down and shuffled in. Waiting for the rest of the party.')}</section>`;
-    const loyal = role ? role.side === 'loyal' : false;
+    const good = role ? role.side === 'good' : false;
     return `<section class="stage"><h1 class="phase-title">Play your card</h1>
-      ${say(!role ? 'Play Success or Sabotage. Loyal players must play Success (honour system: your role is on a real card).' : loyal ? 'You are Loyal. You can only play Success.' : `You serve the Shadow. Sabotage${g.needs[g.quest] === 2 ? ' (this quest needs two to fail)' : ''}, or play it safe.`)}
+      ${say(!role ? 'Play Success or Sabotage. Loyal players must play Success (honour system: your role is on a real card).' : good ? 'You are Loyal. You can only play Success.' : `You serve Evil. Sabotage${g.needs[g.quest] === 2 ? ' (this quest needs two to fail)' : ''}, or play it safe.`)}
       <div class="choice-pair"><button class="choice success" data-a="play" data-v="0">${art('chalice')}Success</button>
-      <button class="choice sabotage" data-a="play" data-v="1" ${loyal ? 'aria-disabled="true"' : ''}>${art('broken')}Sabotage</button></div></section>`;
+      <button class="choice sabotage" data-a="play" data-v="1" ${good ? 'aria-disabled="true"' : ''}>${art('broken')}Sabotage</button></div></section>`;
   }
   if (v.phase === 'lantern') {
     const L = g.lantern; const holder = L.holder === me.id;
@@ -363,23 +363,23 @@ function stage(v) {
     return `<section class="stage"><h1 class="phase-title">The Lantern</h1>${say(`${esc(nameOf(v, L.holder))} will look into one player’s heart.`)}</section>`;
   }
   if (v.phase === 'assassin') {
-    if (!g.appRoles) return `<section class="stage"><h1 class="phase-title">The Assassin takes aim</h1>${say('Shadow, show your cards. The Assassin names one knight.')}${host ? `<p class="note">Tap who the Assassin named, then say if they were the Seer.</p>${S.ui.strike ? `<div class="choice-pair"><button class="choice no" data-a="strikeSend" data-v="1">They were the Seer</button><button class="choice yes" data-a="strikeSend" data-v="0">Not the Seer</button></div>` : ''}` : ''}</section>`;
-    if (g.assassin === me.id) return `<section class="stage"><h1 class="phase-title">Name the Seer</h1>${say('Three quests succeeded. Talk it over with the Shadow, then tap the one you believe is the Seer. You get one strike.')}</section>`;
-    return `<section class="stage"><h1 class="phase-title">The Assassin takes aim</h1>${say(`${esc(nameOf(v, g.assassin))} will name one knight. If it is the Seer, the Shadow wins.`)}</section>`;
+    if (!g.appRoles) return `<section class="stage"><h1 class="phase-title">The Assassin takes aim</h1>${say('Evil, show your cards. The Assassin names one servant.')}${host ? `<p class="note">Tap who the Assassin named, then say if they were Merlin.</p>${S.ui.strike ? `<div class="choice-pair"><button class="choice no" data-a="strikeSend" data-v="1">They were Merlin</button><button class="choice yes" data-a="strikeSend" data-v="0">Not Merlin</button></div>` : ''}` : ''}</section>`;
+    if (g.assassin === me.id) return `<section class="stage"><h1 class="phase-title">Name Merlin</h1>${say('Three quests succeeded. Talk it over with Evil, then tap the one you believe is Merlin. You get one strike.')}</section>`;
+    return `<section class="stage"><h1 class="phase-title">The Assassin takes aim</h1>${say(`${esc(nameOf(v, g.assassin))} will name one servant. If it is Merlin, the Minions of Mordred win.`)}</section>`;
   }
   if (v.phase === 'over') return over(v);
   return '';
 }
-const hammer = () => `<p class="note is-out">${ui('warning')} Fifth party this quest. If it is rejected, the Shadow wins.</p>`;
+const hammer = () => `<p class="note is-out">${ui('warning')} Fifth party this quest. If it is rejected, the Minions of Mordred win.</p>`;
 
 function over(v) {
   const g = v.game; const me = v.me;
   const side = g.winner;
-  const why = { rejects: 'Five parties were turned away in a row.', quests: side === 'loyal' ? 'Three quests succeeded.' : 'Three quests were sabotaged.',
-    assassin: `The Assassin named ${esc(nameOf(v, g.target))}, the Seer.`, survived: `The Assassin named ${esc(nameOf(v, g.target))}, who was not the Seer.` }[g.reason];
+  const why = { rejects: 'Five parties were turned away in a row.', quests: side === 'good' ? 'Three quests succeeded.' : 'Three quests were sabotaged.',
+    assassin: `The Assassin named ${esc(nameOf(v, g.target))}, Merlin.`, survived: `The Assassin named ${esc(nameOf(v, g.target))}, who was not Merlin.` }[g.reason];
   const won = me?.role ? (me.role.side === side ? '<p><b>You won.</b></p>' : '<p><b>You lost.</b></p>') : '';
   const roles = g.roles ? v.players.filter((p) => g.roles[p.id]).map((p) => { const r = g.roles[p.id]; return `<li class="a-${r.side}">${glyph(r.icon)}<span><b>${esc(p.name)}</b><small>${esc(r.name)}</small></span></li>`; }).join('') : '';
-  return `<section class="winner a-${side}">${art(side === 'loyal' ? 'chalice' : 'shadow')}<h1>${side === 'loyal' ? 'The Loyal win' : 'The Shadow wins'}</h1>
+  return `<section class="winner a-${side}">${art(side === 'good' ? 'chalice' : 'evil')}<h1>${side === 'good' ? 'The Loyal Servants of Arthur win' : 'The Minions of Mordred win'}</h1>
       <p class="say">${why}</p>${won}</section>
     ${roles ? `<section class="stage"><h2 class="block-title">Who was who</h2><ul class="roles-list">${roles}</ul></section>` : '<section class="stage"><p class="say">Everyone, turn your cards over.</p></section>'}
     ${me?.host ? '<div class="sticky-act"><button class="btn big" data-a="again">Play again with this table</button></div>' : v.kind === 'screen' ? '' : '<p class="muted center">The host can start another game.</p>'}`;
@@ -427,9 +427,9 @@ function lastReveals(v) {
 
 function cardView(v) {
   const r = v.me.role; const shown = S.ui.showCard;
-  const sees = (v.me.sees || []).map((k) => `<li class="${k.tag === 'shadow' ? 'is-shadow' : 'is-seer'}">${k.tag === 'shadow' ? art('shadow') : glyph('seer')}<span><b>${esc(nameOf(v, k.id))}</b> ${k.tag === 'shadow' ? 'serves the Shadow' : 'is the Seer or the Enchantress'}</span></li>`).join('');
-  const lan = (v.me.lanternSeen || []).map((k) => `<li class="${k.side === 'shadow' ? 'is-shadow' : 'is-loyal'}">${art('lantern')}<span>Lantern: <b>${esc(nameOf(v, k.id))}</b> is ${k.side === 'shadow' ? 'of the Shadow' : 'Loyal'}</span></li>`).join('');
-  const hint = { seer: 'The Usurper, if dealt, is hidden from you.', herald: 'One of these is the Seer. The other may be the Enchantress.', outcast: 'You know none of the Shadow.' }[r.id] || '';
+  const sees = (v.me.sees || []).map((k) => `<li class="${k.tag === 'evil' ? 'is-evil' : 'is-merlin'}">${k.tag === 'evil' ? art('evil') : glyph('merlin')}<span><b>${esc(nameOf(v, k.id))}</b> ${k.tag === 'evil' ? 'serves Evil' : 'is Merlin or Morgana'}</span></li>`).join('');
+  const lan = (v.me.lanternSeen || []).map((k) => `<li class="${k.side === 'evil' ? 'is-evil' : 'is-good'}">${art('lantern')}<span>Lantern: <b>${esc(nameOf(v, k.id))}</b> is ${k.side === 'evil' ? 'of Evil' : 'Loyal'}</span></li>`).join('');
+  const hint = { merlin: 'Mordred, if dealt, is hidden from you.', percival: 'One of these is Merlin. The other may be Morgana.', oberon: 'You know none of Evil.' }[r.id] || '';
   const card = `<button type="button" class="rcard-tap ${S.ui.flip && shown && fx.enabled() ? 'fx-pop fx-a' : ''}" data-tilt data-a="flip" aria-label="${shown ? 'Hide your card' : 'Show your card'}">
     <div class="rcard a-${r.side} ${S.ui.flip ? (shown ? 'is-flipping' : 'is-unflipping') : ''}" data-face="${shown ? 'front' : 'back'}"><div class="rcard-inner">
       <div class="rcard-face rcard-front"><div class="cardart a-${r.side}">${art(r.side, 'crest')}${glyph(r.icon, 'big')}</div>
@@ -454,9 +454,9 @@ function chronicle(v) {
 function openingScript(roleSet, lantern) {
   const has = (r) => roleSet.includes(r);
   const L = ['Everyone, close your eyes and put your hand in a fist on the table.'];
-  L.push(`Shadow${has('outcast') ? ', except the Outcast,' : ''} open your eyes and look around. These are your allies.`, '(Pause.) Shadow, close your eyes.');
-  if (has('seer')) L.push(`Shadow${has('usurper') ? ', except the Usurper,' : ''} raise your thumb.`, 'Seer, open your eyes. These players serve the Shadow.', '(Pause.) Seer, close your eyes. Shadow, lower your thumbs.');
-  if (has('herald')) L.push(`Seer${has('enchantress') ? ' and Enchantress' : ''}, raise your thumb.`, `Herald, open your eyes. ${has('enchantress') ? 'One of these is the Seer.' : 'This is the Seer.'}`, '(Pause.) Herald, close your eyes. Thumbs down.');
+  L.push(`Evil${has('oberon') ? ', except Oberon,' : ''} open your eyes and look around. These are your allies.`, '(Pause.) Evil, close your eyes.');
+  if (has('merlin')) L.push(`Evil${has('mordred') ? ', except Mordred,' : ''} raise your thumb.`, 'Merlin, open your eyes. These players serve Evil.', '(Pause.) Merlin, close your eyes. Evil, lower your thumbs.');
+  if (has('percival')) L.push(`Merlin${has('morgana') ? ' and Morgana' : ''}, raise your thumb.`, `Percival, open your eyes. ${has('morgana') ? 'One of these is Merlin.' : 'This is Merlin.'}`, '(Pause.) Percival, close your eyes. Thumbs down.');
   L.push('Everyone, open your eyes.');
   if (lantern) L.push('The player to the right of the first leader takes the Lantern.');
   return L;
@@ -466,11 +466,11 @@ function phaseScript(v) {
   const lead = nameOf(v, g.leader); const size = g.sizes[g.quest];
   switch (v.phase) {
     case 'reveal': return openingScript(g.roleSet, !!g.lantern);
-    case 'propose': return [`${lead} wears the crown.`, `${lead}, choose ${size} knights for quest ${g.quest + 1}.${g.needs[g.quest] === 2 ? ' This quest needs two sabotage cards to fail.' : ''}`, ...(g.rejects === g.maxRejects - 1 ? ['This is the fifth party. If it is rejected, the Shadow wins.'] : [])];
+    case 'propose': return [`${lead} wears the crown.`, `${lead}, choose ${size} servants for quest ${g.quest + 1}.${g.needs[g.quest] === 2 ? ' This quest needs two sabotage cards to fail.' : ''}`, ...(g.rejects === g.maxRejects - 1 ? ['This is the fifth party. If it is rejected, the Minions of Mordred win.'] : [])];
     case 'vote': return ['Everyone, choose approve or reject.', v.mode.votes === 'physical' ? 'On three, turn your vote card over. One, two, three.' : 'Vote on your phones. The votes appear together.'];
     case 'quest': return [`${names(v, g.team)}, you ride out.`, v.mode.cards === 'physical' ? 'Each of you, play one card face down and hand back the other. Leader, shuffle them and turn them over one at a time.' : 'Play your card on your phone.'];
     case 'lantern': return [`${nameOf(v, g.lantern.holder)}, raise the Lantern.`, 'Choose one player who has not held it.', v.game.appRoles ? 'Their side appears on your phone only.' : 'They pass you their loyalty card face down. Look, and hand it back.', 'The Lantern now passes to them.'];
-    case 'assassin': return ['Three quests have succeeded.', 'Shadow, reveal yourselves.', 'Assassin, talk with your allies, then name the one you believe is the Seer.'];
+    case 'assassin': return ['Three quests have succeeded.', 'Evil, reveal yourselves.', 'Assassin, talk with your allies, then name the one you believe is Merlin.'];
     case 'over': return ['The game is over. Everyone, turn your cards over.'];
     default: return [];
   }
@@ -544,7 +544,7 @@ function onGameOver(m) {
   const v = S.view; if (!v?.game) return;
   const g = v.game; const side = m.winner;
   const roles = g.roles ? v.players.filter((p) => g.roles[p.id]).map((p) => ({ name: p.name, role: g.roles[p.id].name, side: g.roles[p.id].side, icon: glyph(g.roles[p.id].icon) })) : [];
-  fx.victory({ side, title: `${m.winnerName} ${side === 'loyal' ? 'win' : 'wins'}`, text: m.text, status: m.won === true ? 'You won!' : m.won === false ? 'You lost' : '', crest: art(side === 'loyal' ? 'loyal' : 'shadow'),
+  fx.victory({ side, title: `${m.winnerName} win`, text: m.text, status: m.won === true ? 'You won!' : m.won === false ? 'You lost' : '', crest: art(side === 'good' ? 'good' : 'evil'),
     roles, onAgain: v.me?.host && v.kind !== 'screen' ? () => send({ type: 'again' }) : null, noFocus: v.kind === 'screen' });
 }
 
@@ -606,7 +606,7 @@ $app.addEventListener('change', (e) => {
 $app.addEventListener('click', (e) => {
   const el = e.target.closest('[data-a]');
   if (!el || ['set', 'houseSet', 'houseSel', 'modeSet', 'fxSet'].includes(el.dataset.a)) return;
-  if (el.getAttribute('aria-disabled') === 'true') { if (el.dataset.a === 'play') toast('The Loyal can only play Success.'); return; }
+  if (el.getAttribute('aria-disabled') === 'true') { if (el.dataset.a === 'play') toast('The Loyal Servants can only play Success.'); return; }
   if (T.handle(el.dataset.a, el)) return;
   act(el.dataset.a, el);
 });
@@ -640,7 +640,7 @@ async function act(a, el) {
     case 'copy': try { await navigator.clipboard.writeText(d.link); toast('Invite link copied.'); } catch { toast(d.link); } return;
     case 'share': try { await navigator.share({ title: 'Quest Night', text: 'Join my Quest Night table', url: d.link }); } catch { /* cancelled */ } return;
     case 'flip': S.ui.showCard = !S.ui.showCard; S.ui.flip = true; render();
-      if (S.ui.showCard) requestAnimationFrame(() => fx.burstAt('.rcard-tap', S.view?.me?.role?.side === 'shadow' ? 'red' : 'blue', 10)); // your own phone only
+      if (S.ui.showCard) requestAnimationFrame(() => fx.burstAt('.rcard-tap', S.view?.me?.role?.side === 'evil' ? 'red' : 'blue', 10)); // your own phone only
       return;
     case 'start': if (el.classList.contains('disabled')) { toast('Not ready to start yet.'); return; } send({ type: 'start' }); return;
     case 'propose': if (el.classList.contains('disabled')) { toast('Choose the whole party first.'); return; } send({ type: 'propose' }); return;

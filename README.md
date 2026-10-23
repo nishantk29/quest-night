@@ -1,18 +1,18 @@
 # Quest Night
 
-A hidden-traitor quest game for 5 to 10 players, one phone each, no moderator. Sister app to
+A hidden-minion quest game for 5 to 10 players, one phone each, no moderator. Sister app to
 [Mafia Night](https://mafia-app.hatethespurs.workers.dev): same stack, same design system, its own game.
 
 Live: https://quest-night.hatethespurs.workers.dev
 
 ## How it plays
-- Most players are **the Loyal**; 2 to 4 are **the Shadow** and know each other.
+- Most players are **the Loyal Servants**; 2 to 4 are **Evil** and know each other.
 - A rotating **leader** (the crown) proposes a party; everyone votes approve/reject, shown together. Strict
-  majority passes. Five rejected parties in a row: the Shadow wins.
+  majority passes. Five rejected parties in a row: the Minions of Mordred win.
 - The party plays Success/Sabotage face down (Loyal can only play Success). One sabotage fails a quest, except
   quest 4 at 7+ players, which needs two. Three quests decide.
-- Optional cards (host settings): the Seer + the Assassin (pair), the Herald, the Enchantress, the Usurper, the
-  Outcast. If the Seer is in play and the Loyal win three quests, the Assassin gets one strike at the Seer.
+- Optional cards (host settings): Merlin + the Assassin (pair), Percival, Morgana, Mordred, the
+  Oberon. If Merlin is in play and the Loyal Servants of Arthur win three quests, the Assassin gets one strike at Merlin.
 
 ## Code
 - `public/js/rules.js`: pure rules (table sizes, quest sizes, two-fail rule, role deal, who sees whom).

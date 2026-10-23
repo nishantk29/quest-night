@@ -21,7 +21,7 @@ const appRoles = (room) => room.mode.roles === 'app';
 
 function finish(room, winner, reason, now) {
   room.game.winner = winner; room.game.reason = reason; room.phase = 'over';
-  log(room, 'game', winner === 'loyal' ? 'The Loyal win.' : 'The Shadow wins.', null, now);
+  log(room, 'game', winner === 'good' ? 'The Loyal Servants of Arthur win.' : 'The Minions of Mordred win.', null, now);
 }
 
 function startGame(room, rng, now) {
@@ -43,7 +43,7 @@ function startGame(room, rng, now) {
   if (room.house.lantern) { const h = ids[(leader - 1 + n) % n]; room.game.lantern = { holder: h, held: [h], checks: [], seen: {} }; }
   room.phase = 'reveal';
   room.undo = [];
-  log(room, 'game', `New game: ${n} players, ${n - list.roles.filter((r) => sideOf(r) === 'shadow').length} Loyal and ${list.roles.filter((r) => sideOf(r) === 'shadow').length} Shadow.`, null, now);
+  log(room, 'game', `New game: ${n} players, ${n - list.roles.filter((r) => sideOf(r) === 'evil').length} Loyal and ${list.roles.filter((r) => sideOf(r) === 'evil').length} Evil.`, null, now);
   return ok();
 }
 
@@ -57,7 +57,7 @@ function resolveVote(room, now) {
   log(room, 'game', `Party ${passed ? 'approved' : 'rejected'} ${approve.length}–${reject.length}${room.house.anonVotes ? '' : ` (approve: ${nms(room, approve) || 'nobody'})`}.`, null, now);
   if (passed) { g.cards = {}; room.phase = 'quest'; return; }
   g.rejects += 1;
-  if (g.rejects >= MAX_REJECTS) { finish(room, 'shadow', 'rejects', now); return; }
+  if (g.rejects >= MAX_REJECTS) { finish(room, 'evil', 'rejects', now); return; }
   g.team = []; nextLeader(room); room.phase = 'propose';
 }
 
@@ -70,10 +70,10 @@ function resolveQuest(room, fails, now) {
   log(room, 'game', `Quest ${g.quest + 1} ${result === 'success' ? 'succeeded' : 'failed'}: ${fails} sabotage card${fails === 1 ? '' : 's'}.`, null, now);
   g.cards = {}; g.team = []; g.rejects = 0; g.quest += 1; nextLeader(room);
   const w = questWinner(g.results);
-  if (w === 'shadow') finish(room, 'shadow', 'quests', now);
-  else if (w === 'loyal') {
+  if (w === 'evil') finish(room, 'evil', 'quests', now);
+  else if (w === 'good') {
     if (g.roleSet.includes('assassin')) room.phase = 'assassin';
-    else finish(room, 'loyal', 'quests', now);
+    else finish(room, 'good', 'quests', now);
   } else if (g.lantern && LANTERN_AFTER.includes(g.results.length)) room.phase = 'lantern';
   else room.phase = 'propose';
 }
@@ -156,7 +156,7 @@ function gameReduce(room, actor, msg, rng, now) {
       if (!me || !g.team.includes(me.id)) return err('Only the quest team plays cards.');
       if (me.id in g.cards) return err('You have already played your card.');
       const sabotage = !!msg.sabotage;
-      if (sabotage && g.roles && sideOf(g.roles[me.id]) === 'loyal') return err('The Loyal can only play Success.');
+      if (sabotage && g.roles && sideOf(g.roles[me.id]) === 'good') return err('The Loyal Servants can only play Success.');
       g.cards[me.id] = sabotage;
       if (Object.keys(g.cards).length >= g.team.length) resolveQuest(room, Object.values(g.cards).filter(Boolean).length, now);
       return ok();
@@ -187,19 +187,19 @@ function gameReduce(room, actor, msg, rng, now) {
       if (!g.roles) return err('Roles are physical: the host enters the strike.');
       if (!me || g.roles[me.id] !== 'assassin') return err('Only the Assassin strikes.');
       const t = byId(room, msg.id);
-      if (!t || !seat(room).includes(t.id) || sideOf(g.roles[t.id]) !== 'loyal') return err('Choose one of the players you believe is Loyal.');
+      if (!t || !seat(room).includes(t.id) || sideOf(g.roles[t.id]) !== 'good') return err('Choose one of the players you believe is Loyal.');
       g.target = t.id;
       log(room, 'game', `The Assassin struck ${t.name}.`, null, now);
-      if (g.roles[t.id] === 'seer') finish(room, 'shadow', 'assassin', now); else finish(room, 'loyal', 'survived', now);
+      if (g.roles[t.id] === 'merlin') finish(room, 'evil', 'assassin', now); else finish(room, 'good', 'survived', now);
       return ok();
     }
-    case 'strikeResult': { // physical roles: the host enters who was named and whether they were the Seer
+    case 'strikeResult': { // physical roles: the host enters who was named and whether they were Merlin
       if (!isHost || room.phase !== 'assassin') return err('Not now.');
       if (g.roles) return err('The Assassin strikes on their own phone.');
       if (!seat(room).includes(msg.id)) return err('Choose who the Assassin named.');
       g.target = msg.id;
-      log(room, 'game', `The Assassin named ${nm(room, msg.id)}, who ${msg.hit ? 'was' : 'was not'} the Seer.`, null, now);
-      if (msg.hit) finish(room, 'shadow', 'assassin', now); else finish(room, 'loyal', 'survived', now);
+      log(room, 'game', `The Assassin named ${nm(room, msg.id)}, who ${msg.hit ? 'was' : 'was not'} Merlin.`, null, now);
+      if (msg.hit) finish(room, 'evil', 'assassin', now); else finish(room, 'good', 'survived', now);
       return ok();
     }
     case 'skip': { // host tool: move an idle player along with the most neutral choice, in the open
@@ -270,7 +270,7 @@ function publicGame(room) {
 function endReveal(room, view) {
   const g = room.game;
   if (g && room.phase === 'assassin' && g.roles) {
-    view.game.shadow = seat(room).filter((id) => sideOf(g.roles[id]) === 'shadow');
+    view.game.evil = seat(room).filter((id) => sideOf(g.roles[id]) === 'evil');
     view.game.assassin = seat(room).find((id) => g.roles[id] === 'assassin');
   }
   if (g && room.phase === 'over' && g.roles) view.game.roles = Object.fromEntries(seat(room).map((id) => [id, roleView(g.roles[id])]));
@@ -299,12 +299,12 @@ export function viewForPlayer(room, playerId, connected = new Set()) {
 export function gameOverEvent(room, playerId = null) {
   const g = room.game;
   if (!g || room.phase !== 'over') return null;
-  const nm = (id) => room.players.find((p) => p.id === id)?.name || 'the Seer';
-  const text = { rejects: 'Five parties in a row were rejected', quests: g.winner === 'loyal' ? 'Three quests succeeded' : 'Three quests were sabotaged',
-    assassin: `The Assassin named ${nm(g.target)}, the Seer`, survived: `The Assassin named ${nm(g.target)}, who was not the Seer` }[g.reason] || '';
+  const nm = (id) => room.players.find((p) => p.id === id)?.name || 'Merlin';
+  const text = { rejects: 'Five parties in a row were rejected', quests: g.winner === 'good' ? 'Three quests succeeded' : 'Three quests were sabotaged',
+    assassin: `The Assassin named ${nm(g.target)}, Merlin`, survived: `The Assassin named ${nm(g.target)}, who was not Merlin` }[g.reason] || '';
   const me = playerId && g.roles ? byId(room, playerId) : null;
   const mine = me && !me.watch && g.roles[me.id] ? sideOf(g.roles[me.id]) : null;
-  return { type: 'gameover', winner: g.winner, winnerName: g.winner === 'loyal' ? 'The Loyal' : 'The Shadow', reason: g.reason, text, won: mine ? mine === g.winner : null };
+  return { type: 'gameover', winner: g.winner, winnerName: g.winner === 'good' ? 'The Loyal Servants of Arthur' : 'The Minions of Mordred', reason: g.reason, text, won: mine ? mine === g.winner : null };
 }
 
 // The shared table screen (TV or laptop): public information only, always.

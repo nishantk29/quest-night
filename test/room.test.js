@@ -5,7 +5,7 @@ import { ROLES, QUEST_SIZES } from '../public/js/rules.js';
 
 const seeded = (seed) => () => { seed = (seed * 1664525 + 1013904223) % 4294967296; return seed / 4294967296; };
 
-function table(n, settings = { seer: true }, seed = 1) {
+function table(n, settings = { merlin: true }, seed = 1) {
   const rng = seeded(seed);
   const room = newRoom('ABCDEF', 'hk');
   const ids = [];
@@ -67,7 +67,7 @@ test('leader must pick exactly the quest size', () => {
   assert.equal(room.phase, 'vote');
 });
 
-test('rejected proposal passes leadership on; five rejects hand the Shadow the game', () => {
+test('rejected proposal passes leadership on; five rejects hand Evil the game', () => {
   const { room, ids } = table(5);
   for (let k = 1; k <= 5; k++) {
     const before = leader(room);
@@ -75,7 +75,7 @@ test('rejected proposal passes leadership on; five rejects hand the Shadow the g
     if (k < 5) { assert.equal(room.phase, 'propose'); assert.notEqual(leader(room), before); assert.equal(room.game.rejects, k); }
   }
   assert.equal(room.phase, 'over');
-  assert.equal(room.game.winner, 'shadow');
+  assert.equal(room.game.winner, 'evil');
   assert.equal(room.game.reason, 'rejects');
 });
 
@@ -92,16 +92,16 @@ test('a tie rejects; votes are hidden until everyone votes', () => {
   assert.equal(room.game.lastVote.approve.length, 3);
 });
 
-test('loyal cannot sabotage; one sabotage fails a normal quest', () => {
+test('good cannot sabotage; one sabotage fails a normal quest', () => {
   const { room, ids } = table(5);
-  const loyal = ids.filter((id) => side(room, id) === 'loyal');
-  const shadow = ids.filter((id) => side(room, id) === 'shadow');
-  proposeAndVote(room, ids, [loyal[0], shadow[0]], () => true);
+  const good = ids.filter((id) => side(room, id) === 'good');
+  const evil = ids.filter((id) => side(room, id) === 'evil');
+  proposeAndVote(room, ids, [good[0], evil[0]], () => true);
   assert.equal(room.phase, 'quest');
-  assert.ok(act(room, loyal[0], { type: 'play', sabotage: true }).error);
-  assert.ok(act(room, loyal[1], { type: 'play', sabotage: false }).error, 'not on the team');
-  must(act(room, loyal[0], { type: 'play', sabotage: false }));
-  must(act(room, shadow[0], { type: 'play', sabotage: true }));
+  assert.ok(act(room, good[0], { type: 'play', sabotage: true }).error);
+  assert.ok(act(room, good[1], { type: 'play', sabotage: false }).error, 'not on the team');
+  must(act(room, good[0], { type: 'play', sabotage: false }));
+  must(act(room, evil[0], { type: 'play', sabotage: true }));
   assert.deepEqual(room.game.results, ['fail']);
   assert.equal(room.game.lastQuest.fails, 1);
   assert.equal(room.game.rejects, 0);
@@ -109,67 +109,67 @@ test('loyal cannot sabotage; one sabotage fails a normal quest', () => {
 
 test('quest 4 at 7 players survives one sabotage', () => {
   const { room, ids } = table(7);
-  const loyal = ids.filter((id) => side(room, id) === 'loyal');
-  const shadow = ids.filter((id) => side(room, id) === 'shadow');
+  const good = ids.filter((id) => side(room, id) === 'good');
+  const evil = ids.filter((id) => side(room, id) === 'evil');
   const runQuest = (team, sab) => { proposeAndVote(room, ids, team, () => true); for (const id of team) must(act(room, id, { type: 'play', sabotage: sab.includes(id) })); };
-  runQuest(loyal.slice(0, 2), []);
-  runQuest([...loyal.slice(0, 2), shadow[0]], [shadow[0]]);
-  runQuest(loyal.slice(0, 3), []); // quest sizes at 7: 2,3,3,4,4
+  runQuest(good.slice(0, 2), []);
+  runQuest([...good.slice(0, 2), evil[0]], [evil[0]]);
+  runQuest(good.slice(0, 3), []); // quest sizes at 7: 2,3,3,4,4
   assert.deepEqual(room.game.results, ['success', 'fail', 'success']);
-  runQuest([...loyal.slice(0, 3), shadow[0]], [shadow[0]]);
+  runQuest([...good.slice(0, 3), evil[0]], [evil[0]]);
   assert.equal(room.game.results[3], 'success', 'one sabotage is not enough on quest 4');
   assert.equal(room.phase, 'assassin');
 });
 
-test('assassin: naming the Seer wins for the Shadow, missing wins for the Loyal', () => {
+test('assassin: naming Merlin wins for Evil, missing wins for the Loyal Servants', () => {
   for (const hit of [true, false]) {
-    const { room, ids } = table(5, { seer: true }, hit ? 3 : 4);
-    const loyal = ids.filter((id) => side(room, id) === 'loyal');
+    const { room, ids } = table(5, { merlin: true }, hit ? 3 : 4);
+    const good = ids.filter((id) => side(room, id) === 'good');
     const sizes = room.game.sizes;
     for (let q = 0; q < 3; q++) {
-      const team = loyal.slice(0, sizes[q]);
+      const team = good.slice(0, sizes[q]);
       proposeAndVote(room, ids, team, () => true);
       for (const id of team) must(act(room, id, { type: 'play', sabotage: false }));
     }
     assert.equal(room.phase, 'assassin');
     const assassin = ids.find((id) => room.game.roles[id] === 'assassin');
-    const seer = ids.find((id) => room.game.roles[id] === 'seer');
-    const knight = ids.find((id) => room.game.roles[id] === 'knight');
-    assert.ok(act(room, knight, { type: 'strike', id: seer }).error, 'only the assassin strikes');
-    must(act(room, assassin, { type: 'strike', id: hit ? seer : knight }));
-    assert.equal(room.game.winner, hit ? 'shadow' : 'loyal');
-    assert.equal(viewForPlayer(room, ids[0]).game.roles[seer].id, 'seer', 'roles revealed at the end');
+    const merlin = ids.find((id) => room.game.roles[id] === 'merlin');
+    const servant = ids.find((id) => room.game.roles[id] === 'servant');
+    assert.ok(act(room, servant, { type: 'strike', id: merlin }).error, 'only the assassin strikes');
+    must(act(room, assassin, { type: 'strike', id: hit ? merlin : servant }));
+    assert.equal(room.game.winner, hit ? 'evil' : 'good');
+    assert.equal(viewForPlayer(room, ids[0]).game.roles[merlin].id, 'merlin', 'roles revealed at the end');
   }
 });
 
-test('without the Seer, three successes end the game for the Loyal', () => {
-  const { room, ids } = table(5, { seer: false });
-  const loyal = ids.filter((id) => side(room, id) === 'loyal');
+test('without Merlin, three successes end the game for the Loyal Servants', () => {
+  const { room, ids } = table(5, { merlin: false });
+  const good = ids.filter((id) => side(room, id) === 'good');
   for (let q = 0; q < 3; q++) {
-    const team = loyal.slice(0, room.game.sizes[q]);
+    const team = good.slice(0, room.game.sizes[q]);
     proposeAndVote(room, ids, team, () => true);
     for (const id of team) must(act(room, id, { type: 'play', sabotage: false }));
   }
   assert.equal(room.phase, 'over');
-  assert.equal(room.game.winner, 'loyal');
+  assert.equal(room.game.winner, 'good');
 });
 
-test('three failed quests win for the Shadow', () => {
+test('three failed quests win for Evil', () => {
   const { room, ids } = table(5);
-  const shadow = ids.filter((id) => side(room, id) === 'shadow');
-  const loyal = ids.filter((id) => side(room, id) === 'loyal');
+  const evil = ids.filter((id) => side(room, id) === 'evil');
+  const good = ids.filter((id) => side(room, id) === 'good');
   for (let q = 0; q < 3; q++) {
-    const team = [shadow[0], ...loyal].slice(0, room.game.sizes[q]);
+    const team = [evil[0], ...good].slice(0, room.game.sizes[q]);
     proposeAndVote(room, ids, team, () => true);
-    for (const id of team) must(act(room, id, { type: 'play', sabotage: id === shadow[0] }));
+    for (const id of team) must(act(room, id, { type: 'play', sabotage: id === evil[0] }));
   }
-  assert.equal(room.game.winner, 'shadow');
+  assert.equal(room.game.winner, 'evil');
   assert.equal(room.game.reason, 'quests');
 });
 
 test('secrecy: a player view holds only their own role and their own knowledge', () => {
   for (let seed = 1; seed <= 20; seed++) {
-    const { room, ids } = table(10, { seer: true, herald: true, enchantress: true, usurper: true }, seed);
+    const { room, ids } = table(10, { merlin: true, percival: true, morgana: true, mordred: true }, seed);
     for (const id of ids) {
       const v = viewForPlayer(room, id);
       const s = JSON.stringify(v);
@@ -181,7 +181,7 @@ test('secrecy: a player view holds only their own role and their own knowledge',
       for (const other of ids) if (other !== id && room.game.roles[other] !== room.game.roles[id]) {
         assert.equal(s.includes(`"${room.game.roles[other]}"`) && !v.game.roleSet.includes(room.game.roles[other]), false);
       }
-      for (const k of v.me.sees) assert.ok(['shadow', 'seer?'].includes(k.tag));
+      for (const k of v.me.sees) assert.ok(['evil', 'merlin?'].includes(k.tag));
     }
   }
 });

@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { newRoom, reduce, viewForPlayer, viewForScreen } from '../public/js/room.js';
-import { ROLES, QUEST_SIZES, SHADOW_COUNT, knowledgeFor, roleList } from '../public/js/rules.js';
+import { ROLES, QUEST_SIZES, EVIL_COUNT, knowledgeFor, roleList } from '../public/js/rules.js';
 import { roleCards, RECOMMENDED } from '../public/js/cards.js';
 
 const seeded = (seed) => () => { seed = (seed * 1664525 + 1013904223) % 4294967296; return seed / 4294967296; };
@@ -9,7 +9,7 @@ const must = (r) => { assert.ok(r.ok, r.error); return r; };
 const act = (room, id, msg, rng, now) => reduce(room, { playerId: id }, msg, rng, now);
 const side = (room, id) => ROLES[room.game.roles[id]].side;
 
-function lobby(n, { settings = { seer: true }, house = {}, mode, phoneless = 0, seed = 1 } = {}) {
+function lobby(n, { settings = { merlin: true }, house = {}, mode, phoneless = 0, seed = 1 } = {}) {
   const rng = seeded(seed); const room = newRoom('ABCDEF', 'hk'); const ids = [];
   for (let i = 0; i < n - phoneless; i++) ids.push(must(reduce(room, {}, { type: 'join', name: `P${i}`, hostKey: i === 0 ? 'hk' : undefined }, rng)).data.playerId);
   const host = ids[0];
@@ -33,15 +33,15 @@ function goParty(t, team, approve = () => true) {
 }
 
 test('every table size deals the right sides, and knowledge matches the classic rules', () => {
-  for (let n = 5; n <= 10; n++) for (const s of [RECOMMENDED(n), { seer: true }, { seer: false }]) {
+  for (let n = 5; n <= 10; n++) for (const s of [RECOMMENDED(n), { merlin: true }, { merlin: false }]) {
     const list = roleList(n, s); if (list.error) continue;
     const t = started(n, { settings: s, seed: n * 7 });
     const roles = t.room.game.roles;
-    assert.equal(Object.values(roles).filter((r) => ROLES[r].side === 'shadow').length, SHADOW_COUNT[n]);
+    assert.equal(Object.values(roles).filter((r) => ROLES[r].side === 'evil').length, EVIL_COUNT[n]);
     for (const id of t.ids) {
       const k = knowledgeFor(id, roles);
-      if (roles[id] === 'seer') for (const x of k) assert.ok(ROLES[roles[x.id]].side === 'shadow' && roles[x.id] !== 'usurper');
-      if (roles[id] === 'outcast' || roles[id] === 'knight') assert.equal(k.length, 0);
+      if (roles[id] === 'merlin') for (const x of k) assert.ok(ROLES[roles[x.id]].side === 'evil' && roles[x.id] !== 'mordred');
+      if (roles[id] === 'oberon' || roles[id] === 'servant') assert.equal(k.length, 0);
       assert.deepEqual(viewForPlayer(t.room, id).me.sees, k);
     }
   }
@@ -52,7 +52,7 @@ test('playing-card guide: unique cards, right colours, every size', () => {
     const r = roleCards(n, RECOMMENDED(n));
     assert.equal(r.cards.length, n);
     assert.equal(new Set(r.cards.map((c) => c.card)).size, n, 'no card twice');
-    for (const c of r.cards) assert.equal(/[♥♦]/.test(c.card), ROLES[c.role].side === 'loyal', `${c.card} colour = side`);
+    for (const c of r.cards) assert.equal(/[♥♦]/.test(c.card), ROLES[c.role].side === 'good', `${c.card} colour = side`);
     assert.deepEqual(r.sizes, QUEST_SIZES[n]);
   }
 });
@@ -106,7 +106,7 @@ test('physical roles: the Assassin phase takes the host’s entry', () => {
   for (let q = 0; q < 3; q++) { must(act(t.room, t.host, { type: 'propose', team: t.ids.slice(0, QUEST_SIZES[5][q]) })); must(act(t.room, t.host, { type: 'tally', approve: t.ids })); must(act(t.room, t.host, { type: 'questResult', fails: 0 })); }
   assert.equal(t.room.phase, 'assassin');
   must(act(t.room, t.host, { type: 'strikeResult', id: t.ids[2], hit: true }));
-  assert.equal(t.room.game.winner, 'shadow');
+  assert.equal(t.room.game.winner, 'evil');
 });
 
 test('host tools: skip, pause, undo, nudge, open a seat and take it over, hand off', () => {
