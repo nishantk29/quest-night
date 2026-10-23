@@ -5,22 +5,27 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Quest Night</title>
 <meta name="description" content="A hidden-minion quest game for 5 to 10 players on their phones. Pick a party, vote, and find out who sabotaged the quest.">
-<meta name="theme-color" content="#0B0B0D">
 <meta name="color-scheme" content="dark">
 <meta name="application-name" content="Quest Night">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="Quest Night">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="format-detection" content="telephone=no">
-<link rel="manifest" href="/manifest.webmanifest">
-<link rel="icon" href="/icons/favicon.svg" type="image/svg+xml">
-<link rel="apple-touch-icon" href="/icons/icon-192.png">
 <link rel="preload" href="/fonts/rubik-var.woff2" as="font" type="font/woff2" crossorigin>
 <style>html{background:#0B0B0D;color-scheme:dark}</style>
 <link rel="stylesheet" href="/styles.css">
 <link rel="stylesheet" href="/theme.css">
 <link rel="stylesheet" href="/fx.css">
+<!-- pwa:start -->
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="theme-color" content="#0B0B0D">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Quest Night">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+<link rel="icon" href="/icons/favicon-32.png" sizes="32x32" type="image/png">
+<link rel="icon" href="/icons/favicon.svg" type="image/svg+xml">
+<script type="module" src="/pwa-install.js"></script>
+<script>if('serviceWorker'in navigator)addEventListener('load',function(){navigator.serviceWorker.register('/sw.js',{scope:'/'}).catch(function(){})});</script>
+<!-- pwa:end -->
 </head>
 <body>
 <div id="app"></div>
