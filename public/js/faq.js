@@ -26,7 +26,7 @@ export const FAQ = [
     ['Does the host see secrets in hybrid mode?', '<p>No. The host only enters things the whole table sees anyway (who approved, how many sabotage cards were turned up, who the Assassin named). The table screen never shows anything secret. Only a host who sits out as storyteller, with roles in the app, sees the deal.</p>'],
     ['Printable cards?', '<p>Yes: <a href="/print.html" target="_blank" rel="noopener">print.html</a> has a card guide and a sheet of Quest Night cards (original art) to print and cut.</p>'],
   ]],
-  ['Playing offline', [
+  ['Playing Offline', [
     ['Can I play without internet?', '<ol><li>Open Quest Night once while you’re online, or install it: on iPhone tap Share, then Add to Home Screen; on Android tap Install app.</li><li>After that it opens without internet, so you can read the rules and this FAQ.</li><li>Playing a game needs internet for now, because every phone connects to the room. There is no offline mode yet.</li></ol><p>On iPhone, the Home Screen app and Safari keep separate copies, so open the one you’ll use while you’re online.<span hidden> wifi Wi-Fi</span></p>'],
   ]],
   ['Host tools and Table Tools', [
