@@ -14,7 +14,7 @@ test('the three modes are named exactly as in the lobby, in the same order', () 
   assert.deepEqual(MODES.map((m) => [m.id, m.name]), lobby);
 });
 
-test('Phones only needs no cards, and the guide says so', () => {
+test('Phones Mode needs no cards, and the guide says so', () => {
   assert.equal(MODES[0].id, 'phone');
   assert.equal(MODES[0].cards, 'None.');
   assert.match(read('js/print.js'), /Phones Mode needs no cards\./);
@@ -104,9 +104,10 @@ test('the opening script matches the app’s own lines (app.js openingScript)', 
   assert.equal(openingScript(ALL).at(-1), 'Everyone, open your eyes.');
 });
 
-test('copy follows COPY-STYLE: Host, never storyteller; the guide says Phones only needs no cards', () => {
+test('copy follows COPY-STYLE: Host, never storyteller; the guide says Phones Mode needs no cards', () => {
   for (const f of ['js/print.js', 'js/print-guide.js']) {
     assert.doesNotMatch(read(f), /storyteller/i, `${f} says storyteller`);
   }
   assert.match(read('js/print.js'), /Host sits out/);
+  for (const f of ['js/print.js', 'js/print-guide.js', 'print.html']) assert.doesNotMatch(read(f), /phones only|all at the table|all physical/i, `${f} uses an old mode name`);
 });

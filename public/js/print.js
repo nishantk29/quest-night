@@ -30,7 +30,7 @@ function guide() {
   }).join('');
   const script = openingScript(['merlin', 'percival', 'morgana', 'mordred', 'oberon']).map((l) => `<li>${l}</li>`).join('');
   return `<section class="sheet"><h1>Quest Night</h1>
-  <p class="lede"><b>Card guide.</b> Play with phones only, with real cards, or with both. Start by choosing a mode.</p>
+  <p class="lede"><b>Card guide.</b> Play in Phones Mode, Hybrid or Host-Only Mode. Start by choosing a mode.</p>
   <h2>Choose a mode</h2>
   <table><tr><th>Mode</th><th>Cards</th><th>How it works</th></tr>${modes}</table>
   <p><b>Phones Mode needs no cards.</b> Skip to the Host section, or open Quest Night on every phone and start.</p>
