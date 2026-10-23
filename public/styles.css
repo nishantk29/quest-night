@@ -249,11 +249,6 @@ html[data-phase="night"] .phase-badge .ui-ico{color:var(--town)}
 /* ==================================================================== home */
 .wrap.home{max-width:1180px;display:grid;gap:var(--s7);padding-top:var(--s6)}
 .home-hero{display:grid;justify-items:center;text-align:center;gap:var(--s4)}
-.card-fan{display:flex;justify-content:center;align-items:flex-end;height:clamp(118px, 30vw, 196px);margin-bottom:var(--s2)}
-.card-fan .rcard-back{width:clamp(76px, 20vw, 128px);flex:none;box-shadow:var(--lift-2)}
-.card-fan .rcard-back:nth-child(1){transform:rotate(-8deg) translate(10%, 5%)}
-.card-fan .rcard-back:nth-child(2){position:relative;z-index:1}
-.card-fan .rcard-back:nth-child(3){transform:rotate(8deg) translate(-10%, 5%)}
 .wordmark{font-family:var(--font-display);font-weight:800;font-size:var(--fs-3xl);line-height:var(--lh-tight);letter-spacing:-.005em;color:var(--candle);margin:0}
 .lede{font-size:var(--fs-lg);line-height:1.4;color:var(--smoke);max-width:30ch}
 .home-paths{display:grid;max-width:440px;width:100%;margin-inline:auto}
@@ -328,7 +323,7 @@ html[data-phase="night"] .phase-badge .ui-ico{color:var(--town)}
 .rcard-back-mark .ui-ico,.rcard-back > .ui-ico{width:100%;height:auto;aspect-ratio:1;vertical-align:0}
 .rcard-back:empty::after{content:"";width:30%;aspect-ratio:1;transform:rotate(45deg);border:1.5px solid rgba(224,174,82,.75);
   box-shadow:inset 0 0 0 5px var(--lacquer), inset 0 0 0 6.5px rgba(224,174,82,.5)}
-.card-fan .rcard-back,.waiting .rcard-back{box-shadow:inset 0 0 0 6px var(--lacquer), inset 0 0 0 7px rgba(224,174,82,.6), 0 0 0 1px rgba(224,174,82,.22), var(--lift-2)}
+.waiting .rcard-back{box-shadow:inset 0 0 0 6px var(--lacquer), inset 0 0 0 7px rgba(224,174,82,.6), 0 0 0 1px rgba(224,174,82,.22), var(--lift-2)}
 
 /* the one orchestrated moment: role-card turn-over */
 .rcard.is-flipping .rcard-inner{animation:rc-flip var(--t-reveal) var(--ease-out) both}
@@ -365,8 +360,6 @@ html[data-phase="night"] .phase-badge .ui-ico{color:var(--town)}
 .side-tag::before{content:"";width:10px;height:10px;border-radius:50%;border:2px solid var(--team)}
 .side-tag.a-evil::before{border:3px double var(--team)}
 
-.home .wordmark{letter-spacing:.01em}
-.home .wordmark span{display:block;color:var(--brass);font-size:.42em;letter-spacing:.32em;font-weight:700;margin-top:.35em}
 
 /* game page */
 .wrap.game{max-width:46rem;display:grid;gap:var(--s6)}
@@ -639,7 +632,7 @@ html[data-screen="1"] .round{width:min(100%,620px)}
    red = Minions of Mordred. Every text colour pair below is at least 4.5:1 (checked by scripts/contrast.mjs). */
 :root{
   --room:#0B0B0D; --room-night:#0B0B0D; --panel:#17317E; --panel-2:#10256A; --rule:#3A55AE; --rule-strong:#9DB1EE;
-  --candle:#FFFFFF; --smoke:#CFD8F6; --faint:#B4C0EA;
+  --candle:#FFFFFF; --smoke:#E6EBFB; --faint:#C9D3F2;
   --brass:#FFD25A; --brass-hi:#FFDE82; --brass-lo:#B58E1E; --on-brass:#0E1F5C; --focus:#FFE08A;
   --card:#FFF4E6; --card-ink:#1B1B3A; --lacquer:#0E1A2E;
   --baize:#17317E; --baize-lit:#1F3F9A; --baize-deep:#0E1F5C; --rail:#0B0B0D; --felt-muted:#DDE4F7;

@@ -28,7 +28,7 @@
 
 /* team votes: every tile flips together */
 .vtiles{display:grid;grid-template-columns:1fr 1fr;gap:var(--s3);perspective:900px}
-.vtile{position:relative;transform-style:preserve-3d;border-radius:28px}
+.vtile{position:relative;transform-style:preserve-3d;border-radius:20px}
 .vt-face{display:grid;justify-items:center;align-content:center;gap:2px;min-height:112px;padding:var(--s3);border-radius:inherit;color:#F3EAD3;backface-visibility:hidden}
 .vt-face b{font:900 clamp(4rem,20vw,6.5rem)/1 var(--font-display);letter-spacing:-.04em;display:block}
 .vt-face small{font:800 var(--fs-md) var(--font-ui);letter-spacing:.12em;text-transform:uppercase}
@@ -96,7 +96,7 @@
 .vc-status{padding:.15em .8em;border-radius:999px;background:#E4B94E;color:#0C1626;font:800 var(--fs-xl)/1.2 var(--font-display);transform:translateZ(24px)}
 .vc-roles{list-style:none;display:grid;grid-template-columns:1fr 1fr;gap:6px;width:100%;max-height:30dvh;overflow:auto;padding:0;margin:0;text-align:left}
 .vc-roles li{display:flex;align-items:center;gap:8px;padding:6px 10px;border-radius:14px;background:rgba(8,14,26,.55);border:1px solid rgba(255,255,255,.14)}
-.vc-roles li.a-good{border-left:4px solid #8EBAF3} .vc-roles li.a-evil{border-left:4px solid #F46E62}
+.vc-roles li.a-good{border-color:#8EBAF3} .vc-roles li.a-evil{border-color:#F46E62}
 .vc-roles .ico{width:24px;height:24px;flex:none;color:#F3EAD3}
 .vc-roles span{display:grid;line-height:1.15;min-width:0} .vc-roles b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#F3EAD3} .vc-roles small{color:#C9D2E0}
 .vc-btns{display:grid;gap:var(--s2);width:100%}
