@@ -63,6 +63,8 @@ function screen() {
   return banner + appbar(v) + layout(v);
 }
 
+const CHEV = '<svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg>';
+
 function home() {
   const mine = Object.keys(localStorage).filter((k) => k.startsWith(`${KEY}.player.`)).map((k) => k.slice(KEY.length + 8));
   // a sample quest track at 5 players: seal size follows party size, the last two show their quest's party size
@@ -83,7 +85,15 @@ function home() {
       <section class="path"><h2 class="path-title">Join a table</h2>
         <div class="join-row"><label class="field"><span>Room code</span><input class="code-input" data-i="joinCode" maxlength="6" autocapitalize="characters" autocomplete="off" spellcheck="false" enterkeyhint="go" placeholder="6 letters" value="${esc(S.ui.draft.joinCode || '')}"></label>
         <button type="button" class="btn" data-a="goJoin">Join</button></div></section>
-      <p class="home-faq"><a class="path-link" href="#/rules">How to play</a><a class="path-link" href="#/faq">FAQ</a><a class="path-link" href="/print.html" target="_blank" rel="noopener">Print cards</a></p>
+      <a class="side-card" href="#/faq"><span><b>Rules &amp; FAQ</b><small>Roles, table sizes and what to do when it gets weird.</small></span>${CHEV}</a>
+      <section class="how-sec"><h2 class="block-title">How to Play</h2>
+        <ol class="how">
+          <li><h3>Join</h3><p>Everyone joins with the 6-letter code. Each player gets a secret card: Loyal Servant or Minion of Mordred.</p></li>
+          <li><h3>Choose</h3><p>The leader (the crown) picks a party. Everyone votes, and a strict majority sends it out.</p></li>
+          <li><h3>Quest</h3><p>Party members play Success or Sabotage face down. One Sabotage fails the quest, or two on quest 4 with 7+ players.</p></li>
+          <li><h3>Win</h3><p>Three successful quests win for the Loyal Servants, unless the Assassin names Merlin. Three failed quests, or five rejected parties in a row, win for the Minions.</p></li>
+        </ol></section>
+      <p class="home-faq"><a class="link tiny" href="/print.html" target="_blank" rel="noopener">Print cards</a></p>
     </div>
     <p class="credits">Same table as <a href="https://mafia-app.hatethespurs.workers.dev">Mafia Night</a> and <a href="https://council-night.hatethespurs.workers.dev">Council Night</a>. Crown, chalice, lantern and crest icons drawn for Quest Night. Role icons from <a href="https://game-icons.net" target="_blank" rel="noopener">game-icons.net</a> by Lorc, Delapouite and contributors (<a href="https://creativecommons.org/licenses/by/3.0/" target="_blank" rel="noopener">CC BY 3.0</a>) and <a href="https://phosphoricons.com" target="_blank" rel="noopener">Phosphor</a> (MIT). Font: Rubik (SIL OFL).</p>
   </main>`;
