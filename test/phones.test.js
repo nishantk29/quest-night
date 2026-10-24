@@ -108,13 +108,11 @@ test('phones mode: the hidden card never contains the role', () => {
   assert.match(marks, /if \(S\.ui\.showCard\) for \(const k of v\.me\?\.sees/);
 });
 
-test('motion CSS is gated: @supports, reduced motion and the Animations switch', () => {
+test('motion CSS is gated: reduced motion and the Animations switch; nothing scroll-driven, no carousel', () => {
   const css = read('motion.css');
-  assert.match(css, /@supports \(animation-timeline: view\(\)\)/);
-  assert.match(css, /prefers-reduced-motion: no-preference/);
-  assert.match(css, /html:not\(\.fx-off\)/);
+  assert.doesNotMatch(css, /animation-timeline|scroll-snap-type/);
   assert.match(css, /prefers-reduced-motion: reduce/);
-  assert.match(css, /scroll-snap-type:x mandatory/); assert.match(css, /overscroll-behavior-x:contain/);
+  assert.match(css, /\.fx-off/);
   assert.match(read('js/app.js'), /canTransition\(\)/);
   assert.match(read('js/app.js'), /fx\.enabled\(\) && canTransition/);
 });

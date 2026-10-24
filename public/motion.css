@@ -1,19 +1,18 @@
 /* Quest Night, motion and phones-mode layer. Loaded after theme.css and fx.css.
-   Everything animated here is progressive enhancement: feature-gated with @supports, transform/opacity/translate only,
-   and off when the OS asks for reduced motion or the Animations switch is off (html.fx-off). */
+   Transform/opacity only, --ease-out, nothing tied to scroll, and off when the OS asks for reduced motion or the Animations switch is off (html.fx-off). */
 
 /* ---- hold to reveal: identical size, words and timing for every role while hidden */
 .rcard-tap{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;touch-action:none;-webkit-tap-highlight-color:transparent}
 .rcard,.rcard.a-hidden,.cardart.a-hidden{--c1:#3A3A4C;--c2:#26262E;--c3:#17171D;--ink:#fff}
 .side-tag.a-hidden{background:#3A3A4C;color:#fff}
-.rcard.is-hidden .rcard-face{filter:blur(11px) saturate(.6);transform:scale(1.02)}
+.rcard.is-hidden .rcard-face{opacity:.6}
 .rcard.is-hidden .rcard-inner{position:relative}
 .reveal-cue{grid-area:1 / 1;align-self:center;justify-self:center;z-index:2;padding:var(--s3) var(--s5);border-radius:999px;background:#fff;color:var(--on-brass);font-weight:900;letter-spacing:-.01em;pointer-events:none}
-.rcard.is-shown .rcard-face{animation:qn-unveil 160ms ease-out both}
+.rcard.is-unveil .rcard-face{animation:qn-unveil var(--t-open) var(--ease-out) both} /* class set for the press that showed the card only */
 @keyframes qn-unveil{from{opacity:.2;transform:scale(.985)}to{opacity:1;transform:none}}
 .sees-box{width:min(100%,360px);min-height:15.5rem;display:grid;align-content:start;gap:var(--s2)}
 .sees-box .muted{text-align:center}
-.sees.is-blur{filter:blur(7px);opacity:.7}
+.sees.is-blur{opacity:.5}
 .sees li.is-ghost{background:var(--panel);box-shadow:none}
 .sees li.is-ghost .ico{color:#8A8A99}
 .sees li.is-none{justify-content:center}
@@ -25,59 +24,27 @@
 .qr-tap{all:unset;box-sizing:border-box;display:grid;justify-items:center;gap:var(--s2);margin:var(--s3) 0;cursor:pointer;color:var(--smoke);font-weight:700;font-size:var(--fs-sm);border-radius:var(--r-block)}
 .qr-tap:focus-visible{outline:3px solid var(--focus);outline-offset:4px}
 .qr-tap .qr{width:min(100%,200px);height:auto;border-radius:var(--r-row);display:block}
-.qr-full{position:fixed;inset:0;z-index:200;display:grid;place-items:center;padding:var(--s5);background:#0B0B0D;overflow:auto}
+.qr-full{position:fixed;inset:0;z-index:200;display:grid;place-items:center;padding:max(var(--s5),env(safe-area-inset-top)) var(--gutter-r) max(var(--s5),env(safe-area-inset-bottom)) var(--gutter-l);background:#0B0B0D;overflow:auto;animation:qn-fade var(--t-open) var(--ease-out) both}
+@keyframes qn-fade{from{opacity:0}to{opacity:1}}
 .qr-card{display:grid;justify-items:center;gap:var(--s4);text-align:center;width:min(100%,520px)}
 .qr-card .qr{width:min(100%,70vmin,420px);height:auto;border-radius:var(--r-block)}
 .qr-card .room-code{margin:0}
-
-/* ---- carousel: How to Play */
-.how-wrap{display:grid;gap:var(--s3)}
-.how{display:grid;grid-auto-flow:column;grid-auto-columns:82%;gap:var(--s3);overflow-x:auto;overscroll-behavior-x:contain;scroll-snap-type:x mandatory;scroll-padding-inline:var(--s4);
-  padding:0 var(--s4) var(--s2);margin-inline:calc(-1 * var(--s4));background:none;border-radius:0;scrollbar-width:none;-webkit-overflow-scrolling:touch}
-.how::-webkit-scrollbar{display:none}
-.how:focus-visible{outline:3px solid var(--focus);outline-offset:-3px}
-.how li{scroll-snap-align:start;scroll-snap-stop:always;display:grid;grid-template-columns:minmax(0,1fr);align-content:start;gap:var(--s2);padding:var(--s5);border:0;border-radius:var(--r-block);background:var(--panel);min-height:13.5rem}
-.how li:first-child{border-top:0}
-.how li::before{font-size:3rem;color:var(--brass);grid-column:1;letter-spacing:-.04em}
-.how h3,.how p{grid-column:1}
-.how h3{font-size:var(--fs-lg);font-weight:900}
-.how p{font-size:var(--fs-md);color:#D6D6E0}
-.dots{display:flex;justify-content:center;gap:var(--s1)}
-.dots button{all:unset;box-sizing:border-box;width:44px;height:28px;display:grid;place-items:center;cursor:pointer;border-radius:999px}
-.dots button::before{content:"";width:10px;height:10px;border-radius:999px;background:var(--quiet);transition:width 200ms var(--ease-out),background-color 200ms}
-.dots button[aria-current="true"]::before{width:26px;background:var(--brass)}
-.dots button:focus-visible{outline:3px solid var(--focus)}
-
-/* ---- scroll-driven reveal: home, rules, FAQ, role lists */
-@supports (animation-timeline: view()) {
-  @media (prefers-reduced-motion: no-preference) {
-    html:not(.fx-off) :is(.home-paths > *, .faq-group, .faq-q, .rules-page .stage, .roles-list li, .sizes tr){
-      animation:qn-rise linear both;animation-timeline:view();animation-range:entry 0% entry 55%}
-    html:not(.fx-off) .roles-list li:nth-child(even){animation-name:qn-rise-r}
-    html:not(.fx-off) .home-art{animation:qn-drift linear both;animation-timeline:scroll(root);animation-range:0 70vh}
-  }
-}
-@keyframes qn-rise{from{opacity:0;translate:0 28px}to{opacity:1;translate:0 0}}
-@keyframes qn-rise-r{from{opacity:0;translate:0 28px;scale:.96}to{opacity:1;translate:0 0;scale:1}}
-@keyframes qn-drift{from{opacity:1;translate:0 0}to{opacity:.25;translate:0 -36px}}
 
 /* ---- View Transitions: screen and step changes, plus two morphs (seal, role card) */
 @supports (view-transition-name: none) {
   .hseal.now,.seal.is-now{view-transition-name:quest-seal}
   .rcard-tap{view-transition-name:role-card}
-  ::view-transition-group(quest-seal),::view-transition-group(role-card){animation-duration:380ms;animation-timing-function:cubic-bezier(.34,1.2,.64,1)}
-  ::view-transition-old(root){animation:qn-out 140ms ease-in both}
-  ::view-transition-new(root){animation:qn-in 220ms ease-out both}
+  ::view-transition-group(quest-seal),::view-transition-group(role-card){animation-duration:360ms;animation-timing-function:var(--ease-out)}
+  ::view-transition-old(root){animation:qn-out 150ms var(--ease-out) both}
+  ::view-transition-new(root){animation:qn-in var(--t-open) var(--ease-out) both}
 }
 @keyframes qn-out{to{opacity:0}}
 @keyframes qn-in{from{opacity:0;translate:0 10px}}
 
 /* ---- off switches */
-.fx-off .rcard.is-shown .rcard-face,.fx-off .dots button::before{animation:none;transition:none}
+.fx-off .rcard.is-unveil .rcard-face{animation:none}
 @media (prefers-reduced-motion: reduce){
-  .rcard.is-shown .rcard-face{animation:none}
-  .dots button::before{transition:none}
-  .how{scroll-behavior:auto}
+  .rcard.is-unveil .rcard-face{animation:none}
   ::view-transition-group(*),::view-transition-old(*),::view-transition-new(*){animation:none!important}
 }
 .fx-off ::view-transition-group(*),.fx-off ::view-transition-old(*),.fx-off ::view-transition-new(*){animation:none!important}

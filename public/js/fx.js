@@ -1,4 +1,4 @@
-// Quest Night animations: spring pops, flips, tiny particle bursts, stamps, shake, number rolls, the victory
+// Quest Night animations: spring pops, flips, tiny particle bursts, stamps, number rolls, the victory
 // card. CSS 3D transforms only; only transform and opacity are animated; will-change exists only while
 // something is animating; nothing loops (tilt reacts to pointer/device events through one rAF).
 // Everything here is cosmetic and runs on public information (or the viewer's own card on their own phone).
@@ -17,7 +17,6 @@ mq?.addEventListener?.('change', sync);
 sync();
 
 const MAX_PARTS = 20;
-const WINDOW = 1500; // how long a mark stays "fresh": a re-render inside it resumes the animation where it was
 const marks = new Map();
 let layer;
 const raf = (f) => requestAnimationFrame(f);
@@ -36,11 +35,12 @@ function play(el, frames, opts) {
 // ---------------------------------------------------------------- freshness (survives the app's full re-renders)
 function mark(key) {
   if (!enabled() || marks.has(key)) return false;
-  marks.set(key, performance.now());
+  marks.set(key, { t: performance.now(), done: false });
   if (marks.size > 40) marks.delete(marks.keys().next().value);
   return true;
 }
-const on = (key) => { const t = marks.get(key); if (t == null || !enabled()) return -1; const a = performance.now() - t; return a < WINDOW ? Math.round(a) : -1; };
+// A mark animates in the render that created it only; app.after() closes it, so later re-renders never replay it.
+const on = (key) => { const m = marks.get(key); if (!m || m.done || !enabled()) return -1; return Math.round(performance.now() - m.t); };
 // `fx.cue(key, fn)`: the first time only, run fn once the DOM for this render is in place.
 const cue = (key, fn) => { if (mark(key)) raf(() => raf(fn)); };
 const st = (key) => { const a = on(key); return a < 0 ? '' : ` style="--age:${a}ms"`; };
@@ -59,19 +59,11 @@ function burst(x, y, kind = 'gold', n = 16) {
     play(p, [{ transform: 'translate(-50%,-50%) scale(.2) rotate(0)', opacity: 1 },
       { transform: `translate(calc(-50% + ${dx * 0.8}px),calc(-50% + ${dy * 0.8 - 14}px)) scale(1) rotate(${120 + i * 40}deg)`, opacity: 1, offset: 0.55 },
       { transform: `translate(calc(-50% + ${dx}px),calc(-50% + ${dy + 34}px)) scale(.4) rotate(${240 + i * 60}deg)`, opacity: 0 }],
-    { duration: 700 + Math.random() * 350, easing: 'cubic-bezier(.2,.7,.2,1)' }).then(() => p.remove());
+    { duration: 360 + Math.random() * 40, easing: 'cubic-bezier(.22,1,.36,1)' }).then(() => p.remove());
   }
 }
 const centre = (el) => { const r = el?.getBoundingClientRect(); return r ? [r.left + r.width / 2, r.top + r.height / 2] : [innerWidth / 2, innerHeight / 3]; };
 const burstAt = (sel, kind, n) => burst(...centre(document.querySelector(sel)), kind, n);
-
-// Small screen shake on dramatic beats: the main column only (a transform on #app would break fixed bars).
-function shake() {
-  if (!enabled()) return;
-  const el = document.querySelector('main.game, main.wrap');
-  play(el, [{ transform: 'none' }, { transform: 'translate(-6px,2px) rotate(-.3deg)' }, { transform: 'translate(5px,-2px) rotate(.25deg)' }, { transform: 'translate(-3px,1px)' }, { transform: 'translate(2px,0)' }, { transform: 'none' }],
-    { duration: 320, easing: 'ease-out', fill: 'none' });
-}
 
 // Stamp-like slam for results.
 function stamp(text, tone = 'red') {
@@ -80,15 +72,14 @@ function stamp(text, tone = 'red') {
   s.setAttribute('aria-hidden', 'true'); $layer().appendChild(s);
   play(s, [{ transform: 'translate(-50%,-50%) rotate(-9deg) scale(2.6)', opacity: 0 }, { transform: 'translate(-50%,-50%) rotate(-9deg) scale(.9)', opacity: 1, offset: 0.2, easing: 'cubic-bezier(.3,1.6,.5,1)' },
       { transform: 'translate(-50%,-50%) rotate(-9deg) scale(1)', opacity: 1, offset: 0.3 }, { transform: 'translate(-50%,-50%) rotate(-9deg) scale(1)', opacity: 1, offset: 0.8 }, { transform: 'translate(-50%,-50%) rotate(-9deg) scale(1.04)', opacity: 0 }],
-  { duration: 1200, easing: 'ease-out' }).then(() => s.remove());
-  setTimeout(shake, 240);
+  { duration: 600, easing: 'cubic-bezier(.22,1,.36,1)' }).then(() => s.remove());
 }
 
 // A warm full-screen wash (the Lantern): opacity only.
 function glow(tone = 'gold') {
   if (!enabled()) return;
   const g = Object.assign(document.createElement('div'), { className: `fx-glow is-${tone}` }); $layer().appendChild(g);
-  play(g, [{ opacity: 0 }, { opacity: 1, offset: 0.35 }, { opacity: 0 }], { duration: 1100, easing: 'ease-in-out' }).then(() => g.remove());
+  play(g, [{ opacity: 0 }, { opacity: 1, offset: 0.35 }, { opacity: 0 }], { duration: 500, easing: 'cubic-bezier(.22,1,.36,1)' }).then(() => g.remove());
 }
 
 // Numbers that roll: any [data-roll="id"] whose text changed since the last render slides in.
@@ -96,18 +87,18 @@ const seen = new Map();
 function rolls(rootEl) {
   for (const el of rootEl.querySelectorAll('[data-roll]')) {
     const id = el.dataset.roll; const prev = seen.get(id); seen.set(id, el.textContent);
-    if (prev != null && prev !== el.textContent && enabled()) play(el, [{ transform: 'translateY(55%) scale(.7)', opacity: 0 }, { transform: 'translateY(-8%) scale(1.15)', opacity: 1, offset: 0.6 }, { transform: 'none', opacity: 1 }], { duration: 420, easing: 'cubic-bezier(.2,.8,.3,1)', fill: 'none' });
+    if (prev != null && prev !== el.textContent && enabled()) play(el, [{ transform: 'translateY(55%) scale(.7)', opacity: 0 }, { transform: 'translateY(-4%) scale(1.05)', opacity: 1, offset: 0.6 }, { transform: 'none', opacity: 1 }], { duration: 300, easing: 'cubic-bezier(.22,1,.36,1)', fill: 'none' });
   }
 }
 
 // Drop the animation class (and with it will-change) as soon as each element finishes.
 document.addEventListener('animationend', (e) => { if (e.target.classList?.contains('fx-a')) e.target.classList.remove('fx-a'); }, true);
 
-// ---------------------------------------------------------------- tilt: pointer, and device orientation while a card is up
+// ---------------------------------------------------------------- tilt: pointer, and mouse only
 let tiltEl = null; let tiltRaf = 0; let tiltXY = null;
-const CARDS = '[data-tilt], .stage, .track, .reveal, .round, .winner, .path'; // [data-tilt] = the secret card and victory card
+const CARDS = '[data-tilt]'; // the secret card, mouse only
 const setTilt = (el, nx, ny) => { // nx, ny in -1..1
-  const k = el.matches('[data-tilt]') ? 7 : 3; // big section cards tilt gently
+  const k = 7;
   el.style.setProperty('--ry', `${(nx * k).toFixed(2)}deg`); el.style.setProperty('--rx', `${(-ny * k).toFixed(2)}deg`);
   el.style.setProperty('--hx', nx.toFixed(2)); el.style.setProperty('--hy', ny.toFixed(2));
 };
@@ -117,47 +108,26 @@ function queueTilt(el, nx, ny) {
   tiltRaf = raf(() => { tiltRaf = 0; if (tiltEl?.isConnected) setTilt(tiltEl, ...tiltXY); });
 }
 document.addEventListener('pointermove', (e) => {
-  if (!enabled() || e.pointerType === 'touch') return; // touch gets the press-lift and the phone's tilt sensor instead
+  if (!enabled() || e.pointerType === 'touch') return; // touch gets the instant :active press
   const el = e.target.closest?.(CARDS); if (!el) return;
   const r = el.getBoundingClientRect();
   queueTilt(el, Math.max(-1, Math.min(1, ((e.clientX - r.left) / r.width - 0.5) * 2)), Math.max(-1, Math.min(1, ((e.clientY - r.top) / r.height - 0.5) * 2)));
 }, { passive: true });
 document.addEventListener('pointerout', (e) => { const el = e.target.closest?.(CARDS); if (el && !el.contains(e.relatedTarget)) queueTilt(el, 0, 0); }, { passive: true });
 
-// Phone tilt for every card at once: two custom properties on <html>, written at most once per frame.
-// iOS asks for permission, so it is requested on the first tap; denied or unsupported just means flat cards.
-let sensor = false; let sensorRaf = 0; let sensorXY = [0, 0];
-const sensorTick = () => { sensorRaf = 0; root.style.setProperty('--dry', `${(sensorXY[0] * 3).toFixed(2)}deg`); root.style.setProperty('--drx', `${(-sensorXY[1] * 3).toFixed(2)}deg`); };
-const onSensor = (e) => {
-  if (e.gamma == null || !enabled()) return;
-  const x = Math.round(Math.max(-1, Math.min(1, e.gamma / 30)) * 20) / 20; const y = Math.round(Math.max(-1, Math.min(1, ((e.beta || 0) - 45) / 30)) * 20) / 20;
-  if (x === sensorXY[0] && y === sensorXY[1]) return;
-  sensorXY = [x, y]; if (!sensorRaf) sensorRaf = raf(sensorTick);
-};
-function startSensor() {
-  if (sensor || !enabled() || !window.DeviceOrientationEvent) return; sensor = true;
-  addEventListener('deviceorientation', onSensor, { passive: true });
-}
-if (window.DeviceOrientationEvent) {
-  if (typeof DeviceOrientationEvent.requestPermission === 'function') {
-    document.addEventListener('pointerup', () => { DeviceOrientationEvent.requestPermission().then((r) => { if (r === 'granted') startSensor(); }).catch(() => {}); }, { once: true });
-  } else startSensor();
-}
-
 // ---------------------------------------------------------------- the victory card
 let vic = null;
-const orient = (e) => { if (vic && e.gamma != null) queueTilt(vic.tilt, Math.max(-1, Math.min(1, e.gamma / 30)), Math.max(-1, Math.min(1, ((e.beta || 0) - 45) / 30))); };
 function closeVictory() {
   if (!vic) return;
   const v = vic; vic = null;
-  removeEventListener('deviceorientation', orient); removeEventListener('keydown', v.key);
+  removeEventListener('keydown', v.key);
   v.el.remove();
 }
 // o = { side, title, text (reason), status ('You won!' | 'You lost' | ''), crest (trusted svg html), roles [{name, role, side, icon(html)}], onAgain (host only), }
 function victory(o) {
   closeVictory();
   const el = document.createElement('div'); el.className = `fx-victory a-${o.side}`;
-  el.innerHTML = `<div class="vc-wrap"><div class="vc-tilt glass" data-tilt role="dialog" aria-labelledby="vc-title">
+  el.innerHTML = `<div class="vc-wrap"><div class="vc-tilt glass" role="dialog" aria-labelledby="vc-title">
       <div class="vc-crest">${o.crest}</div>
       <h2 id="vc-title"></h2><p class="vc-text"></p>${o.status ? `<p class="vc-status"></p>` : ''}
       <ul class="vc-roles"></ul>
@@ -175,16 +145,15 @@ function victory(o) {
   const on_ = enabled();
   el.classList.toggle('is-fx', on_);
   if (on_) {
-    if (window.DeviceOrientationEvent && typeof DeviceOrientationEvent.requestPermission !== 'function') addEventListener('deviceorientation', orient, { passive: true });
     raf(() => { const [x, y] = centre(vic?.tilt); burst(x, y - 60, 'gold', 20); });
-    setTimeout(() => el.classList.remove('is-fx'), 1500); // will-change (in the .is-fx rules) ends with the pop
+    setTimeout(() => el.classList.remove('is-fx'), 700); // will-change (in the .is-fx rules) ends with the pop
   }
   if (!o.noFocus) el.querySelector('[data-vc]')?.focus({ preventScroll: true });
 }
 
 export const fx = {
-  enabled, mark, on, st, cue, burst, burstAt, shake, stamp, glow, rolls, victory, closeVictory,
+  enabled, mark, on, st, cue, burst, burstAt, stamp, glow, rolls, victory, closeVictory,
   isUserOn: () => userOn,
   setUserOn(v) { userOn = !!v; store.set(v ? '1' : '0'); sync(); },
-  after(rootEl) { rolls(rootEl); },
+  after(rootEl) { rolls(rootEl); for (const m of marks.values()) m.done = true; },
 };
