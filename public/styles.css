@@ -34,9 +34,9 @@
   --d-blue:#5AA9FF; --d-purple:#B48CFF; --d-pink:#FF85C8; --d-white:#F4F1EA;
 
   /* type */
-  --font-display:"Big Shoulders Display","Arial Narrow",sans-serif-condensed,sans-serif;
-  --font-ui:"Alegreya Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
-  --font-voice:"Alegreya",Georgia,serif;
+  --font-display:"Rubik",system-ui,sans-serif;
+  --font-ui:"Rubik",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --font-voice:var(--font-ui);
   --fs-xs:.875rem;
   --fs-sm:clamp(.9375rem, .9rem + .15vw, 1rem);
   --fs-md:clamp(1.0625rem, 1rem + .25vw, 1.125rem);
@@ -55,7 +55,7 @@
   --section:var(--s7);
 
   /* radii */
-  --r-control:10px; --r-tag:8px; --r-panel:16px; --r-pill:999px;
+  --r-control:14px; --r-tag:8px; --r-row:16px; --r-panel:24px; --r-card:28px; --r-pill:999px;
 
   /* elevation */
   --lift-1:0 1px 0 rgba(8,5,3,.6), 0 6px 14px -8px rgba(8,5,3,.9);
@@ -63,8 +63,8 @@
   --lamp:0 0 0 1px var(--brass);
 
   /* motion */
-  --ease-out:cubic-bezier(.2,.7,.1,1); --ease-in-out:cubic-bezier(.6,0,.3,1);
-  --t-press:90ms; --t-open:200ms; --t-reveal:650ms;
+  --ease-out:cubic-bezier(.22,1,.36,1); --ease-in-out:var(--ease-out);
+  --t-press:90ms; --t-open:220ms; --t-reveal:360ms;
 
   /* chrome */
   --appbar-h:56px; --tabbar-h:64px; --dock-h:80px; --table-chrome:140px;
@@ -118,7 +118,7 @@ b,strong{font-weight:700}
 /* =================================================================== chrome */
 .appbar{position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:var(--s3);min-height:calc(var(--appbar-h) + env(safe-area-inset-top));
   padding:calc(env(safe-area-inset-top) + 10px) var(--gutter-r) 10px var(--gutter-l);
-  background:color-mix(in srgb, var(--room) 92%, transparent);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);
+  background:var(--room);
   border-bottom:1px solid var(--rule)}
 .appbar-mark{display:inline-grid;place-items:center;width:44px;height:44px;margin:-6px 0 -6px -10px;border-radius:var(--r-control);color:var(--brass);text-decoration:none}
 .appbar-mark .ui-ico{width:26px;height:26px;vertical-align:0}
@@ -378,8 +378,8 @@ html[data-phase="night"] .phase-badge .ui-ico{color:var(--town)}
 .seal.is-success{background:radial-gradient(circle at 40% 35%, #a9c9f0, #3d6196 70%, #1d3354);border:3px solid #d7e6fa;color:#0c121d}
 .seal.is-fail{background:radial-gradient(circle at 40% 35%, #ff9a95, #b3262e 70%, #4a0d12);border:3px double #ffd0ce;color:#12040a}
 .seal.is-success .ico,.seal.is-fail .ico{width:58%;height:58%;color:inherit}
-.seal.is-pop{animation:seal-pop 700ms var(--ease-out) both}
-@keyframes seal-pop{0%{transform:scale(.3) rotate(-30deg);opacity:0}60%{transform:scale(1.15) rotate(6deg);opacity:1}100%{transform:none}}
+.seal.is-pop{animation:seal-pop var(--t-reveal) var(--ease-out) both}
+@keyframes seal-pop{from{transform:scale(.6);opacity:0}to{transform:none;opacity:1}}
 .two-fail{position:absolute;top:-6px;right:-6px;display:grid;place-items:center;width:24px;height:24px;border-radius:50%;background:var(--mafia);color:var(--on-brass);font-weight:800;font-size:.8rem}
 .seals-legend{display:flex;justify-content:space-between;gap:var(--s3);flex-wrap:wrap;margin-top:var(--s4);color:var(--smoke);font-size:var(--fs-sm)}
 .rejects{display:inline-flex;align-items:center;gap:6px}
@@ -433,8 +433,8 @@ html[data-phase="night"] .phase-badge .ui-ico{color:var(--town)}
 
 /* reveals */
 .reveal{display:grid;gap:var(--s3);padding:var(--s4);border-radius:var(--r-panel);background:var(--panel);border:1px solid var(--rule)}
-.reveal.is-new{animation:reveal-in 500ms var(--ease-out) both}
-@keyframes reveal-in{from{opacity:0;transform:translateY(10px) scale(.98)}to{opacity:1;transform:none}}
+.reveal.is-new{animation:reveal-in 300ms var(--ease-out) both}
+@keyframes reveal-in{from{opacity:0}to{opacity:1}} /* opacity only: the vote tiles inside flip on their own, so the panel must not move under them */
 .reveal-h{font-family:var(--font-display);font-weight:800;font-size:var(--fs-xl);line-height:var(--lh-head)}
 .reveal-h.ok{color:var(--town)} .reveal-h.bad{color:var(--mafia)}
 .vote-cols{display:grid;grid-template-columns:1fr 1fr;gap:var(--s3)}
@@ -443,7 +443,7 @@ html[data-phase="night"] .phase-badge .ui-ico{color:var(--town)}
 .vote-cols li{padding:2px 10px;border-radius:var(--r-pill);background:var(--panel-2);font-weight:500;font-size:var(--fs-sm)}
 .vote-cols .yes li{box-shadow:inset 0 0 0 1px var(--town)} .vote-cols .no li{box-shadow:inset 0 0 0 1px var(--mafia)}
 .flips{display:flex;flex-wrap:wrap;gap:var(--s2);justify-content:center}
-.flip{width:56px;aspect-ratio:63/88;border-radius:6px;display:grid;place-items:center;animation:card-flip 500ms var(--ease-out) both}
+.flip{width:56px;aspect-ratio:63/88;border-radius:6px;display:grid;place-items:center;animation:card-flip var(--t-reveal) var(--ease-out) both}
 .flip .ico{width:60%;height:60%}
 .flip.s{background:linear-gradient(160deg,#2C4466,#16233A);box-shadow:inset 0 0 0 2px #D7E6FA;color:#D7E6FA}
 .flip.f{background:linear-gradient(160deg,#7A1F26,#33090D);box-shadow:inset 0 0 0 3px #12040A, inset 0 0 0 5px #FFD0CE;color:#FFD0CE}
@@ -498,7 +498,7 @@ html[data-phase="night"] .phase-badge .ui-ico{color:var(--town)}
 .sizes th{color:var(--smoke);font-weight:500;font-size:var(--fs-sm)}
 .home-faq{margin-top:var(--s5);text-align:center}
 /* home: Rules & FAQ card and the 4-step How to Play */
-.side-card{display:flex;align-items:center;gap:var(--s4);width:100%;min-height:72px;padding:var(--s3) var(--s4);border-radius:var(--r-row);background:var(--panel);color:var(--candle);text-align:left;text-decoration:none;transition:transform .3s var(--pop)}
+.side-card{display:flex;align-items:center;gap:var(--s4);width:100%;min-height:72px;padding:var(--s3) var(--s4);border-radius:var(--r-row);background:var(--panel);color:var(--candle);text-align:left;text-decoration:none;transition:transform var(--t-press) var(--ease-out)}
 .side-card:active{transform:scale(.98)}
 .side-card>span{flex:1;min-width:0}
 .side-card b{display:block;font-size:var(--fs-md);font-weight:800}
@@ -546,7 +546,7 @@ html[data-screen="1"] .round{width:min(100%,620px)}
 
 .tabbar{position:fixed;left:0;right:0;bottom:0;z-index:30;display:grid;grid-auto-flow:column;grid-auto-columns:1fr;
   min-height:calc(var(--tabbar-h) + env(safe-area-inset-bottom));padding:4px max(4px,env(safe-area-inset-right)) env(safe-area-inset-bottom) max(4px,env(safe-area-inset-left));
-  background:color-mix(in srgb, var(--room) 94%, transparent);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);border-top:1px solid var(--rule)}
+  background:var(--room);border-top:1px solid var(--rule)}
 .tabbar button{position:relative;display:grid;justify-items:center;align-content:center;gap:2px;min-height:56px;border:0;background:none;color:var(--smoke);font-weight:700;font-size:var(--fs-xs);border-radius:var(--r-control)}
 .tabbar button .ui-ico{width:24px;height:24px;vertical-align:0}
 .tabbar button[aria-current="page"]{color:var(--brass)}
@@ -657,8 +657,16 @@ html[data-screen="1"] .round{width:min(100%,620px)}
   --font-wordmark:"Rubik",system-ui,sans-serif;
 }
 
-/* ---- in-page confirm sheet (replaces native confirm(), which freezes phone tabs) ---- */
-.confirm-sheet{width:min(92vw,360px);margin:auto;padding:var(--s5);background:var(--panel);color:var(--candle);border:1px solid var(--rule-strong);border-radius:var(--r-block,20px)}
-.confirm-sheet::backdrop{background:rgba(0,0,0,.6)}
+.confirm-sheet{width:100%;max-width:640px;margin:auto auto 0;padding:var(--s5) var(--gutter-r) calc(var(--s5) + env(safe-area-inset-bottom)) var(--gutter-l);background:var(--panel);color:var(--candle);border:0;border-radius:var(--r-panel) var(--r-panel) 0 0;
+  animation:sheet-up var(--t-open) var(--ease-out) both}
+.confirm-sheet::backdrop{background:rgba(0,0,0,.6);animation:sheet-scrim var(--t-open) var(--ease-out) both}
+@keyframes sheet-up{from{transform:translateY(24px);opacity:0}to{transform:none;opacity:1}}
+@keyframes sheet-scrim{from{opacity:0}to{opacity:1}}
 .confirm-sheet p{margin:0 0 var(--s4);font-size:var(--fs-md)}
 .confirm-sheet .btn-row{justify-content:flex-end}
+
+@media (prefers-reduced-motion:reduce){.confirm-sheet,.confirm-sheet::backdrop,.qr-full{animation:none!important}}
+.fx-off .confirm-sheet,.fx-off .confirm-sheet::backdrop,.fx-off .qr-full{animation:none!important}
+
+/* no sideways pan on phones (PM5 drift guard) */
+html,body{overflow-x:clip}

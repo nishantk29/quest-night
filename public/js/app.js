@@ -11,7 +11,7 @@ import { FAQ } from './faq.js';
 import { fx } from './fx.js';
 import { createReveal } from './reveal.js';
 import { haptic, createWakeLock, wantsWakeLock, canFullscreen, enterFullscreen } from './device.js';
-import { screenKey, canTransition, stepAt } from './motion.js';
+import { screenKey, canTransition } from './motion.js';
 import { qrSvg } from './qr.js';
 
 const $app = document.getElementById('app');
@@ -63,12 +63,9 @@ function paint() {
   window.scrollTo(0, y);
   fx.after($app);
   for (const el of $app.querySelectorAll('[data-scroll]')) el.scrollTop = el.scrollHeight;
-  const how = $app.querySelector('.how');
-  if (how && S.ui.how) how.scrollLeft = S.ui.how * stepOf(how);
   wake.set(wantsWakeLock(S.view));
 }
 const wake = createWakeLock();
-const stepOf = (how) => (how.children[1] ? how.children[1].offsetLeft - how.children[0].offsetLeft : how.clientWidth);
 document.addEventListener('focusout', () => { if (pending) setTimeout(render, 50); });
 const OWN_ICONS = ['table', 'crown']; // tab-bar icons drawn for Quest Night instead of the stock set
 const T = makeTable({ S, send, esc, ui: (n, c) => (OWN_ICONS.includes(n) ? art(n, c) : ui(n, c)), toast, render });
@@ -88,6 +85,8 @@ function screen() {
   return banner + appbar(v) + layout(v);
 }
 
+const HUB = 'https://gamenight.hatethespurs.com/';
+const CHEV_L = '<svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>';
 const CHEV = '<svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg>';
 
 function home() {
@@ -95,6 +94,7 @@ function home() {
   // a sample quest track at 5 players: seal size follows party size, the last two show their quest's party size
   const seals = QUEST_SIZES[5].map((n, i) => `<span class="hseal ${['ok', 'bad', 'ok', 'now', 'wait'][i]}" style="--n:${n}">${i < 3 ? art(['chalice', 'broken', 'chalice'][i]) : n}</span>`).join('');
   return `<main class="wrap home">
+    <nav class="home-nav" aria-label="Game Night"><a class="hub-link" href="${HUB}">${CHEV_L}All Games</a></nav>
     <div class="home-hero">
       <div class="home-art" aria-hidden="true">${seals}</div>
       <h1 class="wordmark"><span>Quest</span> <span>Night</span></h1>
@@ -112,16 +112,15 @@ function home() {
         <button type="button" class="btn" data-a="goJoin">Join Table</button></div></section>
       <a class="side-card" href="#/faq"><span><b>Rules &amp; FAQ</b><small>Roles, table sizes, and what to do when it gets weird.</small></span>${CHEV}</a>
       <section class="how-sec"><h2 class="block-title">How to Play</h2>
-        <div class="how-wrap"><ol class="how" tabindex="0" aria-label="How to play. Swipe for the next step.">
+        <ol class="how">
           <li><h3>Join</h3><p>Everyone joins with the 6-letter code. Each player gets a secret card: Loyal Servant or Minion of Mordred.</p></li>
           <li><h3>Choose</h3><p>The leader (the crown) picks a party. Everyone votes, and a strict majority sends it out.</p></li>
           <li><h3>Quest</h3><p>Party members play Success or Sabotage face down. One Sabotage fails the quest, or two on quest 4 with 7+ players.</p></li>
           <li><h3>Win</h3><p>Three successful quests win for the Loyal Servants, unless the Assassin names Merlin. Three failed quests, or five rejected parties in a row, win for the Minions.</p></li>
-        </ol>
-        <div class="dots" role="group" aria-label="How to play steps">${['Join', 'Choose', 'Quest', 'Win'].map((t, i) => `<button type="button" data-a="howGo" data-i="${i}" aria-label="Step ${i + 1}: ${t}" aria-current="${(S.ui.how || 0) === i}"></button>`).join('')}</div></div></section>
+        </ol></section>
       <p class="home-faq"><a class="link tiny" href="/print.html" target="_blank" rel="noopener">Print Cards</a></p>
     </div>
-    <p class="credits">Same table as <a href="https://mafia-app.hatethespurs.workers.dev">Mafia Night</a> and <a href="https://council-night.hatethespurs.workers.dev">Council Night</a>. Crown, chalice, lantern and crest icons drawn for Quest Night. Role icons from <a href="https://game-icons.net" target="_blank" rel="noopener">game-icons.net</a> by Lorc, Delapouite and contributors (<a href="https://creativecommons.org/licenses/by/3.0/" target="_blank" rel="noopener">CC BY 3.0</a>) and <a href="https://phosphoricons.com" target="_blank" rel="noopener">Phosphor</a> (MIT). Font: Rubik (SIL OFL).</p>
+    <p class="credits"><a href="${HUB}">All Games</a>. Same table as <a href="https://mafia.hatethespurs.com">Mafia Night</a> and <a href="https://secrethitler.hatethespurs.com">Council Night</a>. Crown, chalice, lantern and crest icons drawn for Quest Night. Role icons from <a href="https://game-icons.net" target="_blank" rel="noopener">game-icons.net</a> by Lorc, Delapouite and contributors (<a href="https://creativecommons.org/licenses/by/3.0/" target="_blank" rel="noopener">CC BY 3.0</a>) and <a href="https://phosphoricons.com" target="_blank" rel="noopener">Phosphor</a> (MIT). Font: Rubik (SIL OFL).</p>
   </main>`;
 }
 
@@ -435,12 +434,12 @@ function lastReveals(v) {
   if (g.lastQuest && ['propose', 'lantern', 'assassin', 'over'].includes(v.phase) && g.lastQuest.quest === g.quest - 1 && !(g.lastVote && g.lastVote.quest === g.quest)) {
     const q = g.lastQuest; const key = `quest:${q.quest}`;
     if (S.ui.fresh.quest) fx.cue(key, () => {
-      const n = q.size; const step = Math.min(110, Math.floor(340 / Math.max(1, n - 1)));
-      setTimeout(() => (q.result === 'success' ? fx.burstAt('[data-fx="quest"]', 'gold', 18) : (fx.stamp('Sabotaged'), fx.burstAt('[data-fx="quest"]', 'red', 12))), 300 + (n - 1) * step);
+      const n = q.size; const step = Math.min(25, Math.floor(100 / Math.max(1, n - 1)));
+      setTimeout(() => (q.result === 'success' ? fx.burstAt('[data-fx="quest"]', 'gold', 18) : (fx.stamp('Sabotaged'), fx.burstAt('[data-fx="quest"]', 'red', 12))), 120 + (n - 1) * step);
     });
     const a = fx.on(key);
     const cards = shuffled(Array.from({ length: q.size }, (_, i) => (i < q.size - q.fails ? 's' : 'f')), q.quest + 1);
-    const step = Math.min(110, Math.floor(340 / Math.max(1, q.size - 1)));
+    const step = Math.min(25, Math.floor(100 / Math.max(1, q.size - 1)));
     out.push(`<section class="reveal ${S.ui.fresh.quest ? 'is-new' : ''}"><h2 class="reveal-h ${q.result === 'success' ? 'ok' : 'bad'}" data-fx="quest">Quest ${q.quest + 1} ${q.result === 'success' ? 'succeeded' : 'failed'}</h2>
       <div class="flips qcards ${a >= 0 ? 'fx-q' : ''}" style="--n:${q.size};--step:${step}ms${a >= 0 ? `;--age:${a}ms` : ''}">${cards.map((c, i) => `<span class="flip ${c} ${a >= 0 ? 'fx-a' : ''}" style="--i:${i};--sg:${i % 2 ? -1 : 1}">${art(c === 's' ? 'chalice' : 'broken')}</span>`).join('')}</div>
       <p class="muted center"><b data-roll="fails">${q.fails}</b> sabotage card${q.fails === 1 ? '' : 's'}${q.need === 2 ? ' (two were needed)' : ''}.</p></section>`);
@@ -452,9 +451,11 @@ function lastReveals(v) {
     if (S.ui.holdVote && Date.now() < S.ui.holdVote) out.push(`<section class="reveal"><h2 class="reveal-h">The votes are in…</h2><p class="say center">Revealing in a moment.</p></section>`);
     else {
       const key = `vote:${g.history.length}`;
-      if (S.ui.fresh.vote || S.ui.holdVote) fx.cue(key, () => setTimeout(() => fx.burstAt('[data-fx="vote"]', lv.passed ? 'gold' : 'red', 16), 520));
+      // animate once per vote: the render that shows it first (right away, or when the reveal delay ends)
+      const first = !!(S.ui.fresh.vote || (S.ui.holdVote && S.ui.heldKey !== key)); if (first) S.ui.heldKey = key;
+      if (first) fx.cue(key, () => fx.burstAt('[data-fx="vote"]', lv.passed ? 'gold' : 'red', 12));
       const a = fx.on(key);
-      out.push(`<section class="reveal ${S.ui.fresh.vote || S.ui.holdVote ? 'is-new' : ''}"><h2 class="reveal-h ${lv.passed ? 'ok' : 'bad'}">Party ${lv.passed ? 'approved' : 'rejected'} ${lv.yes}–${lv.no}</h2>
+      out.push(`<section class="reveal ${first ? 'is-new' : ''}"><h2 class="reveal-h ${lv.passed ? 'ok' : 'bad'}">Party ${lv.passed ? 'approved' : 'rejected'} ${lv.yes}–${lv.no}</h2>
       <div class="vtiles" data-fx="vote"><div class="vtile yes ${a >= 0 ? 'fx-a' : ''}"${fx.st(key)}><span class="vt-face"><b data-roll="vy">${lv.yes}</b><small>Approve</small></span><span class="vt-back"></span></div>
       <div class="vtile no ${a >= 0 ? 'fx-a' : ''}"${fx.st(key)}><span class="vt-face"><b data-roll="vn">${lv.no}</b><small>Reject</small></span><span class="vt-back"></span></div></div>
       <p class="muted">${names(v, lv.team)}, chosen by ${esc(nameOf(v, lv.leader))}.</p>
@@ -471,6 +472,7 @@ function lastReveals(v) {
 const GHOST_ROWS = 3;
 function cardView(v) {
   const r = v.me.role; const shown = S.ui.showCard;
+  const unveil = shown && S.ui.unveil && fx.enabled(); S.ui.unveil = false; // the fade-in plays for the press that showed the card, never for re-renders while it is held
   const sees = (v.me.sees || []).map((k) => `<li class="${k.tag === 'evil' ? 'is-evil' : 'is-merlin'}">${k.tag === 'evil' ? art('evil') : glyph('merlin')}<span><b>${esc(nameOf(v, k.id))}</b> ${k.tag === 'evil' ? 'serves Evil' : 'is Merlin or Morgana'}</span></li>`).join('');
   const lan = (v.me.lanternSeen || []).map((k) => `<li class="${k.side === 'evil' ? 'is-evil' : 'is-good'}">${art('lantern')}<span>Lantern: <b>${esc(nameOf(v, k.id))}</b> is ${k.side === 'evil' ? 'of Evil' : 'Loyal'}</span></li>`).join('');
   const hint = { merlin: 'Mordred, if dealt, is hidden from you.', percival: 'One of these is Merlin. The other may be Morgana.', oberon: 'You know none of Evil.' }[r.id] || '';
@@ -480,7 +482,7 @@ function cardView(v) {
     : `<div class="cardart a-hidden">${art('crown')}</div>
         <div class="rcard-body"><h2 class="rcard-name">Your Role</h2><span class="side-tag a-hidden">Hidden</span><p class="rcard-blurb">Only you can see this card. Hold it to look.</p></div>`;
   const card = `<button type="button" class="rcard-tap" data-tilt data-a="flip" aria-pressed="${shown}" aria-label="${shown ? 'Your card is showing. Release to hide it.' : 'Hold to reveal your card'}">
-    <div class="rcard ${shown ? `is-shown a-${r.side}` : 'is-hidden a-hidden'}" data-face="front"><div class="rcard-inner">
+    <div class="rcard ${shown ? `is-shown${unveil ? ' is-unveil' : ''} a-${r.side}` : 'is-hidden a-hidden'}" data-face="front"><div class="rcard-inner">
       <div class="rcard-face rcard-front">${face}</div>${shown ? '' : '<span class="reveal-cue">Hold to Reveal</span>'}</div></div></button>`;
   const ghost = Array.from({ length: GHOST_ROWS }, () => `<li class="is-ghost" aria-hidden="true">${art('evil')}<span><b>Player name</b> hidden</span></li>`).join('');
   const rows = sees + lan;
@@ -638,21 +640,13 @@ window.addEventListener('hashchange', route);
 const rawSend = (msg) => S.transport?.send(msg);
 
 // ---------------------------------------------------------------- events
-const rv = createReveal({ onChange: (on) => { S.ui.showCard = on; render(); } });
+const rv = createReveal({ onChange: (on) => { S.ui.showCard = on; S.ui.unveil = on; render(); } });
 // Pointer events on document: the card is re-rendered while it is held, so the release lands on a new element.
 $app.addEventListener('pointerdown', (e) => { if (e.button > 0 || !e.target.closest('[data-a="flip"]')) return; e.preventDefault(); rv.press(); });
 for (const t of ['pointerup', 'pointercancel']) document.addEventListener(t, () => rv.release());
 $app.addEventListener('contextmenu', (e) => { if (e.target.closest('[data-a="flip"]')) e.preventDefault(); });
 document.addEventListener('visibilitychange', () => { if (document.hidden) rv.hide(); });
 window.addEventListener('blur', () => rv.hide());
-// the carousel on the home page: the dots follow the swipe
-$app.addEventListener('scroll', (e) => {
-  const how = e.target; if (!how.classList?.contains('how')) return;
-  const i = stepAt(how.scrollLeft, stepOf(how), how.children.length);
-  if (i === S.ui.how) return;
-  S.ui.how = i;
-  how.parentElement.querySelectorAll('.dots button').forEach((b, k) => b.setAttribute('aria-current', String(k === i)));
-}, true);
 wireFaqSearch($app);
 $app.addEventListener('input', (e) => { const k = e.target.dataset.i; if (k) S.ui.draft[k] = e.target.value; });
 $app.addEventListener('keydown', (e) => {
@@ -722,7 +716,6 @@ async function act(a, el) {
     case 'addSeat': { const n = (S.ui.draft.seatName || '').trim(); if (!n) { toast('Type a name for the seat.'); return; } send({ type: 'addSeat', name: n }); S.ui.draft.seatName = ''; document.activeElement?.blur?.(); return; }
     case 'copy': try { await navigator.clipboard.writeText(d.link); toast('Invite link copied.'); } catch { toast(d.link); } return;
     case 'share': try { await navigator.share({ title: 'Quest Night', text: 'Join my Quest Night table', url: d.link }); } catch { /* cancelled */ } return;
-    case 'howGo': { const how = $app.querySelector('.how'); if (how) how.scrollTo({ left: (+d.i) * stepOf(how), behavior: fx.enabled() ? 'smooth' : 'auto' }); return; }
     case 'qrFull': showQr(d.link, d.code); return;
     case 'start': if (el.classList.contains('disabled')) { toast('Not ready to start yet.'); return; } send({ type: 'start' }); return;
     case 'propose': if (el.classList.contains('disabled')) { toast('Choose the whole party first.'); return; } send({ type: 'propose' }); return;
