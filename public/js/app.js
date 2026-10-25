@@ -13,6 +13,7 @@ import { createReveal } from './reveal.js';
 import { haptic, createWakeLock, wantsWakeLock, canFullscreen, enterFullscreen } from './device.js';
 import { screenKey, canTransition } from './motion.js';
 import { qrSvg } from './qr.js';
+import { pruneClosedRooms } from './flair.js';
 
 const $app = document.getElementById('app');
 const $toast = document.getElementById('toast');
@@ -35,8 +36,15 @@ function toast(m) { $toast.textContent = String(m); $toast.classList.add('on'); 
 
 // ---------------------------------------------------------------- render
 let pending = false; let lastKey = null; let vtBusy = false;
+// A repaint between a tap's pointerdown and the focus it causes would swallow the tap (the room code box "won't focus"),
+// so repaints wait while a finger or button is down on a text field.
+let fieldDown = false;
+addEventListener('pointerdown', (e) => { if (e.target.closest?.('input,textarea,select,label.field')) fieldDown = true; }, true);
+addEventListener('pointerup', () => { if (!fieldDown) return; setTimeout(() => { fieldDown = false; if (pending) render(); }, 350); }, true);
+addEventListener('pointercancel', () => { fieldDown = false; }, true);
 function render() {
   const a = document.activeElement;
+  if (fieldDown) { pending = true; return; }
   if (a && $app.contains(a) && /^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName) && a.type !== 'checkbox' && a.type !== 'radio') { pending = true; return; }
   pending = false;
   if (vtBusy) return; // the pending transition paints the latest state when it starts
@@ -54,7 +62,9 @@ function render() {
     for (const p of [vt.ready, vt.updateCallbackDone, vt.finished]) p.catch(() => {});
   } catch { clearTimeout(guard); once(); }
 }
+const TITLES = { home: 'Quest Night', rules: 'How to Play | Quest Night', faq: 'Rules & FAQ | Quest Night', screen: 'Table Screen | Quest Night' };
 function paint() {
+  document.title = S.ended ? 'Game ended | Quest Night' : S.mode === 'play' && S.code ? `Table ${S.code} | Quest Night` : TITLES[S.mode] || 'Quest Night';
   const y = window.scrollY;
   $html.dataset.phase = S.view?.phase || S.mode;
   $html.dataset.screen = S.mode === 'screen' ? '1' : '';
@@ -64,6 +74,7 @@ function paint() {
   fx.after($app);
   for (const el of $app.querySelectorAll('[data-scroll]')) el.scrollTop = el.scrollHeight;
   wake.set(wantsWakeLock(S.view));
+  if (S.mode === 'home' && !S.pruned) { S.pruned = true; pruneClosedRooms($app, (c) => { store.del(`${KEY}.player.${c}`); store.del(`${KEY}.host.${c}`); }); }
 }
 const wake = createWakeLock();
 document.addEventListener('focusout', () => { if (pending) setTimeout(render, 50); });
@@ -71,10 +82,11 @@ const OWN_ICONS = ['table', 'crown']; // tab-bar icons drawn for Quest Night ins
 const T = makeTable({ S, send, esc, ui: (n, c) => (OWN_ICONS.includes(n) ? art(n, c) : ui(n, c)), toast, render });
 
 function screen() {
+  if (S.ended) return `<main class="wrap"><div class="empty ended">${art('crown')}<h1 class="phase-title">The host ended the game</h1><p class="muted">This table is closed and its code no longer works.</p><a class="btn big" href="#/">Back to home</a></div></main>`;
   if (S.fatal) return `<main class="wrap"><div class="empty">${ui('warning')}<h1 class="phase-title">${esc(S.fatal)}</h1><a class="btn big" href="#/">Go to the home page</a></div></main>`;
   if (S.mode === 'home') return home();
-  if (S.mode === 'rules') return rulesPage();
-  if (S.mode === 'faq') return faqPage(FAQ, esc, ui, 'Rules & FAQ');
+  if (S.mode === 'rules') return rulesPage() + siteFooter();
+  if (S.mode === 'faq') return faqPage(FAQ, esc, ui, 'Rules & FAQ') + siteFooter();
   const banner = !S.conn ? `<div class="banner" role="status">${ui('wifi-off')} Reconnecting to the room…</div>` : '';
   const v = S.view;
   if (!v) {
@@ -86,6 +98,19 @@ function screen() {
 }
 
 const HUB = 'https://gamenight.hatethespurs.com/';
+const MORE_GAMES = [
+  { cls: 'more-mafia', name: 'Mafia Night', href: 'https://mafia.hatethespurs.com', blurb: 'Secret roles for Mafia and Werewolf, dealt to every phone.',
+    logo: '<svg viewBox="0 0 48 48"><path d="M8 20c4-8 11-10 16-6 5-4 12-2 16 6-3 12-9 19-16 19S11 32 8 20z" fill="currentColor"/><ellipse cx="17" cy="22" rx="4.4" ry="2.6" fill="#1B1410"/><ellipse cx="31" cy="22" rx="4.4" ry="2.6" fill="#1B1410"/></svg>' },
+  { cls: 'more-gilded', name: 'The Gilded Chamber', href: 'https://secrethitler.hatethespurs.com', blurb: 'Elect a Chancellor. Pass laws. Find the traitor.',
+    logo: '<svg viewBox="0 0 48 48"><circle cx="24" cy="24" r="8" fill="currentColor"/><g stroke="currentColor" stroke-width="3" stroke-linecap="round">' + Array.from({ length: 12 }, (_, i) => { const a = i * Math.PI / 6; return `<path d="M${(24 + 13 * Math.cos(a)).toFixed(1)} ${(24 + 13 * Math.sin(a)).toFixed(1)}L${(24 + 20 * Math.cos(a)).toFixed(1)} ${(24 + 20 * Math.sin(a)).toFixed(1)}"/>`; }).join('') + '</g></svg>' },
+];
+const HUB_LOGO = '<svg viewBox="0 0 48 48"><rect x="7" y="7" width="15" height="15" rx="4" fill="currentColor"/><rect x="26" y="7" width="15" height="15" rx="4" fill="currentColor"/><rect x="7" y="26" width="15" height="15" rx="4" fill="currentColor"/><rect x="26" y="26" width="15" height="15" rx="4" fill="currentColor" opacity=".5"/></svg>';
+
+// One footer for every page: the game links, then the licences tucked behind "Credits".
+function siteFooter() {
+  return `<footer class="site-foot"><nav aria-label="Game Night games"><a href="${HUB}">All Games</a><a href="https://mafia.hatethespurs.com">Mafia Night</a><a href="https://secrethitler.hatethespurs.com">The Gilded Chamber</a><a href="https://avalon.hatethespurs.com" aria-current="page">Quest Night</a></nav>
+    <details class="credits-box"><summary>Credits</summary><p>Crown, chalice, lantern and crest icons drawn for Quest Night. Role icons from <a href="https://game-icons.net" target="_blank" rel="noopener">game-icons.net</a> by Lorc, Delapouite and contributors (CC BY 3.0). Interface icons from <a href="https://phosphoricons.com" target="_blank" rel="noopener">Phosphor</a> (MIT). Fonts Rubik, Cinzel and Cinzel Decorative (SIL OFL 1.1).</p></details></footer>`;
+}
 const CHEV_L = '<svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>';
 const CHEV = '<svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg>';
 
@@ -96,17 +121,18 @@ function home() {
   return `<main class="wrap home">
     <nav class="home-nav" aria-label="Game Night"><a class="hub-link" href="${HUB}">${CHEV_L}All Games</a></nav>
     <div class="home-hero">
-      <div class="home-art" aria-hidden="true">${seals}</div>
-      <h1 class="wordmark"><span>Quest</span> <span>Night</span></h1>
+      <div class="home-brand"><span class="logo-mark" aria-hidden="true">${art('crown')}</span>
+        <h1 class="wordmark"><span>Quest</span> <span>Night</span></h1></div>
       <p class="tagline">A table of servants. A few minions.</p>
       <p class="lede">Pick a party for each quest, vote it through, and find out who sabotaged it. For 5–10 players. Play on phones, with real cards, or both.</p>
+      <div class="home-art" aria-hidden="true">${seals}</div>
     </div>
     <div class="home-paths">
       <section class="path"><h2 class="path-title">Host a Table</h2>
         <p class="muted">You’re the Host. Play too, or sit out. Everyone else joins with a 6-letter room code.</p>
         <label class="field"><span>Your Name</span><input data-i="hostName" maxlength="20" autocomplete="nickname" enterkeyhint="go" value="${esc(S.ui.draft.hostName || store.get(`${KEY}.name`) || '')}"></label>
         <button type="button" class="btn big" data-a="host">Open Table</button>
-        ${mine.map((c) => `<p class="resume-row"><a class="resume" href="#/play/${esc(c)}">Back to table <b class="code">${esc(c)}</b></a></p>`).join('')}</section>
+        ${mine.map((c) => `<p class="resume-row" data-room="${esc(c)}"><a class="resume" href="#/play/${esc(c)}">Back to table <b class="code">${esc(c)}</b></a><button type="button" class="resume-x" data-a="forgetRoom" data-v="${esc(c)}" aria-label="Forget table ${esc(c)} on this phone">${ui('x')}</button></p>`).join('')}</section>
       <section class="path"><h2 class="path-title">Join a Table</h2>
         <div class="join-row"><label class="field"><span>Room Code</span><input class="code-input" data-i="joinCode" maxlength="6" autocapitalize="characters" autocomplete="off" spellcheck="false" enterkeyhint="go" placeholder="6 letters" value="${esc(S.ui.draft.joinCode || '')}"></label>
         <button type="button" class="btn" data-a="goJoin">Join Table</button></div></section>
@@ -118,9 +144,12 @@ function home() {
           <li><h3>Quest</h3><p>Party members play Success or Sabotage face down. One Sabotage fails the quest, or two on quest 4 with 7+ players.</p></li>
           <li><h3>Win</h3><p>Three successful quests win for the Loyal Servants, unless the Assassin names Merlin. Three failed quests, or five rejected parties in a row, win for the Minions.</p></li>
         </ol></section>
-      <p class="home-faq"><a class="link tiny" href="/print.html" target="_blank" rel="noopener">Print Cards</a></p>
+      <p class="home-faq"><a class="link tiny" href="/print.html" target="_blank" rel="noopener">Print the card sheet</a></p>
     </div>
-    <p class="credits"><a href="${HUB}">All Games</a>. Same table as <a href="https://mafia.hatethespurs.com">Mafia Night</a> and <a href="https://secrethitler.hatethespurs.com">Council Night</a>. Crown, chalice, lantern and crest icons drawn for Quest Night. Role icons from <a href="https://game-icons.net" target="_blank" rel="noopener">game-icons.net</a> by Lorc, Delapouite and contributors (<a href="https://creativecommons.org/licenses/by/3.0/" target="_blank" rel="noopener">CC BY 3.0</a>) and <a href="https://phosphoricons.com" target="_blank" rel="noopener">Phosphor</a> (MIT). Font: Rubik (SIL OFL).</p>
+    <section class="more-games" aria-labelledby="more-h"><h2 class="block-title" id="more-h">More from Game Night</h2>
+      <div class="more-grid">${MORE_GAMES.map((g) => `<a class="more-card ${g.cls}" data-card href="${g.href}"><span class="more-logo" aria-hidden="true">${g.logo}</span><span class="more-text"><b>${g.name}</b><small>${g.blurb}</small></span></a>`).join('')}
+        <a class="more-card more-hub" data-card href="${HUB}"><span class="more-logo" aria-hidden="true">${HUB_LOGO}</span><span class="more-text"><b>Game Library</b><small>Every game in one place.</small></span></a></div></section>
+    ${siteFooter()}
   </main>`;
 }
 
@@ -217,7 +246,7 @@ function lobby(v) {
       <button class="icon-btn" data-a="move" data-id="${p.id}" data-dir="down" aria-label="Move ${esc(p.name)} down" ${i === v.players.length - 1 ? 'disabled' : ''}>${ui('caret-down')}</button>
       ${p.host ? '' : `<button class="icon-btn" data-a="kick" data-id="${p.id}" aria-label="Remove ${esc(p.name)}">${ui('x')}</button>`}` : ''}</li>`).join('');
   const opts = OPTIONAL.map((k) => { const [t, d, r] = OPT_TEXT[k]; const on = v.settings[k];
-    return `<label class="toggle ${on ? 'is-on' : ''} a-${ROLES[r].side}"><input type="checkbox" data-a="set" data-k="${k}" ${on ? 'checked' : ''} ${host ? '' : 'disabled'}>${glyph(ROLES[r].icon)}<span><b>${t}</b><span class="muted">${d}</span></span></label>`; }).join('');
+    return `<label class="toggle role-token ${on ? 'is-on' : ''} a-${ROLES[r].side}"><input type="checkbox" data-a="set" data-k="${k}" ${on ? 'checked' : ''} ${host ? '' : 'disabled'}><span class="token">${glyph(ROLES[r].icon)}</span><span class="rt-text"><b>${t}</b><small class="pill">${ROLES[r].side === 'good' ? 'Loyal' : 'Evil'}</small><span class="muted">${d}</span></span></label>`; }).join('');
   const m = v.mode;
   const modes = MODES.map(([k, t, d]) => `<label class="toggle radio ${m.play === k ? 'is-on' : ''}"><input type="radio" name="play" data-a="modeSet" data-k="play" value="${k}" ${m.play === k ? 'checked' : ''} ${host ? '' : 'disabled'}><span><b>${t}</b><span class="muted">${d}</span></span></label>`).join('');
   const pieces = m.play === 'hybrid' ? `<div class="pieces">${Object.entries(PIECE_TEXT).map(([k, [t]]) => `<div class="piece"><span>${t}</span><span class="seg mini">${['app', 'physical'].map((x) => `<button type="button" data-a="piece" data-k="${k}" data-v="${x}" aria-pressed="${m[k] === x}" ${host ? '' : 'disabled'}>${x === 'app' ? 'In the app' : 'Physical'}</button>`).join('')}</span></div>`).join('')}</div>` : '';
@@ -582,6 +611,7 @@ function wsTransport(code, asScreen) {
       else if (m.type === 'gameover') onGameOver(m);
       else if (m.type === 'error') toast(m.error);
       else if (m.type === 'joined') store.set(`${KEY}.player.${code}`, JSON.stringify({ playerId: m.playerId, token: m.token }));
+      else if (m.type === 'closed') { closed = true; store.del(`${KEY}.player.${code}`); store.del(`${KEY}.host.${code}`); S.ended = true; S.view = null; render(); }
       else if (m.type === 'fatal') { if (m.clear) { store.del(`${KEY}.player.${code}`); S.view = null; toast(m.error); render(); } else { closed = true; S.fatal = m.error; render(); } }
     };
     ws.onclose = () => { if (closed) return; S.conn = false; render(); timer = setTimeout(open, Math.min(8000, 400 * 2 ** tries++)); };
@@ -619,7 +649,7 @@ function onView(v) {
 
 // ---------------------------------------------------------------- routing
 async function route() {
-  S.transport?.close(); S.transport = null; S.view = null; fx.closeVictory(); S.fatal = null; S.conn = true; rv.hide(); S.ui.showCard = false;
+  S.transport?.close(); S.transport = null; S.view = null; fx.closeVictory(); S.fatal = null; S.ended = false; S.pruned = false; S.conn = true; rv.hide(); S.ui.showCard = false;
   const [kind, arg] = location.hash.replace(/^#\/?/, '').split('/');
   if ((kind === 'play' || kind === 'join' || kind === 'screen') && /^[A-Za-z]{6}$/.test(arg || '')) {
     S.mode = kind === 'screen' ? 'screen' : 'play'; S.code = arg.toUpperCase();
@@ -702,6 +732,7 @@ async function act(a, el) {
       location.hash = `#/play/${r.code}`;
       return;
     }
+    case 'forgetRoom': store.del(`${KEY}.player.${d.v}`); store.del(`${KEY}.host.${d.v}`); el.closest('.resume-row')?.remove(); return;
     case 'goJoin': {
       const c = (S.ui.draft.joinCode || '').trim().toUpperCase();
       if (!/^[A-Z]{6}$/.test(c)) { toast('Room codes are 6 letters.'); return; }
