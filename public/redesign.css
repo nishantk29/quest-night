@@ -163,3 +163,21 @@ h1,h2,.phase-title,.block-title,.path-title,.sheet-title{font-family:var(--displ
 .fx-off .bg-stars,.fx-off .bg-win,.fx-off .flag-cloth,.fx-off.boot .home-hero > *,.fx-off.boot .home-paths > *,.fx-off.boot .more-games{animation:none!important}
 .fx-off [data-card],.fx-off .path,.fx-off .side-card,.fx-off .more-card,.fx-off .role-token,.fx-off .how-sec li{transform:none!important}
 .fx-off ::view-transition-old(step),.fx-off ::view-transition-new(step){animation:none!important}
+
+/* ---- hero castle tower with a pennant that ripples every 5s (transform only), idle between */
+.home-brand{position:relative}
+.tower{position:absolute;top:-6px;left:104px;width:56px;height:84px;pointer-events:none}
+.pennant{transform-box:view-box;transform-origin:27px 10px;animation:qn-pennant 5s var(--qn-ease) infinite}
+@keyframes qn-pennant{0%,60%,100%{transform:none}66%{transform:skewY(-12deg) scaleX(.8)}72%{transform:skewY(9deg) scaleX(1.12)}78%{transform:skewY(-8deg) scaleX(.88)}84%{transform:skewY(5deg) scaleX(1.05)}90%{transform:skewY(-2deg) scaleX(.98)}}
+@media (min-width:900px){.tower{left:auto;right:0;top:-24px;width:72px;height:108px}}
+@media (prefers-reduced-motion:reduce){.pennant{animation:none!important}}
+.fx-off .pennant{animation:none!important}
+
+/* ---- hub handoff, game end: logo at the HANDOFF POSE on first paint (no JS needed), then FLIP into place */
+#hand{display:none}
+.hand{background:#0B0B0D}
+.hand #hand{display:block;position:fixed;inset:0;z-index:500;pointer-events:none}
+.hand #hand-logo{position:absolute;left:calc(50% - 36px);top:calc(45% - 36px);transform:scale(1.5556)}
+.hand #app,.hand .bg-art{opacity:0}
+.hand-go #hand{background:none}
+@media (prefers-reduced-motion:reduce){#hand{display:none!important}.hand #app,.hand .bg-art{opacity:1}}
