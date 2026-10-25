@@ -52,10 +52,10 @@
 <noscript>This game needs JavaScript.</noscript>
 <script>(function(){var d=document.documentElement;if(!d.classList.contains("hand"))return;var done=function(){d.classList.remove("hand");var e=document.getElementById("hand");if(e)e.remove()},t0=Date.now();
 function go(){var L=document.querySelector("#app .logo-mark"),H=document.getElementById("hand-logo");if(!L||!H){if(Date.now()-t0>2500)return done();return requestAnimationFrame(go)}
-var f=document.fonts&&document.fonts.ready||Promise.resolve();f.then(function(){requestAnimationFrame(function(){var a=L.getBoundingClientRect(),vh=innerHeight,s=112/72,cx=a.left+a.width/2-innerWidth/2,cy=a.top+a.height/2-vh*.45,ez="cubic-bezier(.2,.8,.2,1)",o={duration:450,easing:ez,fill:"both"};
+var f=document.fonts&&document.fonts.ready||Promise.resolve();f.then(function(){requestAnimationFrame(function(){var sc=parseFloat(getComputedStyle(d).getPropertyValue("--dur-scale"))||1,a=L.getBoundingClientRect(),vh=innerHeight,s=112/72,cx=a.left+a.width/2-innerWidth/2,cy=a.top+a.height/2-vh*.45,ez="cubic-bezier(.2,.8,.2,1)",o={duration:450*sc,easing:ez,fill:"both"};
 if(!H.animate)return done();var m=H.animate([{transform:"scale("+s+")"},{transform:"translate("+cx+"px,"+cy+"px) rotate(-4deg)"}],o);
 var up=[document.getElementById("app"),document.querySelector(".bg-art")];up.forEach(function(n){n.style.opacity=1;n.animate([{opacity:0},{opacity:1}],o)});d.classList.add("hand-go");m.onfinish=function(){d.classList.remove("hand-go");done()};m.oncancel=done})})}
-go();setTimeout(done,4000)})()</script>
+go();setTimeout(done,4000+700*(parseFloat(getComputedStyle(d).getPropertyValue("--dur-scale"))||1))})()</script>
 <script type="module" src="/js/app.js"></script>
 </body>
 </html>
