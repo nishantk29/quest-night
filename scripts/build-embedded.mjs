@@ -14,12 +14,13 @@ const map = Object.fromEntries(Object.entries(files).map(([u, p]) => [u, { t: TY
 fs.mkdirSync('dist-embedded', { recursive: true });
 fs.writeFileSync('dist-embedded/entry.js', `import worker, { Room } from '../src/worker.js';
 const FILES = ${JSON.stringify(map)};
+const TYPES_HTML = 'text/html; charset=utf-8';
 const bytes = (b) => Uint8Array.from(atob(b), (c) => c.charCodeAt(0));
 const ASSETS = { async fetch(req) {
   const url = new URL(req.url);
   let p = url.pathname === '/' ? '/index.html' : url.pathname;
   const f = FILES[p];
-  if (!f) return new Response('Not found', { status: 404 });
+  if (!f) return new Response(bytes(FILES['/404.html'].b), { status: 404, headers: { 'content-type': TYPES_HTML, 'cache-control': 'no-store' } });
   const cache = p === '/index.html' || p === '/sw.js' ? 'no-cache' : 'public, max-age=3600';
   return new Response(bytes(f.b), { headers: { 'content-type': f.t, 'cache-control': cache } });
 } };

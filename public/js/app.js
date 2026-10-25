@@ -4,7 +4,7 @@
 import { ui } from './ui_icons.js';
 import { glyph } from './glyphs.js';
 import { art } from './art.js';
-import { ROLES, QUEST_SIZES, EVIL_COUNT, roleList, OPTIONAL, MIN_PLAYERS, MAX_PLAYERS, LANTERN_AFTER } from './rules.js';
+import { ROLES, QUEST_SIZES, EVIL_COUNT, roleList, MIN_PLAYERS, MAX_PLAYERS, LANTERN_AFTER } from './rules.js';
 import { askConfirm, makeTable, faqPage, wireFaqSearch } from './table_ui.js';
 import { roleCards, ROLE_CARD, PIECES as CARD_PIECES } from './cards.js';
 import { FAQ } from './faq.js';
@@ -14,6 +14,10 @@ import { haptic, createWakeLock, wantsWakeLock, canFullscreen, enterFullscreen }
 import { screenKey, canTransition } from './motion.js';
 import { qrSvg } from './qr.js';
 import { pruneClosedRooms } from './flair.js';
+import { rolesInGame, rolesSeats, rolesSheetBody } from './roles_sheet.js';
+import { setupSteppers, stepMessage } from './steppers.js';
+import { openSheet, closeSheets } from './sheets.js';
+import { errorBody, errorButtons, crashHtml, FATAL, ENDED } from './error-screen.js';
 
 const $app = document.getElementById('app');
 const $toast = document.getElementById('toast');
@@ -68,7 +72,7 @@ function paint() {
   const y = window.scrollY;
   $html.dataset.phase = S.view?.phase || S.mode;
   $html.dataset.screen = S.mode === 'screen' ? '1' : '';
-  $app.innerHTML = screen();
+  try { $app.innerHTML = screen(); } catch (e) { console.error(e); crash(); return; }
   S.ui.fresh = {}; S.ui.flip = false;
   window.scrollTo(0, y);
   fx.after($app);
@@ -81,13 +85,22 @@ document.addEventListener('focusout', () => { if (pending) setTimeout(render, 50
 const OWN_ICONS = ['table', 'crown']; // tab-bar icons drawn for Quest Night instead of the stock set
 const T = makeTable({ S, send, esc, ui: (n, c) => (OWN_ICONS.includes(n) ? art(n, c) : ui(n, c)), toast, render });
 
+// The one client error screen: title + short line + the two home buttons. Fixed words only, never raw error text.
+const errorScreen = ({ title, line, icon = 'warning' }) => errorBody({ title, line, icon: icon === 'crown' ? art('crown') : ui(icon, 'is-big') });
+function crash() {
+  try { $html.dataset.phase = 'home'; $app.innerHTML = crashHtml(); } catch { /* nothing more to do */ }
+}
+const nothingShown = () => !$app.querySelector('main,.layout,.appbar');
+addEventListener('error', (ev) => { if (nothingShown()) crash(); });
+addEventListener('unhandledrejection', (ev) => { if (nothingShown()) crash(); });
+
 function screen() {
-  if (S.ended) return `<main class="wrap"><div class="empty ended">${art('crown')}<h1 class="phase-title">The host ended the game</h1><p class="muted">This table is closed and its code no longer works.</p><a class="btn big" href="#/">Back to home</a></div></main>`;
-  if (S.fatal) return `<main class="wrap"><div class="empty">${ui('warning')}<h1 class="phase-title">${esc(S.fatal)}</h1><a class="btn big" href="#/">Go to the home page</a></div></main>`;
+  if (S.ended) return errorScreen({ ...ENDED.host, icon: 'crown' });
+  if (S.fatal) return errorScreen(S.fatal);
   if (S.mode === 'home') return home();
   if (S.mode === 'rules') return rulesPage() + siteFooter();
   if (S.mode === 'faq') return faqPage(FAQ, esc, ui, 'Rules & FAQ') + siteFooter();
-  const banner = !S.conn ? `<div class="banner" role="status">${ui('wifi-off')} Reconnecting to the room…</div>` : '';
+  const banner = !S.conn ? `<div class="banner${S.connLong ? ' banner-lost' : ''}" role="status">${ui('wifi-off')} Reconnecting to the room…${S.connLong ? errorButtons() : ''}</div>` : '';
   const v = S.view;
   if (!v) {
     if (S.mode === 'screen' || store.get(`${KEY}.player.${S.code}`) || S.pendingJoin) return banner + `<main class="wrap"><div class="empty">${art('table')}<p>Riding to the table…</p></div></main>`;
@@ -185,11 +198,12 @@ function joinForm() {
 // Phase badges use the icons drawn for Quest Night (art.js), not the stock set.
 const PHASE = { lobby: ['Lobby', 'table'], reveal: ['Secret Cards', 'good'], propose: ['Choosing a Party', 'crown'], vote: ['Vote', 'approve'],
   quest: ['On the Quest', 'chalice'], lantern: ['The Lantern', 'lantern'], assassin: ['Last Strike', 'broken'], over: ['Game Over', 'chalice'] };
+const rolesBtn = () => `<button type="button" class="icon-btn" data-a="roles" aria-label="Roles in this game" title="Roles in this game">${ui('rules')}</button>`;
 function appbar(v) {
   const [label, icon] = PHASE[v.phase] || ['', 'crown'];
   return `<header class="appbar"><a class="appbar-mark" href="#/" aria-label="Home">${art('crown')}</a>
     <div class="appbar-title">Table <span class="code">${esc(v.code)}</span></div>
-    ${T.timerChip(v)}<span class="phase-badge">${art(icon)}${label}</span></header>`;
+    ${T.timerChip(v)}${rolesBtn()}<span class="phase-badge">${art(icon)}${label}</span></header>`;
 }
 
 const nameOf = (v, id) => v.players.find((p) => p.id === id)?.name || '?';
@@ -215,13 +229,6 @@ function gameMain(v) {
 }
 
 // ---------------------------------------------------------------- lobby (the setup part of the Host dashboard)
-const OPT_TEXT = {
-  merlin: ['Merlin and the Assassin', 'Merlin sees Evil; the Assassin gets one last strike at them.', 'merlin'],
-  percival: ['Percival', 'Knows who might be Merlin.', 'percival'],
-  morgana: ['Morgana', 'Looks like Merlin to Percival. Best with Percival.', 'morgana'],
-  mordred: ['Mordred', 'An evil player Merlin can’t see.', 'mordred'],
-  oberon: ['Oberon', 'An evil player nobody knows, who knows nobody.', 'oberon'],
-};
 const MODES = [['phone', 'Phones Mode', 'Every player uses their own phone. Your role and cards stay hidden until you hold to reveal. Works online too.'],
   ['hybrid', 'Hybrid', 'Mix real cards and phones. Choose each piece below.'],
   ['physical', 'Host-Only Mode', 'Real cards on the table. This phone is the board and tracker.']];
@@ -245,8 +252,7 @@ function lobby(v) {
       ${host ? `<button class="icon-btn" data-a="move" data-id="${p.id}" data-dir="up" aria-label="Move ${esc(p.name)} up" ${i === 0 ? 'disabled' : ''}>${ui('caret-down', 'flip-up')}</button>
       <button class="icon-btn" data-a="move" data-id="${p.id}" data-dir="down" aria-label="Move ${esc(p.name)} down" ${i === v.players.length - 1 ? 'disabled' : ''}>${ui('caret-down')}</button>
       ${p.host ? '' : `<button class="icon-btn" data-a="kick" data-id="${p.id}" aria-label="Remove ${esc(p.name)}">${ui('x')}</button>`}` : ''}</li>`).join('');
-  const opts = OPTIONAL.map((k) => { const [t, d, r] = OPT_TEXT[k]; const on = v.settings[k];
-    return `<label class="toggle role-token ${on ? 'is-on' : ''} a-${ROLES[r].side}"><input type="checkbox" data-a="set" data-k="${k}" ${on ? 'checked' : ''} ${host ? '' : 'disabled'}><span class="token">${glyph(ROLES[r].icon)}</span><span class="rt-text"><b>${t}</b><small class="pill">${ROLES[r].side === 'good' ? 'Loyal' : 'Evil'}</small><span class="muted">${d}</span></span></label>`; }).join('');
+  const opts = steppersHtml(n, v.settings, host);
   const m = v.mode;
   const modes = MODES.map(([k, t, d]) => `<label class="toggle radio ${m.play === k ? 'is-on' : ''}"><input type="radio" name="play" data-a="modeSet" data-k="play" value="${k}" ${m.play === k ? 'checked' : ''} ${host ? '' : 'disabled'}><span><b>${t}</b><span class="muted">${d}</span></span></label>`).join('');
   const pieces = m.play === 'hybrid' ? `<div class="pieces">${Object.entries(PIECE_TEXT).map(([k, [t]]) => `<div class="piece"><span>${t}</span><span class="seg mini">${['app', 'physical'].map((x) => `<button type="button" data-a="piece" data-k="${k}" data-v="${x}" aria-pressed="${m[k] === x}" ${host ? '' : 'disabled'}>${x === 'app' ? 'In the app' : 'Physical'}</button>`).join('')}</span></div>`).join('')}</div>` : '';
@@ -266,7 +272,7 @@ function lobby(v) {
     <section class="stage"><h2 class="block-title">How You’re Playing</h2><div class="settings">${modes}</div>${pieces}
       ${m.play !== 'phone' ? `<p class="muted">Real cards: <a href="/print.html" target="_blank" rel="noopener">print the card guide or the Quest Night cards</a>. The Host enters anything physical and never sees a secret.</p>` : ''}</section>
     <section class="stage"><h2 class="block-title">Special Cards</h2>${host ? '' : '<p class="muted">The Host picks these.</p>'}
-      <div class="settings">${opts}</div></section>
+      ${opts}</section>
     <section class="stage"><h2 class="block-title">House Rules</h2><p class="muted">All off unless the Host turns them on. Otherwise the rules are the classic game.</p>
       <div class="settings">${house}
       <label class="toggle"><span><b>Phase Timer</b><span class="muted">A countdown starts each phase. Nothing happens at zero. The Host decides.</span></span>${sel('turnTimer', [[0, 'Off'], [60, '1 min'], [90, '1:30'], [120, '2 min'], [180, '3 min'], [300, '5 min']])}</label>
@@ -275,6 +281,16 @@ function lobby(v) {
     ${guide}
     ${host ? `<div class="sticky-act"><button class="btn big ${n < 5 || list.error ? 'disabled' : ''}" data-a="start">${m.roles === 'app' ? 'Deal Cards' : 'Start Game'}</button></div>`
     : '<div class="empty">Waiting for the Host to start…</div>'}`;
+}
+
+function steppersHtml(n, settings, host) {
+  const m = setupSteppers(n, settings, host);
+  const row = (r) => `<div class="step-row a-${r.side}"><span class="rs-ico">${glyph(r.icon)}</span><span class="step-text"><b>${r.label}</b><small>${esc(r.blurb)}</small></span>
+      <span class="step-ctl"><button type="button" class="icon-btn" data-a="step" data-k="${r.key}" data-d="-1" aria-label="Remove ${esc(r.label)}" ${r.minus.disabled ? 'disabled' : ''}>${ui('minus')}</button><b aria-live="polite">${r.value}</b>
+      <button type="button" class="icon-btn" data-a="step" data-k="${r.key}" data-d="1" aria-label="Add ${esc(r.label)}" ${r.plus.disabled ? 'disabled' : ''}>${ui('plus')}</button></span></div>${r.plus.disabled && host && r.value < r.max ? `<p class="step-why" role="note">${esc(r.plus.reason)}</p>` : ''}`;
+  const fill = (f) => `<div class="step-row is-fill a-${f.side}"><span class="rs-ico">${glyph(f.icon)}</span><span class="step-text"><b>${esc(f.label)}</b><small>Fills the rest</small></span>
+      <span class="step-ctl"><button type="button" class="icon-btn" disabled aria-label="${esc(f.label)}: ${esc(f.reason)}">${ui('minus')}</button><b>${f.count}</b><button type="button" class="icon-btn" disabled aria-label="${esc(f.label)}: ${esc(f.reason)}">${ui('plus')}</button></span></div>`;
+  return `<div class="steppers">${m.rows.map(row).join('')}${m.fills.map(fill).join('')}</div>${m.error ? `<p class="note is-warn" role="alert">${ui('warning')} ${esc(m.error)}</p>` : ''}`;
 }
 
 function balanceTips(n, s) {
@@ -451,7 +467,7 @@ function over(v) {
   return `<section class="winner a-${side}">${art(side === 'good' ? 'chalice' : 'evil')}<h1>${side === 'good' ? 'The Loyal Servants of Arthur win' : 'The Minions of Mordred win'}</h1>
       <p class="say">${why}</p>${won}</section>
     ${roles ? `<section class="stage"><h2 class="block-title">Who Was Who</h2><ul class="roles-list">${roles}</ul></section>` : '<section class="stage"><p class="say">Everyone, turn your cards over.</p></section>'}
-    ${me?.host ? '<div class="sticky-act"><button class="btn big" data-a="again">Play Again</button></div>' : v.kind === 'screen' ? '' : '<p class="muted center">The Host can start another game.</p>'}`;
+    ${me?.host ? '<div class="sticky-act"><button class="btn big" data-a="restart">Restart</button><button class="btn ghost" data-a="again">Change setup first</button></div>' : v.kind === 'screen' ? '' : '<p class="muted center">The Host can start another game.</p>'}`;
 }
 
 // A deterministic cosmetic shuffle (so a re-render keeps the same order): the table sees how many sabotage cards
@@ -581,13 +597,14 @@ function hostPane(v) {
   const script = g ? `${scriptHtml(phaseScript(v))}<details class="faq-q"><summary>Opening Script (Eyes Closed)</summary>${scriptHtml(openingScript(g.roleSet, !!g.lantern))}</details>`
     : `<p class="muted">Once you start, the lines to read aloud for each phase appear here.</p>`;
   const toggle = `<label class="toggle fx-opt ${fx.isUserOn() ? 'is-on' : ''}"><input type="checkbox" data-a="fxSet" ${fx.isUserOn() ? 'checked' : ''}><span><b>Animations</b><span class="muted">Reveals, bursts, scroll effects, and the victory card on this device. Always off if your device asks for reduced motion.</span></span></label>`;
-  return T.hostPane(v, toggle + hostControls(v), script);
+  const tools = `<div class="btn-row wrap"><button type="button" class="btn ghost" data-a="roles">Roles in this game</button>${v.phase !== 'lobby' ? '<button type="button" class="btn ghost" data-a="restartAsk">Restart game…</button>' : ''}</div>`;
+  return T.hostPane(v, toggle + tools + hostControls(v), script);
 }
 
 // ---------------------------------------------------------------- shared table screen (TV / laptop)
 function tableScreen(v) {
   const g = v.game;
-  const head = `<header class="appbar"><span class="appbar-mark">${art('crown')}</span><div class="appbar-title">Quest Night · <span class="code">${esc(v.code)}</span></div>${T.timerChip(v)}<span class="phase-badge">${art(PHASE[v.phase]?.[1] || 'crown')}${PHASE[v.phase]?.[0] || ''}</span></header>`;
+  const head = `<header class="appbar"><span class="appbar-mark">${art('crown')}</span><div class="appbar-title">Quest Night · <span class="code">${esc(v.code)}</span></div>${T.timerChip(v)}${rolesBtn()}<span class="phase-badge">${art(PHASE[v.phase]?.[1] || 'crown')}${PHASE[v.phase]?.[0] || ''}</span></header>`;
   if (!g) return `${head}<main class="wrap screen-lobby"><h1 class="phase-title">Join at ${esc(location.host)}</h1><p class="room-code">${esc(v.code)}</p><p class="say">${v.players.filter((p) => !p.watch).map((p) => esc(p.name)).join(' · ') || 'Nobody yet.'}</p></main>`;
   const lines = phaseScript(v).slice(0, 2);
   return `${head}<div class="layout is-screen"><main class="col col-main wrap game">${track(v)}${roundTable({ ...v, me: null })}${v.phase === 'over' ? over(v) : `<section class="stage"><p class="say">${esc(lines.join(' '))}</p></section>`}${lastReveals(v)}</main>
@@ -596,11 +613,11 @@ function tableScreen(v) {
 
 // ---------------------------------------------------------------- transport
 function wsTransport(code, asScreen) {
-  let ws; let closed = false; let tries = 0; let timer;
+  let ws; let closed = false; let tries = 0; let timer; let longTimer;
   const creds = () => { try { return JSON.parse(store.get(`${KEY}.player.${code}`) || 'null'); } catch { return null; } };
   const open = () => {
     ws = new WebSocket(`${location.protocol === 'https:' ? 'wss' : 'ws'}://${location.host}/ws/${code}`);
-    ws.onopen = () => { tries = 0; S.conn = true; const c = creds();
+    ws.onopen = () => { tries = 0; S.conn = true; S.connLong = false; clearTimeout(longTimer); longTimer = null; const c = creds();
       if (asScreen) ws.send(JSON.stringify({ type: 'hello', screen: true }));
       else if (c) ws.send(JSON.stringify({ type: 'hello', ...c }));
       else if (S.pendingJoin) { ws.send(JSON.stringify({ type: 'hello', join: S.pendingJoin, hostKey: store.get(`${KEY}.host.${code}`) || undefined })); S.pendingJoin = null; }
@@ -612,14 +629,14 @@ function wsTransport(code, asScreen) {
       else if (m.type === 'error') toast(m.error);
       else if (m.type === 'joined') store.set(`${KEY}.player.${code}`, JSON.stringify({ playerId: m.playerId, token: m.token }));
       else if (m.type === 'closed') { closed = true; store.del(`${KEY}.player.${code}`); store.del(`${KEY}.host.${code}`); S.ended = true; S.view = null; render(); }
-      else if (m.type === 'fatal') { if (m.clear) { store.del(`${KEY}.player.${code}`); S.view = null; toast(m.error); render(); } else { closed = true; S.fatal = m.error; render(); } }
+      else if (m.type === 'fatal') { if (m.clear) { store.del(`${KEY}.player.${code}`); S.view = null; toast(m.error); render(); } else { closed = true; S.fatal = /expired/i.test(m.error) ? FATAL.gone : FATAL.closed; render(); } }
     };
-    ws.onclose = () => { if (closed) return; S.conn = false; render(); timer = setTimeout(open, Math.min(8000, 400 * 2 ** tries++)); };
+    ws.onclose = () => { if (closed) return; S.conn = false; if (!longTimer) longTimer = setTimeout(() => { if (!S.conn && !closed) { S.connLong = true; render(); } }, 20000); render(); timer = setTimeout(open, Math.min(8000, 400 * 2 ** tries++)); };
   };
   open();
   return {
     send: (a) => { if (ws?.readyState === 1) ws.send(JSON.stringify(a)); else toast('Couldn’t reach the room yet. Try again in a moment.'); },
-    close: () => { closed = true; clearTimeout(timer); ws?.close(); },
+    close: () => { closed = true; clearTimeout(timer); clearTimeout(longTimer); ws?.close(); },
   };
 }
 
@@ -629,11 +646,18 @@ function onGameOver(m) {
   const g = v.game; const side = m.winner;
   const roles = g.roles ? v.players.filter((p) => g.roles[p.id]).map((p) => ({ name: p.name, role: g.roles[p.id].name, side: g.roles[p.id].side, icon: glyph(g.roles[p.id].icon) })) : [];
   fx.victory({ side, title: `${m.winnerName} win`, text: m.text, status: m.won === true ? 'You won!' : m.won === false ? 'You lost' : '', crest: art(side === 'good' ? 'good' : 'evil'),
-    roles, onAgain: v.me?.host && v.kind !== 'screen' ? () => send({ type: 'again' }) : null, noFocus: v.kind === 'screen' });
+    roles, onRestart: v.me?.host && v.kind !== 'screen' ? () => send({ type: 'restart' }) : null, onAgain: v.me?.host && v.kind !== 'screen' ? () => send({ type: 'again' }) : null, noFocus: v.kind === 'screen' });
+}
+
+// A restarted game (same code, new gameNo): drop everything tied to the old one. The stored player token still works.
+function newGameReset() {
+  closeSheets(); fx.closeVictory(); fx.resetMarks(); rv.hide();
+  Object.assign(S.ui, { showCard: false, unveil: false, flip: false, tally: {}, strike: null, fresh: {}, tab: 'game', draft: { ...S.ui.draft, chat: '' } });
 }
 
 function onView(v) {
   const p = S.view;
+  if (p && v.code === p.code && (p.gameNo || 1) !== (v.gameNo || 1)) newGameReset();
   if (p?.game && v.game) {
     if (v.game.results.length > p.game.results.length) S.ui.fresh.quest = true;
     if (v.game.history.length > p.game.history.length) S.ui.fresh.vote = true;
@@ -649,12 +673,12 @@ function onView(v) {
 
 // ---------------------------------------------------------------- routing
 async function route() {
-  S.transport?.close(); S.transport = null; S.view = null; fx.closeVictory(); S.fatal = null; S.ended = false; S.pruned = false; S.conn = true; rv.hide(); S.ui.showCard = false;
+  S.transport?.close(); S.transport = null; S.view = null; fx.closeVictory(); S.fatal = null; S.ended = false; S.pruned = false; S.conn = true; S.connLong = false; rv.hide(); S.ui.showCard = false;
   const [kind, arg] = location.hash.replace(/^#\/?/, '').split('/');
   if ((kind === 'play' || kind === 'join' || kind === 'screen') && /^[A-Za-z]{6}$/.test(arg || '')) {
     S.mode = kind === 'screen' ? 'screen' : 'play'; S.code = arg.toUpperCase();
     const ex = await fetch(`/api/room/${S.code}`).then((r) => r.ok).catch(() => false);
-    if (!ex) { store.del(`${KEY}.player.${S.code}`); S.fatal = `There’s no table with the code ${S.code}. Check the letters and try again.`; }
+    if (!ex) { store.del(`${KEY}.player.${S.code}`); S.fatal = FATAL.noRoom(S.code); }
     else {
       S.pendingJoin = sessionStorage.getItem(`${KEY}.pendingJoin`);
       sessionStorage.removeItem(`${KEY}.pendingJoin`);
@@ -718,6 +742,21 @@ function showQr(link, code) {
   document.addEventListener('keydown', onKey);
 }
 
+const rolesSeatsLobby = () => S.view.players.filter((p) => !p.watch).length;
+function showRoles() {
+  const v = S.view; if (!v) return;
+  const info = rolesInGame(rolesSeats(v), v.settings);
+  const seats = v.game ? 'The roles dealt this game' : 'The roles planned for this table';
+  openSheet({ title: 'Roles in this game', cls: 'roles-sheet',
+    bodyHtml: `<p class="muted">${seats}, ${info.seats} players. Who holds which is secret.</p>${rolesSheetBody(info, esc, glyph)}`,
+    buttons: [{ label: 'Close', cls: 'ghost' }] });
+}
+function restartAsk() {
+  openSheet({ title: 'Restart the game?', cls: 'restart-sheet',
+    bodyHtml: '<p>Everyone stays seated and gets a fresh deal with the same setup. The chat, log and quests so far are cleared.</p>',
+    buttons: [{ label: 'Keep playing', cls: 'ghost' }, { label: 'Change setup first', cls: 'ghost', onClick: () => send({ type: 'again' }) }, { label: 'Restart now', onClick: () => send({ type: 'restart' }) }] });
+}
+
 async function act(a, el) {
   const d = el?.dataset || {};
   switch (a) {
@@ -748,6 +787,10 @@ async function act(a, el) {
     case 'copy': try { await navigator.clipboard.writeText(d.link); toast('Invite link copied.'); } catch { toast(d.link); } return;
     case 'share': try { await navigator.share({ title: 'Quest Night', text: 'Join my Quest Night table', url: d.link }); } catch { /* cancelled */ } return;
     case 'qrFull': showQr(d.link, d.code); return;
+    case 'roles': showRoles(); return;
+    case 'step': { const msg = stepMessage(rolesSeatsLobby(), S.view.settings, d.k, +d.d, !!S.view.me?.host); if (msg) send(msg); else if (S.view.me?.host) toast('That change would make the setup invalid.'); return; }
+    case 'restart': send({ type: 'restart' }); return;
+    case 'restartAsk': restartAsk(); return;
     case 'start': if (el.classList.contains('disabled')) { toast('Not ready to start yet.'); return; } send({ type: 'start' }); return;
     case 'propose': if (el.classList.contains('disabled')) { toast('Choose the whole party first.'); return; } send({ type: 'propose' }); return;
     case 'vote': haptic(15); send({ type: 'vote', approve: d.v === '1' }); return;

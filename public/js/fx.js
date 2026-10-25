@@ -132,13 +132,13 @@ function victory(o) {
       <div class="vc-crest">${o.crest}</div>
       <h2 id="vc-title"></h2><p class="vc-text"></p>${o.status ? `<p class="vc-status"></p>` : ''}
       <ul class="vc-roles"></ul>
-      <div class="vc-btns">${o.onAgain ? '<button type="button" class="btn big" data-vc="again">Play again</button>' : ''}<button type="button" class="btn ${o.onAgain ? 'ghost' : 'big'}" data-vc="close">Close</button></div></div></div>`;
+      <div class="vc-btns">${o.onRestart ? '<button type="button" class="btn big" data-vc="restart">Restart</button>' : ''}${o.onAgain ? `<button type="button" class="btn ${o.onRestart ? 'ghost' : 'big'}" data-vc="again">${o.onRestart ? 'Change setup first' : 'Play again'}</button>` : ''}<button type="button" class="btn ${o.onAgain || o.onRestart ? 'ghost' : 'big'}" data-vc="close">Close</button></div></div></div>`;
   el.querySelector('#vc-title').textContent = o.title; el.querySelector('.vc-text').textContent = o.text;
   if (o.status) el.querySelector('.vc-status').textContent = o.status;
   const ul = el.querySelector('.vc-roles');
   (o.roles || []).forEach((r, i) => { const li = document.createElement('li'); li.className = `a-${r.side}`; li.style.setProperty('--i', i); li.innerHTML = r.icon; const s = document.createElement('span'); const b = document.createElement('b'); b.textContent = r.name; const sm = document.createElement('small'); sm.textContent = r.role; s.append(b, sm); li.append(s); ul.append(li); });
   if (!o.roles?.length) ul.remove();
-  el.addEventListener('click', (e) => { const b = e.target.closest('[data-vc]'); if (!b) return; if (b.dataset.vc === 'again') o.onAgain(); closeVictory(); });
+  el.addEventListener('click', (e) => { const b = e.target.closest('[data-vc]'); if (!b) return; if (b.dataset.vc === 'again') o.onAgain(); if (b.dataset.vc === 'restart') o.onRestart(); closeVictory(); });
   const key = (e) => { if (e.key === 'Escape') closeVictory(); };
   addEventListener('keydown', key);
   $layer().appendChild(el);
@@ -154,6 +154,7 @@ function victory(o) {
 
 export const fx = {
   enabled, mark, on, st, cue, burst, burstAt, stamp, glow, rolls, victory, closeVictory,
+  resetMarks: () => marks.clear(),
   isUserOn: () => userOn,
   setUserOn(v) { userOn = !!v; store.set(v ? '1' : '0'); sync(); },
   after(rootEl) { rolls(rootEl); for (const m of marks.values()) m.done = true; },

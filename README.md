@@ -40,3 +40,12 @@ Live: https://quest-night.hatethespurs.workers.dev
 `node scripts/build-embedded.mjs` builds `dist-embedded/worker.js` with every file in `public/` inlined; it was
 uploaded through the Cloudflare API (script `quest-night`, Durable Object migration tag `v1`, workers.dev on).
 A later `npm run deploy` replaces it with the normal Static Assets build; the migration tag matches.
+
+## Deploy file
+For deploying through the Cloudflare API without wrangler. Worker name, the ROOM -> Room binding and the compat date are read from `wrangler.jsonc` (never passed by hand); no migrations are sent.
+```
+node /workspace/code-team/shared/pwa/make-pwa.mjs public pwa/pwa.json   # FIRST: refreshes sw.js VERSION (or `node scripts/stamp-sw.mjs public`); build-deploy refuses a stale one
+node scripts/build-embedded.mjs
+node scripts/build-deploy.mjs <outFile>  # runs the whole test suite first; no secrets embedded
+```
+If any test fails it prints `Deploy file NOT written: N test(s) failed`, exits 1 and does not create or touch `<outFile>`. There is no bypass flag. See `RULES.md` for the rules the gate protects.

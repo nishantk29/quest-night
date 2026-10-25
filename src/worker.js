@@ -1,7 +1,8 @@
 // Cloudflare Worker: serves the API + WebSocket entry points. Static files come from Workers Static Assets.
 import { DurableObject } from 'cloudflare:workers';
 import { newRoom, reduce } from '../public/js/room.js';
-import { fanout } from './fanout.js';
+import { fanout, seatStale } from './fanout.js';
+import { errorResponse } from './error-page.js';
 
 const CODE_CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZ'; // no I/O look-alikes
 const ROOM_TTL_MS = 12 * 60 * 60 * 1000;
@@ -14,8 +15,19 @@ const randCode = () => {
 const randKey = () => [...crypto.getRandomValues(new Uint8Array(16))].map((x) => x.toString(16).padStart(2, '0')).join('');
 const json = (o, status = 200) => new Response(JSON.stringify(o), { status, headers: { 'content-type': 'application/json', 'cache-control': 'no-store' } });
 
+const wantsHtml = (request) => (request.headers.get('accept') || '').includes('text/html');
+
 export default {
+  // Any throw becomes a styled page (or JSON for API callers); the error itself only goes to the log.
   async fetch(request, env) {
+    try { return await route(request, env); } catch (e) {
+      console.error('worker error:', e?.message || e);
+      return new URL(request.url).pathname.startsWith('/api/') && !wantsHtml(request) ? json({ error: 'Something went wrong. Try again.' }, 500) : errorResponse(500);
+    }
+  },
+};
+
+async function route(request, env) {
     const url = new URL(request.url);
 
     if (url.pathname === '/api/create' && request.method === 'POST') {
@@ -37,14 +49,15 @@ export default {
 
     const ws = url.pathname.match(/^\/ws\/([A-Za-z]{6})$/);
     if (ws) {
-      if (request.headers.get('Upgrade') !== 'websocket') return new Response('Expected websocket', { status: 426 });
+      if (request.headers.get('Upgrade') !== 'websocket') return errorResponse(426);
       const stub = env.ROOM.get(env.ROOM.idFromName(ws[1].toUpperCase()));
       return stub.fetch(request);
     }
 
-    return env.ASSETS ? env.ASSETS.fetch(request) : new Response('Not found', { status: 404 });
-  },
-};
+    if (url.pathname.startsWith('/api/')) return wantsHtml(request) ? errorResponse(404) : json({ error: 'Not found' }, 404);
+    const res = env.ASSETS ? await env.ASSETS.fetch(request) : null;
+    return res && res.status !== 404 ? res : errorResponse(404);
+}
 
 export class Room extends DurableObject {
   constructor(ctx, env) {
@@ -115,12 +128,12 @@ export class Room extends DurableObject {
       if (msg.playerId) {
         const p = this.room.players.find((x) => x.id === msg.playerId);
         if (!p || p.token !== msg.token) { this.send(ws, { type: 'fatal', error: 'Could not rejoin. Join again with a new name.', clear: true }); ws.close(1008, 'bad token'); return; }
-        ws.serializeAttachment({ who: 'player', playerId: p.id });
+        ws.serializeAttachment({ who: 'player', playerId: p.id, token: p.token });
       } else if (msg.join) {
         const res = reduce(this.room, { anon: true }, { type: 'join', name: msg.join, hostKey: msg.hostKey });
         if (res.error) { this.send(ws, { type: 'error', error: res.error }); return; }
         await this.save();
-        ws.serializeAttachment({ who: 'player', playerId: res.data.playerId });
+        ws.serializeAttachment({ who: 'player', playerId: res.data.playerId, token: res.data.token });
         this.send(ws, { type: 'joined', ...res.data });
       } else if (msg.screen) { // the shared table screen: public view only
         ws.serializeAttachment({ who: 'screen' });
@@ -134,6 +147,7 @@ export class Room extends DurableObject {
     if (!att.who || att.who === 'screen') return;
 
     // ---- actions ----
+    if (att.who === 'player' && seatStale(this.room, att)) { this.send(ws, { type: 'fatal', error: 'The host opened your seat for someone else.', clear: true }); ws.serializeAttachment({ who: null }); return; }
     const actor = { playerId: att.playerId };
     const wasOver = this.room.phase === 'over';
     const res = reduce(this.room, actor, msg);

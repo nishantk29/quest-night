@@ -335,7 +335,7 @@ export const pollCounts = (poll) => poll.options.map((_, i) => Object.values(pol
 export function tableView(room, viewerId, connected) {
   const me = viewerId ? byId(room, viewerId) : null;
   return {
-    code: room.code, phase: room.phase, settings: room.settings, house: room.house, mode: room.mode,
+    code: room.code, gameNo: room.gameNo || 1, phase: room.phase, settings: room.settings, house: room.house, mode: room.mode,
     players: room.players.map((p) => ({ id: p.id, name: p.name, host: !!p.host, watch: !!p.watch, phoneless: !!p.phoneless, open: !!p.open, muted: !!p.muted, online: connected.has(p.id) })),
     log: room.log.slice(-150).map((m) => (m.hidden ? { n: m.n, t: m.t, kind: m.kind, by: m.by, text: '(removed by the host)', hidden: true } : { n: m.n, t: m.t, kind: m.kind, by: m.by, text: m.text })),
     paused: !!room.paused, timer: room.timer, talk: room.talk,

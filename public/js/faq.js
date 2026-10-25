@@ -66,6 +66,8 @@ export const FAQ = [
     ['What is the table screen?', '<p>A view for a TV or laptop everyone can see: the board, the round table, the log and the chat. It never shows a secret. Open it from the Host tab.</p>'],
   ]],
   ['Joining and Privacy', [
+    ['Can the Host restart the game?', '<p>Yes. On the end screen the Host taps <b>Restart</b>, or during a game opens the Host tab and taps <b>Restart game…</b>. Everyone stays seated and gets a fresh deal with the same setup, straight into the secret cards. The chat, log and quest results start over. <b>Change setup first</b> goes back to the lobby instead.</p>'],
+    ['Where can I see which roles are in the game?', '<p>Tap the scroll button at the top of any screen: <b>Roles in this game</b> lists every role in play and how many of each. It never says who holds which.</p>'],
     ['How do I join or rejoin?', '<p>Enter the 6-letter code or open the invite link. Your phone remembers your seat, so if it locks or drops off, open the link again and you’re back with the same card. If you lost your phone, the Host can open your seat and you join again with any name.</p>'],
     ['Is there secret team chat?', '<p>No. In the original game Evil never talks in secret during play, so the chat is public to the whole table. Claims go into the claims log so the table can check them later.</p>'],
     ['What happens when the Host closes the room?', '<ul><li>Every player sees “The host ended the game” with a link home.</li><li>The room and its code are deleted.</li><li>Saved “Back to table” shortcuts disappear. You can also remove one yourself with its ×.</li><li>Rooms that nobody touches expire by themselves after 12 hours.</li></ul>'],

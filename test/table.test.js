@@ -39,7 +39,7 @@ test('every table size deals the right sides, and knowledge matches the classic 
     const roles = t.room.game.roles;
     assert.equal(Object.values(roles).filter((r) => ROLES[r].side === 'evil').length, EVIL_COUNT[n]);
     for (const id of t.ids) {
-      const k = knowledgeFor(id, roles);
+      const k = knowledgeFor(id, roles, t.room.game.order);
       if (roles[id] === 'merlin') for (const x of k) assert.ok(ROLES[roles[x.id]].side === 'evil' && roles[x.id] !== 'mordred');
       if (roles[id] === 'oberon' || roles[id] === 'servant') assert.equal(k.length, 0);
       assert.deepEqual(viewForPlayer(t.room, id).me.sees, k);
