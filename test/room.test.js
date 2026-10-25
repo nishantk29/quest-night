@@ -203,3 +203,11 @@ test('play again keeps the table and returns to the lobby', () => {
   assert.equal(room.phase, 'lobby');
   assert.equal(room.players.length, 5);
 });
+
+test('close: only the host can close the room, and it flags the room for the Worker to wipe', () => {
+  const { room, ids, host } = table(5);
+  assert.equal(act(room, ids[1], { type: 'close' }).error, 'Only the host can do that.');
+  assert.ok(!room.closed);
+  must(reduce(room, host, { type: 'close' }));
+  assert.equal(room.closed, true);
+});

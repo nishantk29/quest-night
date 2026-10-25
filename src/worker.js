@@ -138,8 +138,17 @@ export class Room extends DurableObject {
     const wasOver = this.room.phase === 'over';
     const res = reduce(this.room, actor, msg);
     if (res.error) { this.send(ws, { type: 'error', error: res.error }); return; }
+    if (this.room.closed) { await this.closeRoom(); return; }
     await this.save();
     this.broadcast(wasOver);
+  }
+
+  // The host closed the table: tell every seat and the table screen, wipe the room and its alarm, free the code.
+  async closeRoom() {
+    for (const s of this.ctx.getWebSockets()) { this.send(s, { type: 'closed' }); try { s.close(1000, 'closed'); } catch { /* already gone */ } }
+    this.room = null;
+    await this.ctx.storage.deleteAlarm();
+    await this.ctx.storage.deleteAll();
   }
 
   async webSocketClose(ws) { try { ws.close(); } catch { /* already closed */ } await this.ready; this.broadcast(); }

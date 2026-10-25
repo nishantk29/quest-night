@@ -230,6 +230,11 @@ function gameReduce(room, actor, msg, rng, now) {
       if (msg.type === 'abandon') log(room, 'host', 'The host ended the game.', null, now);
       return ok();
     }
+    case 'close': { // host: close the room for everyone; the Worker then wipes it and frees the code
+      if (!isHost) return err('Only the host can do that.');
+      room.closed = true;
+      return ok();
+    }
     default: return err('Unknown action.');
   }
 }

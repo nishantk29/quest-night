@@ -3,7 +3,7 @@
 // - Navigations: network-first, falling back to the cached app shell.
 // - /api/* and /ws/* never touch the cache.
 // VERSION is a content hash of every precached file, so it changes whenever a file does.
-const VERSION = 'df4de0ead9';
+const VERSION = 'b82d5d48f5';
 const PREFIX = 'quest-';
 const CACHE = PREFIX + VERSION;
 
@@ -31,6 +31,7 @@ const PRECACHE = [
   '/js/cards.js',
   '/js/device.js',
   '/js/faq.js',
+  '/js/flair.js',
   '/js/fx.js',
   '/js/glyphs.js',
   '/js/motion.js',
@@ -50,6 +51,7 @@ const PRECACHE = [
   '/print/quest-night-card-guide.pdf',
   '/print/quest-night-cards.pdf',
   '/pwa-install.js',
+  '/redesign.css',
   '/styles.css',
   '/theme.css',
 ];

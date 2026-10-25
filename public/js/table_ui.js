@@ -130,7 +130,9 @@ export function makeTable(ctx) {
       <p class="muted">“Replace” opens a seat mid-game: the next person who joins takes it over with the same secret card. “Make host” hands you off.</p>
       <h3 class="sub">Table screen</h3><p class="muted">Open this on a TV or laptop everyone can see. It never shows anything secret.</p>
       <p><a class="btn ghost" href="#/screen/${esc(v.code)}" target="_blank" rel="noopener">${ui('expand')} Open the table screen</a></p>
-      <p class="muted"><a href="#/faq">FAQ</a> · <a href="/print.html" target="_blank" rel="noopener">Printable card guide and cards</a></p>
+      <p class="muted"><a href="#/faq">Rules &amp; FAQ</a> · <a href="/print.html" target="_blank" rel="noopener">Print the card guide</a></p>
+      <h3 class="sub">Close the room</h3><p class="muted">Ends the table for everyone, deletes the room and frees the code.</p>
+      <p><button type="button" class="btn danger" data-a="closeRoom">Close room</button></p>
     </section>`;
   }
 
@@ -166,6 +168,7 @@ export function makeTable(ctx) {
       case 'nudge': case 'mute': send({ type: a, id: d.id }); return true;
       case 'handoff': askConfirm(`Make ${nameOf(S.view, d.id)} the Host? You’ll stay at the table as a player.`).then((ok) => ok && send({ type: 'handoff', id: d.id })); return true;
       case 'kick': askConfirm(S.view.phase === 'lobby' ? `Remove ${nameOf(S.view, d.id)}?` : `Open ${nameOf(S.view, d.id)}’s seat? The next person to join takes it over, with the same secret card.`).then((ok) => ok && send({ type: 'kick', id: d.id })); return true;
+      case 'closeRoom': askConfirm('Close this room for everyone? Players will see that the host ended the game, and the code stops working.').then((ok) => ok && send({ type: 'close' })); return true;
       case 'abandon': askConfirm('End this game for everyone and go back to the lobby?').then((ok) => ok && send({ type: 'abandon' })); return true;
       default: return false;
     }

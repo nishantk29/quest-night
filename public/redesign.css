@@ -1,0 +1,165 @@
+/* Quest Night redesign layer. Loaded last. Same structure as Mafia Night (actions left, title right on desktop, logo mark,
+   step transitions, footer), in Quest Night's own navy + gold and its own Cinzel type.
+   Motion: transform and opacity only, one easing, no layout shift. Off for reduced motion and html.fx-off. */
+@font-face{font-family:"Cinzel";font-weight:800;font-display:swap;src:url(/fonts/cinzel-800.woff2) format("woff2")}
+@font-face{font-family:"Cinzel Decorative";font-weight:700;font-display:swap;src:url(/fonts/cinzel-decorative-700.woff2) format("woff2")}
+:root{--qn-ease:cubic-bezier(.2,.8,.2,1);--display-serif:"Cinzel","Rubik Fallback",Georgia,serif;
+  --paper:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 .5 0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)' opacity='.5'/%3E%3C/svg%3E")}
+
+/* ---- type: Cinzel for the title and headings, Rubik stays for reading */
+.wordmark{font-family:"Cinzel Decorative","Cinzel",var(--display-serif);font-weight:700;letter-spacing:.01em;text-transform:none;line-height:1.02;hyphens:none;text-wrap:balance}
+h1,h2,.phase-title,.block-title,.path-title,.sheet-title{font-family:var(--display-serif);font-weight:800;letter-spacing:.015em;hyphens:none;overflow-wrap:normal;text-wrap:balance}
+.phase-title{font-size:clamp(1.7rem,1.3rem + 2.4vw,2.7rem)}
+.path-title{font-size:clamp(1.5rem,1.2rem + 1.2vw,1.9rem);line-height:1.1}
+.block-title{font-size:clamp(1.15rem,1rem + .7vw,1.45rem)}
+.home .wordmark{font-size:clamp(2.6rem,11vw,4.6rem);letter-spacing:.005em;line-height:1.02}
+.home .wordmark span{display:inline-block}
+.tagline{font-weight:700}
+
+/* ---- background art: a night sky and castle behind everything, fills the desktop gaps */
+#app{position:relative;z-index:1}
+.bg-art{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden;background:radial-gradient(120% 80% at 80% 100%,rgba(47,107,214,.20),transparent 60%),radial-gradient(90% 60% at 10% 0%,rgba(224,174,82,.07),transparent 60%)}
+.bg-sky{position:absolute;right:0;bottom:0;width:min(100vw,900px);height:min(44vh,430px);opacity:.78}
+.bg-stars{animation:qn-twinkle 6s var(--qn-ease) infinite alternate}
+.bg-stars-b{animation-duration:9s;animation-delay:-3s}
+.bg-win{animation:qn-twinkle 7s ease-in-out infinite alternate;animation-delay:-2s}
+@keyframes qn-twinkle{from{opacity:.35}to{opacity:1}}
+/* the flag mostly hangs still, then flutters for about a second every few seconds */
+.bg-flag{transform-box:fill-box}
+.flag-cloth{transform-origin:2.4px -36px;transform-box:view-box;animation:qn-flutter 7s var(--qn-ease) infinite}
+@keyframes qn-flutter{0%,78%,100%{transform:none}82%{transform:skewY(-9deg) scaleX(.93)}86%{transform:skewY(7deg) scaleX(1.04)}90%{transform:skewY(-5deg) scaleX(.97)}94%{transform:skewY(3deg)}}
+@media (max-width:640px){.bg-sky{width:130vw;height:34vh;opacity:.5}}
+
+/* ---- home: Mafia structure. Actions on the left, title and logo on the right, then suggestions and footer */
+.home-brand{display:grid;gap:var(--s3);justify-items:start}
+.logo-mark{display:grid;place-items:center;width:72px;height:72px;border-radius:20px;background:var(--brass);color:var(--on-brass);box-shadow:0 10px 24px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.35);transform:rotate(-4deg)}
+.logo-mark .ico,.logo-mark svg{width:46px;height:46px}
+.home-hero{gap:var(--s3)}
+.home-art{width:auto;max-width:100%;padding:var(--s3);margin:var(--s2) 0 0;flex-wrap:nowrap;background:rgba(42,42,134,.72);border-radius:var(--r-row)}
+.home-art .hseal{flex:0 0 auto;width:calc((100% - 4 * var(--s2)) / 5);height:auto;aspect-ratio:1;max-width:76px;font-size:clamp(1rem,5vw,1.6rem)}
+.home-art .hseal svg,.home-art .hseal .ico{width:56%;height:56%}
+@media (min-width:900px){
+  .wrap.home{grid-template-columns:minmax(0,480px) minmax(0,1fr);column-gap:var(--s9,72px);align-items:start;max-width:1180px}
+  .wrap.home .home-paths{order:1;margin:0}
+  .wrap.home .home-hero{order:2;max-width:none;margin:0;padding-top:var(--s5)}
+  .home-brand{grid-template-columns:auto 1fr;align-items:center;gap:var(--s5)}
+  .home .wordmark{font-size:clamp(3.4rem,5.4vw,5.6rem)}
+  .home .tagline{font-size:1.4rem}
+  .home .lede{font-size:1.15rem;max-width:36ch}
+  .home-art{padding:var(--s4);gap:var(--s3)}
+  .wrap.home .home-nav{order:-1}
+  .more-games{grid-column:1/-1;order:3}.site-foot{grid-column:1/-1;order:4}
+}
+
+/* ---- more games */
+.more-games{display:grid;gap:var(--s3);max-width:100%}
+.more-grid{display:grid;gap:var(--s3);grid-template-columns:repeat(auto-fill,minmax(250px,1fr))}
+.more-card{display:flex;align-items:center;gap:var(--s4);min-height:96px;padding:var(--s4);border-radius:var(--r-block,20px);background:#1B1B22;color:#fff;text-decoration:none;box-shadow:inset 0 0 0 1px rgba(255,255,255,.08),inset 0 1px 0 rgba(255,255,255,.08),0 8px 22px rgba(0,0,0,.35);hyphens:none;overflow-wrap:normal}
+.more-logo{flex:none;display:grid;place-items:center;width:56px;height:56px;border-radius:50%;background:var(--tok,#2F6BD6);color:#fff}
+.more-logo svg{width:32px;height:32px}
+.more-mafia{--tok:#8E1620}.more-gilded{--tok:#B9770E}.more-hub{--tok:#2F6BD6}
+.more-text{display:grid;gap:2px;min-width:0}
+.more-text b{font:800 1.1rem/1.15 var(--display-serif);letter-spacing:.01em;text-wrap:balance}
+.more-text small{font-size:.85rem;line-height:1.35;color:rgba(255,255,255,.78)}
+.more-card:focus-visible{outline:3px solid var(--focus,#fff);outline-offset:3px}
+
+/* ---- footer: game links, then a quiet Credits expander */
+.site-foot{width:min(100%,46rem);margin-inline:auto;padding-inline:var(--gutter-l,16px);display:grid;gap:var(--s3);padding-block:var(--s5) var(--s6);margin-top:var(--s4);border-top:1px solid rgba(255,255,255,.12);max-width:100%}
+.site-foot nav{display:flex;flex-wrap:wrap;gap:var(--s2) var(--s5)}
+.site-foot nav a{display:inline-flex;align-items:center;min-height:44px;color:#fff;font-weight:700;text-decoration:none}
+.site-foot nav a[aria-current]{color:var(--brass)}
+@media (hover:hover){.site-foot nav a:hover{text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:5px}}
+.credits-box{color:var(--smoke);font-size:.85rem}
+.credits-box summary{display:inline-flex;align-items:center;min-height:44px;cursor:pointer;color:var(--smoke);font-weight:600}
+.credits-box p{max-width:70ch;line-height:1.55;margin:var(--s2) 0 0}
+.credits-box a{color:inherit}
+.home-faq{margin-top:var(--s2)}
+
+@media (min-width:900px){.site-foot{width:min(100%,1180px)}}
+.wrap.home .site-foot{width:auto;padding-inline:0;margin-inline:0}
+
+/* ---- cards: tilt with the mouse (gentle on touch), crafted surface, no side stripes anywhere */
+[data-card],.path,.side-card,.more-card,.role-token,.how-sec li{--crx:0deg;--cry:0deg;transform:perspective(900px) rotateX(var(--crx)) rotateY(var(--cry));transition:transform 320ms var(--qn-ease);transform-style:flat;backface-visibility:hidden}
+[data-tilting]{transition:transform 90ms linear!important}
+@media (hover:hover) and (pointer:fine){.more-card:hover,.side-card:hover,.path:hover{box-shadow:inset 0 0 0 1px rgba(255,255,255,.14),0 14px 30px rgba(0,0,0,.45)}}
+.path,.side-card,.more-card{position:relative}
+.path::after,.side-card::after,.more-card::after{content:"";position:absolute;inset:0;border-radius:inherit;background:var(--paper);background-size:160px;opacity:.05;mix-blend-mode:overlay;pointer-events:none}
+.how-sec li{border-radius:var(--r-row)}
+.history li,.history li.ok,.history li.bad{border-left:0}
+
+/* ---- role picker: icon-led tokens, two across on a phone, faction as a ring and a pill, selected = gold frame + banner notch */
+.settings:has(> .role-token){display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}
+.role-token{position:relative;display:grid;grid-template-rows:auto 1fr;justify-items:center;align-content:start;gap:var(--s2);min-height:150px;padding:18px 12px 14px;text-align:center;border-radius:14px;background:#1B1B1F;color:#fff;border:0;box-shadow:inset 0 0 0 1px rgba(255,255,255,.1),inset 0 1px 0 rgba(255,255,255,.1),0 6px 14px rgba(0,0,0,.35);cursor:pointer;hyphens:none;overflow-wrap:normal}
+.role-token .token{display:grid;place-items:center;width:60px;height:60px;border-radius:50%;background:#26262E;box-shadow:0 0 0 3px var(--ring,#2F6BD6),inset 0 0 0 2px rgba(255,255,255,.14)}
+.role-token.a-good{--ring:#4C86F0}.role-token.a-evil{--ring:#D8404C}
+.role-token .token .ico{width:34px;height:34px;color:#fff}
+.role-token .rt-text{display:grid;justify-items:center;gap:4px;min-width:0}
+.role-token b{font:800 1rem/1.2 var(--display-serif);letter-spacing:.01em;text-wrap:balance;hyphens:none;overflow-wrap:normal}
+.role-token .pill{padding:1px 8px;border-radius:999px;font-size:.7rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;background:rgba(255,255,255,.1);color:#fff}
+.role-token.a-good .pill{background:rgba(76,134,240,.28)}.role-token.a-evil .pill{background:rgba(216,64,76,.3)}
+.role-token .muted{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;font-size:.8rem;line-height:1.35;color:rgba(255,255,255,.74);margin:0}
+.role-token input{position:absolute;top:8px;right:8px;appearance:none;-webkit-appearance:none;margin:0;width:24px;height:24px;border-radius:50%;background:transparent;box-shadow:inset 0 0 0 2px rgba(255,255,255,.35);display:grid;place-items:center}
+.role-token input:checked{background:var(--brass) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M6 12.5l4 4 8-9' fill='none' stroke='%231B1410' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/16px no-repeat;box-shadow:none}
+.role-token input:focus-visible{outline:3px solid #fff;outline-offset:2px}
+.role-token.is-on{background:#1F2036;box-shadow:inset 0 0 0 2px var(--brass),0 8px 18px rgba(0,0,0,.4)}
+.role-token.is-on::before{content:"";position:absolute;top:0;left:50%;width:22px;height:14px;margin-left:-11px;background:var(--brass);clip-path:polygon(0 0,100% 0,100% 100%,50% 70%,0 100%)}
+.role-token:active{transform:perspective(900px) scale(.97)}
+.role-token:has(input:disabled){opacity:1;cursor:default}
+@media (max-width:430px){.settings:has(> .role-token){grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+/* ---- FAQ: scannable answers */
+.faq-a{line-height:1.6}
+.faq-a h4{margin:var(--s4) 0 var(--s1);font:800 .78rem/1.2 var(--font-ui);letter-spacing:.1em;text-transform:uppercase;color:var(--brass)}
+.faq-a h4:first-child{margin-top:var(--s1)}
+.faq-a ul,.faq-a ol{display:grid;gap:var(--s2);padding-left:1.25em;margin:var(--s2) 0}
+.faq-a li{line-height:1.5}
+.faq-a .muted{color:var(--smoke)}
+.faq-a p{margin:var(--s2) 0}
+.faq-group{hyphens:none}
+.faq-q summary{hyphens:none;text-wrap:balance}
+
+/* ---- game log: the header and filter stay put while the entries scroll, entries are spaced and scannable */
+.pane-sec[aria-label="Game log"]{position:relative}
+.pane-sec[aria-label="Game log"] > .block-title,.pane-sec[aria-label="Game log"] > .seg{position:sticky;z-index:3}
+.pane-sec[aria-label="Game log"] > .block-title{top:var(--stk-top,0px);margin:0;padding:var(--s3) 0 var(--s2);background:#17317E}
+.pane-sec[aria-label="Game log"] > .seg{top:calc(var(--stk-top,0px) + 3.1rem);padding-bottom:var(--s2);background:#17317E;border-radius:0}
+@media (max-width:1099px){.pane-sec[aria-label="Game log"]{--stk-top:var(--appbar-h,56px)}}
+.msgs.log{display:grid;gap:var(--s2)}
+.msgs.log > li{line-height:1.5;padding:var(--s2) var(--s3);border-radius:12px;background:rgba(255,255,255,.05)}
+.msgs.log b,.msgs.log .who{color:var(--brass);font-weight:700}
+
+/* ---- host close-room */
+.btn.danger{min-height:48px}
+.resume-row{display:flex;align-items:center;gap:var(--s2)}
+.resume-row .resume{flex:1;min-width:0}
+.resume-x{flex:none;display:grid;place-items:center;width:44px;height:44px;border:0;border-radius:50%;background:rgba(255,255,255,.12);color:#fff;cursor:pointer}
+.resume-x .ui-ico{width:18px;height:18px}
+@media (hover:hover){.resume-x:hover{background:rgba(255,255,255,.24)}}
+.ended{text-align:center;justify-items:center}
+.ended .ico{width:72px;height:72px;color:var(--brass)}
+
+/* ---- page transitions (Mafia's slide, in Quest Night's easing): the old screen slips left, the new one glides in */
+@supports (view-transition-name:none){
+  #app > main.wrap{view-transition-name:step}
+  ::view-transition-old(root),::view-transition-new(root){animation:none;mix-blend-mode:normal}
+  ::view-transition-old(step){animation:qn-step-out 160ms var(--qn-ease) both}
+  ::view-transition-new(step){animation:qn-step-in 380ms var(--qn-ease) both}
+}
+@keyframes qn-step-out{to{opacity:0;transform:translateX(-26px)}}
+@keyframes qn-step-in{from{opacity:0;transform:translateX(40px)}}
+
+/* ---- first-load entrance on the home screen only (html.boot is removed 1.6s after load) */
+.boot .home-hero > *,.boot .home-paths > *,.boot .more-games{animation:qn-rise 640ms var(--qn-ease) both}
+.boot .home-hero > :nth-child(2){animation-delay:60ms}.boot .home-hero > :nth-child(3){animation-delay:120ms}.boot .home-hero > :nth-child(4){animation-delay:180ms}
+.boot .home-paths > :nth-child(1){animation-delay:80ms}.boot .home-paths > :nth-child(2){animation-delay:150ms}.boot .home-paths > :nth-child(3){animation-delay:220ms}.boot .more-games{animation-delay:300ms}
+@keyframes qn-rise{from{opacity:0;transform:translateY(18px)}}
+
+/* ---- reduced motion and the Animations switch */
+@media (prefers-reduced-motion:reduce){
+  .bg-stars,.bg-win,.flag-cloth,.boot .home-hero > *,.boot .home-paths > *,.boot .more-games{animation:none!important}
+  [data-card],.path,.side-card,.more-card,.role-token,.how-sec li{transform:none!important;transition:none}
+  ::view-transition-old(step),::view-transition-new(step){animation:none!important}
+}
+.fx-off .bg-stars,.fx-off .bg-win,.fx-off .flag-cloth,.fx-off.boot .home-hero > *,.fx-off.boot .home-paths > *,.fx-off.boot .more-games{animation:none!important}
+.fx-off [data-card],.fx-off .path,.fx-off .side-card,.fx-off .more-card,.fx-off .role-token,.fx-off .how-sec li{transform:none!important}
+.fx-off ::view-transition-old(step),.fx-off ::view-transition-new(step){animation:none!important}

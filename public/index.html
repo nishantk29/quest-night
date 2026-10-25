@@ -9,11 +9,15 @@
 <meta name="application-name" content="Quest Night">
 <meta name="format-detection" content="telephone=no">
 <link rel="preload" href="/fonts/rubik-var.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/fonts/cinzel-800.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/fonts/cinzel-decorative-700.woff2" as="font" type="font/woff2" crossorigin>
 <style>html{background:#0B0B0D;color-scheme:dark}</style>
+<script>document.documentElement.classList.add('boot');setTimeout(function(){document.documentElement.classList.remove('boot')},1600)</script>
 <link rel="stylesheet" href="/styles.css">
 <link rel="stylesheet" href="/theme.css">
 <link rel="stylesheet" href="/fx.css">
 <link rel="stylesheet" href="/motion.css">
+<link rel="stylesheet" href="/redesign.css">
 <!-- pwa:start -->
 <link rel="manifest" href="/manifest.webmanifest">
 <meta name="theme-color" content="#0B0B0D">
@@ -29,6 +33,18 @@
 <!-- pwa:end -->
 </head>
 <body>
+<div class="bg-art" aria-hidden="true">
+  <svg class="bg-sky" viewBox="0 0 800 500" preserveAspectRatio="xMaxYMax slice" focusable="false">
+    <g class="bg-stars" fill="#F6E7B0"><circle cx="90" cy="60" r="1.6"/><circle cx="230" cy="120" r="1.2"/><circle cx="360" cy="48" r="1.8"/><circle cx="520" cy="96" r="1.3"/><circle cx="640" cy="40" r="1.6"/><circle cx="740" cy="140" r="1.2"/><circle cx="150" cy="210" r="1.1"/><circle cx="470" cy="190" r="1.4"/></g>
+    <g class="bg-stars bg-stars-b" fill="#FFFFFF"><circle cx="60" cy="150" r="1.2"/><circle cx="310" cy="190" r="1.5"/><circle cx="580" cy="30" r="1.1"/><circle cx="700" cy="230" r="1.6"/><circle cx="420" cy="110" r="1.2"/></g>
+    <g fill="#1D1D68" opacity=".9">
+      <path d="M0 500V400l30-14v-34h14v34l26 12 20-8v-24h14v24l18 6 24-20v-30h16v30l22 16 26-10v-52l-6-8 6-8v-26h14v26l6 8-6 8v52l24 8 30-14v-34h14v34l24 10 26-8V500z" transform="translate(300 -40)"/>
+      <path d="M0 500V430l60-24 40 10 50-40 40 6 30-30 40 20 70-18 60 26 120-20 60 30 80-10V500z" opacity=".7"/>
+    </g>
+    <g class="bg-flag" transform="translate(515 252)"><path d="M0 0h2.4v-46H0z" fill="#B7A66C"/><path class="flag-cloth" d="M2.4-46c12 4 20-4 34 2v20c-14-6-22 2-34-2z" fill="#E0AE52"/></g>
+    <g class="bg-win" fill="#F6D98A"><rect x="486" y="344" width="5" height="9" rx="2"/><rect x="528" y="374" width="5" height="9" rx="2"/><rect x="590" y="356" width="5" height="9" rx="2"/></g>
+  </svg>
+</div>
 <div id="app"></div>
 <div id="toast" role="status" aria-live="polite"></div>
 <noscript>This game needs JavaScript.</noscript>
