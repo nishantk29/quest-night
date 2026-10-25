@@ -8,7 +8,7 @@ import { ROLES, QUEST_SIZES, EVIL_COUNT, roleList, OPTIONAL, MIN_PLAYERS, MAX_PL
 import { askConfirm, makeTable, faqPage, wireFaqSearch } from './table_ui.js';
 import { roleCards, ROLE_CARD, PIECES as CARD_PIECES } from './cards.js';
 import { FAQ } from './faq.js';
-import { fx } from './fx.js';
+import { fx, dur } from './fx.js';
 import { createReveal } from './reveal.js';
 import { haptic, createWakeLock, wantsWakeLock, canFullscreen, enterFullscreen } from './device.js';
 import { screenKey, canTransition } from './motion.js';
@@ -464,7 +464,7 @@ function lastReveals(v) {
     const q = g.lastQuest; const key = `quest:${q.quest}`;
     if (S.ui.fresh.quest) fx.cue(key, () => {
       const n = q.size; const step = Math.min(25, Math.floor(100 / Math.max(1, n - 1)));
-      setTimeout(() => (q.result === 'success' ? fx.burstAt('[data-fx="quest"]', 'gold', 18) : (fx.stamp('Sabotaged'), fx.burstAt('[data-fx="quest"]', 'red', 12))), 120 + (n - 1) * step);
+      setTimeout(() => (q.result === 'success' ? fx.burstAt('[data-fx="quest"]', 'gold', 18) : (fx.stamp('Sabotaged'), fx.burstAt('[data-fx="quest"]', 'red', 12))), dur(120 + (n - 1) * step));
     });
     const a = fx.on(key);
     const cards = shuffled(Array.from({ length: q.size }, (_, i) => (i < q.size - q.fails ? 's' : 'f')), q.quest + 1);

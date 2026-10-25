@@ -21,13 +21,13 @@ h1,h2,.phase-title,.block-title,.path-title,.sheet-title{font-family:var(--displ
 .bg-art{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden;background:radial-gradient(120% 80% at 80% 100%,rgba(47,107,214,.20),transparent 60%),radial-gradient(90% 60% at 10% 0%,rgba(224,174,82,.07),transparent 60%)}
 .bg-sky{position:absolute;right:0;bottom:0;width:min(100vw,900px);height:min(44vh,430px);opacity:.78}
 .bg-stars{animation:qn-twinkle 6s var(--qn-ease) infinite alternate}
-.bg-stars-b{animation-duration:9s;animation-delay:-3s}
-.bg-win{animation:qn-twinkle 7s ease-in-out infinite alternate;animation-delay:-2s}
+.bg-stars-b{animation-duration:calc(9s * var(--dur-scale));animation-delay:-3s}
+.bg-win{animation:qn-twinkle calc(7s * var(--dur-scale)) ease-in-out infinite alternate;animation-delay:-2s}
 @keyframes qn-twinkle{from{opacity:.35}to{opacity:1}}
 /* the flag mostly hangs still, then flutters for about a second every few seconds */
 .bg-flag{transform-box:fill-box}
 .flag-cloth{transform-origin:2.4px -36px;transform-box:view-box;animation:qn-flutter 7s var(--qn-ease) infinite}
-@keyframes qn-flutter{0%,78%,100%{transform:none}82%{transform:skewY(-9deg) scaleX(.93)}86%{transform:skewY(7deg) scaleX(1.04)}90%{transform:skewY(-5deg) scaleX(.97)}94%{transform:skewY(3deg)}}
+@keyframes qn-flutter{0%,56%,100%{transform:none}64%{transform:skewY(-9deg) scaleX(.93)}72%{transform:skewY(7deg) scaleX(1.04)}80%{transform:skewY(-5deg) scaleX(.97)}88%{transform:skewY(3deg)}}
 @media (max-width:640px){.bg-sky{width:130vw;height:34vh;opacity:.5}}
 
 /* ---- home: Mafia structure. Actions on the left, title and logo on the right, then suggestions and footer */
@@ -79,8 +79,8 @@ h1,h2,.phase-title,.block-title,.path-title,.sheet-title{font-family:var(--displ
 .wrap.home .site-foot{width:auto;padding-inline:0;margin-inline:0}
 
 /* ---- cards: tilt with the mouse (gentle on touch), crafted surface, no side stripes anywhere */
-[data-card],.path,.side-card,.more-card,.role-token,.how-sec li{--crx:0deg;--cry:0deg;transform:perspective(900px) rotateX(var(--crx)) rotateY(var(--cry));transition:transform 320ms var(--qn-ease);transform-style:flat;backface-visibility:hidden}
-[data-tilting]{transition:transform 90ms linear!important}
+[data-card],.path,.side-card,.more-card,.role-token,.how-sec li{--crx:0deg;--cry:0deg;transform:perspective(900px) rotateX(var(--crx)) rotateY(var(--cry));transition:transform calc(320ms * var(--dur-scale)) var(--qn-ease);transform-style:flat;backface-visibility:hidden}
+[data-tilting]{transition:transform calc(90ms * var(--dur-scale)) linear!important}
 @media (hover:hover) and (pointer:fine){.more-card:hover,.side-card:hover,.path:hover{box-shadow:inset 0 0 0 1px rgba(255,255,255,.14),0 14px 30px rgba(0,0,0,.45)}}
 .path,.side-card,.more-card{position:relative}
 .path::after,.side-card::after,.more-card::after{content:"";position:absolute;inset:0;border-radius:inherit;background:var(--paper);background-size:160px;opacity:.05;mix-blend-mode:overlay;pointer-events:none}
@@ -142,16 +142,16 @@ h1,h2,.phase-title,.block-title,.path-title,.sheet-title{font-family:var(--displ
 @supports (view-transition-name:none){
   #app > main.wrap{view-transition-name:step}
   ::view-transition-old(root),::view-transition-new(root){animation:none;mix-blend-mode:normal}
-  ::view-transition-old(step){animation:qn-step-out 160ms var(--qn-ease) both}
-  ::view-transition-new(step){animation:qn-step-in 380ms var(--qn-ease) both}
+  ::view-transition-old(step){animation:qn-step-out calc(160ms * var(--dur-scale)) var(--qn-ease) both}
+  ::view-transition-new(step){animation:qn-step-in calc(380ms * var(--dur-scale)) var(--qn-ease) both}
 }
 @keyframes qn-step-out{to{opacity:0;transform:translateX(-26px)}}
 @keyframes qn-step-in{from{opacity:0;transform:translateX(40px)}}
 
 /* ---- first-load entrance on the home screen only (html.boot is removed 1.6s after load) */
-.boot .home-hero > *,.boot .home-paths > *,.boot .more-games{animation:qn-rise 640ms var(--qn-ease) both}
-.boot .home-hero > :nth-child(2){animation-delay:60ms}.boot .home-hero > :nth-child(3){animation-delay:120ms}.boot .home-hero > :nth-child(4){animation-delay:180ms}
-.boot .home-paths > :nth-child(1){animation-delay:80ms}.boot .home-paths > :nth-child(2){animation-delay:150ms}.boot .home-paths > :nth-child(3){animation-delay:220ms}.boot .more-games{animation-delay:300ms}
+.boot .home-hero > *,.boot .home-paths > *,.boot .more-games{animation:qn-rise calc(640ms * var(--dur-scale)) var(--qn-ease) both}
+.boot .home-hero > :nth-child(2){animation-delay:calc(60ms * var(--dur-scale))}.boot .home-hero > :nth-child(3){animation-delay:calc(120ms * var(--dur-scale))}.boot .home-hero > :nth-child(4){animation-delay:calc(180ms * var(--dur-scale))}
+.boot .home-paths > :nth-child(1){animation-delay:calc(80ms * var(--dur-scale))}.boot .home-paths > :nth-child(2){animation-delay:calc(150ms * var(--dur-scale))}.boot .home-paths > :nth-child(3){animation-delay:calc(220ms * var(--dur-scale))}.boot .more-games{animation-delay:calc(300ms * var(--dur-scale))}
 @keyframes qn-rise{from{opacity:0;transform:translateY(18px)}}
 
 /* ---- reduced motion and the Animations switch */
@@ -168,7 +168,7 @@ h1,h2,.phase-title,.block-title,.path-title,.sheet-title{font-family:var(--displ
 .home-brand{position:relative}
 .tower{position:absolute;top:-6px;left:104px;width:56px;height:84px;pointer-events:none}
 .pennant{transform-box:view-box;transform-origin:27px 10px;animation:qn-pennant 5s var(--qn-ease) infinite}
-@keyframes qn-pennant{0%,60%,100%{transform:none}66%{transform:skewY(-12deg) scaleX(.8)}72%{transform:skewY(9deg) scaleX(1.12)}78%{transform:skewY(-8deg) scaleX(.88)}84%{transform:skewY(5deg) scaleX(1.05)}90%{transform:skewY(-2deg) scaleX(.98)}}
+@keyframes qn-pennant{0%,30%,100%{transform:none}42%{transform:skewY(-12deg) scaleX(.8)}54%{transform:skewY(9deg) scaleX(1.12)}66%{transform:skewY(-8deg) scaleX(.88)}78%{transform:skewY(5deg) scaleX(1.05)}90%{transform:skewY(-2deg) scaleX(.98)}}
 @media (min-width:900px){.tower{left:auto;right:0;top:-24px;width:72px;height:108px}}
 @media (prefers-reduced-motion:reduce){.pennant{animation:none!important}}
 .fx-off .pennant{animation:none!important}

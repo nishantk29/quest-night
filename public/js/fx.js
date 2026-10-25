@@ -19,6 +19,7 @@ sync();
 const MAX_PARTS = 20;
 const marks = new Map();
 let layer;
+export const dur = (ms) => ms * (parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--dur-scale')) || 1);
 const raf = (f) => requestAnimationFrame(f);
 const $layer = () => layer || (layer = Object.assign(document.body.appendChild(document.createElement('div')), { id: 'fx' }));
 
@@ -59,7 +60,7 @@ function burst(x, y, kind = 'gold', n = 16) {
     play(p, [{ transform: 'translate(-50%,-50%) scale(.2) rotate(0)', opacity: 1 },
       { transform: `translate(calc(-50% + ${dx * 0.8}px),calc(-50% + ${dy * 0.8 - 14}px)) scale(1) rotate(${120 + i * 40}deg)`, opacity: 1, offset: 0.55 },
       { transform: `translate(calc(-50% + ${dx}px),calc(-50% + ${dy + 34}px)) scale(.4) rotate(${240 + i * 60}deg)`, opacity: 0 }],
-    { duration: 360 + Math.random() * 40, easing: 'cubic-bezier(.22,1,.36,1)' }).then(() => p.remove());
+    { duration: dur(360 + Math.random() * 40), easing: 'cubic-bezier(.22,1,.36,1)' }).then(() => p.remove());
   }
 }
 const centre = (el) => { const r = el?.getBoundingClientRect(); return r ? [r.left + r.width / 2, r.top + r.height / 2] : [innerWidth / 2, innerHeight / 3]; };
@@ -72,14 +73,14 @@ function stamp(text, tone = 'red') {
   s.setAttribute('aria-hidden', 'true'); $layer().appendChild(s);
   play(s, [{ transform: 'translate(-50%,-50%) rotate(-9deg) scale(2.6)', opacity: 0 }, { transform: 'translate(-50%,-50%) rotate(-9deg) scale(.9)', opacity: 1, offset: 0.2, easing: 'cubic-bezier(.3,1.6,.5,1)' },
       { transform: 'translate(-50%,-50%) rotate(-9deg) scale(1)', opacity: 1, offset: 0.3 }, { transform: 'translate(-50%,-50%) rotate(-9deg) scale(1)', opacity: 1, offset: 0.8 }, { transform: 'translate(-50%,-50%) rotate(-9deg) scale(1.04)', opacity: 0 }],
-  { duration: 600, easing: 'cubic-bezier(.22,1,.36,1)' }).then(() => s.remove());
+  { duration: dur(600), easing: 'cubic-bezier(.22,1,.36,1)' }).then(() => s.remove());
 }
 
 // A warm full-screen wash (the Lantern): opacity only.
 function glow(tone = 'gold') {
   if (!enabled()) return;
   const g = Object.assign(document.createElement('div'), { className: `fx-glow is-${tone}` }); $layer().appendChild(g);
-  play(g, [{ opacity: 0 }, { opacity: 1, offset: 0.35 }, { opacity: 0 }], { duration: 500, easing: 'cubic-bezier(.22,1,.36,1)' }).then(() => g.remove());
+  play(g, [{ opacity: 0 }, { opacity: 1, offset: 0.35 }, { opacity: 0 }], { duration: dur(500), easing: 'cubic-bezier(.22,1,.36,1)' }).then(() => g.remove());
 }
 
 // Numbers that roll: any [data-roll="id"] whose text changed since the last render slides in.
@@ -87,7 +88,7 @@ const seen = new Map();
 function rolls(rootEl) {
   for (const el of rootEl.querySelectorAll('[data-roll]')) {
     const id = el.dataset.roll; const prev = seen.get(id); seen.set(id, el.textContent);
-    if (prev != null && prev !== el.textContent && enabled()) play(el, [{ transform: 'translateY(55%) scale(.7)', opacity: 0 }, { transform: 'translateY(-4%) scale(1.05)', opacity: 1, offset: 0.6 }, { transform: 'none', opacity: 1 }], { duration: 300, easing: 'cubic-bezier(.22,1,.36,1)', fill: 'none' });
+    if (prev != null && prev !== el.textContent && enabled()) play(el, [{ transform: 'translateY(55%) scale(.7)', opacity: 0 }, { transform: 'translateY(-4%) scale(1.05)', opacity: 1, offset: 0.6 }, { transform: 'none', opacity: 1 }], { duration: dur(300), easing: 'cubic-bezier(.22,1,.36,1)', fill: 'none' });
   }
 }
 
@@ -146,7 +147,7 @@ function victory(o) {
   el.classList.toggle('is-fx', on_);
   if (on_) {
     raf(() => { const [x, y] = centre(vic?.tilt); burst(x, y - 60, 'gold', 20); });
-    setTimeout(() => el.classList.remove('is-fx'), 700); // will-change (in the .is-fx rules) ends with the pop
+    setTimeout(() => el.classList.remove('is-fx'), dur(700)); // will-change (in the .is-fx rules) ends with the pop
   }
   if (!o.noFocus) el.querySelector('[data-vc]')?.focus({ preventScroll: true });
 }
