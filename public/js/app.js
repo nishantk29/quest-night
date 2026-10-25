@@ -122,7 +122,7 @@ function home() {
     <nav class="home-nav" aria-label="Game Night"><a class="hub-link" href="${HUB}">${CHEV_L}All Games</a></nav>
     <div class="home-hero">
       <div class="home-brand"><span class="logo-mark" aria-hidden="true">${art('crown')}</span>
-        <h1 class="wordmark"><span>Quest</span> <span>Night</span></h1></div>
+        <h1 class="wordmark"><span>Quest</span> <span>Night</span></h1><svg class="tower" viewBox="0 0 56 84" aria-hidden="true" focusable="false"><path d="M13 84V34h-3v-8h5v-4h4v4h4v-4h4v4h4v-4h4v4h4v8h-3v50z" fill="#1D1D68"/><path d="M19 84V58a6 6 0 0 1 12 0v26z" fill="#0B0B3A"/><rect x="21.5" y="38" width="4" height="9" rx="2" fill="#F6D98A"/><rect x="24.8" y="2" width="2.2" height="22" rx="1" fill="#B7A66C"/><path class="pennant" d="M27 3c8 3 13-3 22 1.5L44.5 11 49 18c-9-4-14 2-22-1z" fill="#E0AE52"/></svg></div>
       <p class="tagline">A table of servants. A few minions.</p>
       <p class="lede">Pick a party for each quest, vote it through, and find out who sabotaged it. For 5–10 players. Play on phones, with real cards, or both.</p>
       <div class="home-art" aria-hidden="true">${seals}</div>
