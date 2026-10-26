@@ -1,7 +1,7 @@
 // Logic audit (AUDIT.md): one named test per finding. Rule-affecting fixes are gated on rulesVersion >= 2.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { newRoom, reduce, viewForPlayer, viewForScreen } from '../public/js/room.js';
+import { newRoom, reduce, viewForPlayer, viewForScreen, gameOverEvent } from '../public/js/room.js';
 import { fanout } from '../src/fanout.js';
 
 const seeded = (seed) => () => { seed = (seed * 1664525 + 1013904223) % 4294967296; return seed / 4294967296; };
@@ -113,7 +113,7 @@ test('assassin-skip: rooms still on rulesVersion 1 keep the old behaviour', () =
   assert.ok(act(t.room, t.host, { type: 'skip', id: roleOf(t, 'assassin') }).error);
 });
 
-test('assassin-skip: physical roles cannot be skipped (the host enters the strike)', () => {
+test('assassin-skip: physical roles skip to no strike (the Servants survive); rooms on rulesVersion 1 refuse', () => {
   const t = lobby(7); must(act(t.room, t.host, { type: 'mode', mode: { play: 'physical' } }));
   must(act(t.room, t.host, { type: 'start' }, t.rng)); must(act(t.room, t.host, { type: 'skipReveal' }));
   for (let q = 0; q < 3; q++) {
@@ -123,8 +123,11 @@ test('assassin-skip: physical roles cannot be skipped (the host enters the strik
     void lead;
   }
   assert.equal(t.room.phase, 'assassin');
-  assert.ok(act(t.room, t.host, { type: 'skip', id: t.ids[1] }).error);
-  must(act(t.room, t.host, { type: 'strikeResult', id: t.ids[2], hit: false }));
+  const old = JSON.parse(JSON.stringify(t.room)); delete old.rulesVersion;
+  assert.ok(act(old, t.host, { type: 'skip' }).error, 'v1 keeps the old behaviour');
+  must(act(t.room, t.host, { type: 'skip' }));
+  assert.equal(t.room.phase, 'over'); assert.equal(t.room.game.winner, 'good'); assert.equal(t.room.game.reason, 'unstruck'); assert.equal(t.room.game.target, null);
+  assert.match(gameOverEvent(t.room).text, /no strike/);
 });
 
 test('moderator-view: only a sit-out host sees the deal; a host who rejoined as a watcher does not', () => {

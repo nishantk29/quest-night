@@ -18,7 +18,7 @@ const HOST_KEY = 'sim-host';
 const MAX_STEPS = 3000; // per room, a guard against a table that never finishes
 const MAX_DEALS = 3;
 const PHASES = ['lobby', 'reveal', 'propose', 'vote', 'quest', 'lantern', 'assassin', 'over'];
-const REASONS = ['rejects', 'quests', 'assassin', 'survived'];
+const REASONS = ['rejects', 'quests', 'assassin', 'survived', 'unstruck'];
 const GAME_KEYS = new Set(['n', 'sizes', 'needs', 'results', 'questFails', 'quest', 'rejects', 'maxRejects', 'leader', 'team',
   'voted', 'played', 'ready', 'history', 'lastVote', 'lastQuest', 'roleSet', 'appRoles', 'lantern', 'winner', 'reason', 'target',
   'evil', 'assassin', 'roles']); // every field a view may carry; anything else is a leak
@@ -84,7 +84,7 @@ function dealChecks(st, room) {
   const expected = roleList(seats.length, room.settings);
   st.n = seats.length;
   st.dealIds = seats.slice();
-  st.intended = 0; st.nResults = 0; st.hit = null;
+  st.intended = 0; st.nResults = 0; st.hit = null; st.skippedStrike = false;
   if (expected.error) { st.rec.impossible.push(`${st.tag}: the settings no longer deal: ${expected.error}`); return; }
   st.roleKey = [...expected.roles].sort().join();
   st.roleSetKey = [...new Set(expected.roles)].sort().join();
@@ -246,7 +246,7 @@ function step(st, room) {
     }
     case 'assassin': {
       if (!g.roles) {
-        if (rng() < 0.1) return void send(st, room, H, { type: 'skip' }, false); // physical roles: the host enters the strike
+        if (rng() < 0.1) { const v2 = (room.rulesVersion || 1) >= 2; if (v2) st.skippedStrike = true; return void send(st, room, H, { type: 'skip' }, v2); } // physical roles: v2 skips to no strike, v1 refuses
         st.hit = rng() < 0.3;
         return void send(st, room, H, { type: 'strikeResult', id: pick(rng, seats), hit: st.hit }, true);
       }
@@ -319,7 +319,7 @@ function checkWinner(st, room) {
   else if (oks >= 3 && !st.hasAssassin) [winner, reason] = ['good', 'quests'];
   else if (oks >= 3) {
     const hit = g.roles ? g.roles[g.target] === 'merlin' : st.hit; // physical roles: the host's own entry decides
-    [winner, reason] = hit ? ['evil', 'assassin'] : ['good', 'survived'];
+    [winner, reason] = st.skippedStrike ? ['good', 'unstruck'] : hit ? ['evil', 'assassin'] : ['good', 'survived'];
   } else { st.rec.winner.push(`${st.tag}: the game ended before anyone won`); return; }
   if (g.winner !== winner || g.reason !== reason) st.rec.winner.push(`${st.tag}: expected ${winner} by ${reason}, the table says ${g.winner} by ${g.reason}`);
   st.rec.stats.winners[winner] = (st.rec.stats.winners[winner] || 0) + 1;

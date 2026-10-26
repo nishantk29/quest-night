@@ -82,6 +82,10 @@ describe('house rule: reconnecting to a living game gives the same view', () => 
 describe('house rule: error pages are styled and leak nothing', () => {
   cites('error-pages.test.js', 'unknown path: styled 404', 'a thrown error becomes a styled 500 with no stack', 'client error screens:', 'crash handler output never includes the error message or stack');
 });
+describe('house rule: the host flow never dead-ends', () => {
+  cites('host-no-dead-end.test.js', 'host flow never dead-ends: ~300 seeded games', 'host flow never dead-ends: steps with nothing to choose are enabled right away', 'host flow never dead-ends: the screen uses hostNav', 'host flow never dead-ends: a physical-play Host names a party');
+  cites('audit-v2.test.js', 'assassin-skip: physical roles skip to no strike');
+});
 describe('house rule: the FAQ matches the game', () => {
   cites('faq-drift.test.js', 'FAQ explains exactly the roles, settings, house rules and modes the game has');
 });

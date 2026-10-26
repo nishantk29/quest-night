@@ -248,7 +248,12 @@ function gameReduce(room, actor, msg, rng, now) {
       }
       if (room.phase === 'propose') { log(room, 'host', `The host passed the crown on from ${nm(room, leaderId(room))}.`, null, now); g.team = []; nextLeader(room); return ok(); }
       if (room.phase === 'assassin' && rulesVersion(room) >= 2) { // an absent Assassin: a random strike at someone else, in the open
-        if (!g.roles) return err('Roles are physical: enter the strike.');
+        if (!g.roles) { // physical roles: the app cannot know Merlin, so the Assassin simply does not strike and the Servants survive
+          g.target = null;
+          log(room, 'host', 'The host skipped the Assassin: no strike was made.', null, now);
+          finish(room, 'good', 'unstruck', now);
+          return ok();
+        }
         const pool = seat(room).filter((id) => g.roles[id] !== 'assassin');
         const t = byId(room, pool[Math.floor(rng() * pool.length)]);
         g.target = t.id;
@@ -325,7 +330,7 @@ function endReveal(room, view, viewerId = null) {
 }
 
 export function viewForPlayer(room, playerId, connected = new Set()) {
-  const view = { kind: 'player', ...tableView(room, playerId, connected), game: publicGame(room) };
+  const view = { kind: 'player', ...tableView(room, playerId, connected), rulesVersion: rulesVersion(room), game: publicGame(room) };
   const me = byId(room, playerId);
   const g = room.game;
   if (g && me && !me.watch && g.roles && g.roles[me.id]) {
@@ -349,7 +354,7 @@ export function gameOverEvent(room, playerId = null) {
   if (!g || room.phase !== 'over') return null;
   const nm = (id) => room.players.find((p) => p.id === id)?.name || 'Merlin';
   const text = { rejects: 'Five parties in a row were rejected', quests: g.winner === 'good' ? 'Three quests succeeded' : 'Three quests were sabotaged',
-    assassin: `The Assassin named ${nm(g.target)}, Merlin`, survived: `The Assassin named ${nm(g.target)}, who was not Merlin` }[g.reason] || '';
+    assassin: `The Assassin named ${nm(g.target)}, Merlin`, survived: `The Assassin named ${nm(g.target)}, who was not Merlin`, unstruck: 'The Assassin made no strike' }[g.reason] || '';
   const me = playerId && g.roles ? byId(room, playerId) : null;
   const mine = me && !me.watch && g.roles[me.id] ? sideOf(g.roles[me.id]) : null;
   return { type: 'gameover', winner: g.winner, winnerName: g.winner === 'good' ? 'The Loyal Servants of Arthur' : 'The Minions of Mordred', reason: g.reason, text, won: mine ? mine === g.winner : null };
