@@ -181,3 +181,23 @@ h1,h2,.phase-title,.block-title,.path-title,.sheet-title{font-family:var(--displ
 .hand #app,.hand .bg-art{opacity:0}
 .hand-go #hand{background:none}
 @media (prefers-reduced-motion:reduce){#hand{display:none!important}.hand #app,.hand .bg-art{opacity:1}}
+
+/* ---- error screens: one layout for 404, bad code, ended rooms, crashes and long disconnects */
+.err-actions{display:grid;gap:var(--s3);width:100%;max-width:20rem;margin-top:var(--s3);justify-items:center}
+.err-actions .btn{min-height:52px;width:100%;white-space:nowrap;font-size:var(--fs-md)}
+.err-link{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:0 var(--s2);font:500 var(--fs-md)/1.2 var(--font-ui);color:var(--candle);text-decoration:underline;text-underline-offset:3px;text-decoration-thickness:1px;white-space:nowrap}
+.err-title{font-family:var(--display-serif);font-weight:800;font-size:clamp(1.5rem,1.2rem + 1.4vw,1.75rem);line-height:1.2;letter-spacing:.01em;text-transform:none;text-wrap:balance;hyphens:none}
+.err-page .muted{font-family:var(--font-ui);font-size:var(--fs-md);text-transform:none;letter-spacing:0;max-width:26rem}
+.banner.banner-lost{flex-wrap:wrap}
+.banner.banner-lost .err-actions{grid-template-columns:1fr;justify-items:stretch;align-items:center;gap:0;max-width:none;margin-top:0;flex-basis:100%}
+.banner.banner-lost .err-actions .btn{min-height:48px;padding:0 12px;font-size:var(--fs-sm)}
+.banner.banner-lost .err-link{min-height:44px;padding:0 var(--s1);font-size:var(--fs-sm)}
+.banner.banner-lost .err-link{justify-self:center}
+
+/* The dock: the big button names the missing choice (greyed until it is made); the Host's skip chip sits under it. */
+.dock{display:grid;gap:var(--s2)}
+.dock .btn{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.dock .chip{min-height:44px;width:100%;box-shadow:var(--lift-2)}
+/* theme.css's .stage>*{position:relative} beat the fixed dock, so it floated over the text above it: keep it pinned above the tab bar. */
+.stage>.sticky-act{position:fixed}
+@media (min-width:1100px){.stage>.sticky-act{position:sticky}}

@@ -90,9 +90,12 @@ export function shuffle(arr, rng = Math.random) {
 
 // What one player learns at the start. `roles` maps playerId -> roleId.
 // Returns [{ id, tag }] where tag is 'evil' (known minion) or 'merlin?' (Merlin or Morgana).
-export function knowledgeFor(playerId, roles) {
+// `order` is the game's own random order of player ids: lists follow it, never seat or role order, so a list
+// says nothing about who is who (Percival's two candidates in particular). Games dealt before it existed use seat order.
+export function knowledgeFor(playerId, roles, order = null) {
   const mine = roles[playerId];
-  const others = Object.keys(roles).filter((id) => id !== playerId);
+  const ids = order ? order.filter((id) => id in roles) : Object.keys(roles);
+  const others = ids.filter((id) => id !== playerId);
   if (mine === 'merlin') return others.filter((id) => ROLES[roles[id]].side === 'evil' && roles[id] !== 'mordred').map((id) => ({ id, tag: 'evil' }));
   if (mine === 'percival') return others.filter((id) => roles[id] === 'merlin' || roles[id] === 'morgana').map((id) => ({ id, tag: 'merlin?' }));
   if (ROLES[mine].side === 'evil' && mine !== 'oberon') return others.filter((id) => ROLES[roles[id]].side === 'evil' && roles[id] !== 'oberon').map((id) => ({ id, tag: 'evil' }));

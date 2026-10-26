@@ -3,13 +3,20 @@
 // the game, each of them also gets the one `gameover` event, so everyone pops the victory card at once.
 import { viewForPlayer, viewForScreen, gameOverEvent } from '../public/js/room.js';
 
+// A socket that joined with an older token for a seat the host has since opened is stale: that phone must not keep
+// seeing the seat's card or acting for it. Sockets opened before tokens were stored have no token and are left alone.
+export const seatStale = (room, att) => {
+  const p = room.players.find((x) => x.id === att?.playerId);
+  return !p || (att.token !== undefined && p.token !== att.token);
+};
+
 export function fanout(room, sockets, connected, wasOver = false) {
   const ending = !wasOver && room.phase === 'over';
   for (const { ws, att } of sockets) {
     if (!att?.who) continue;
     const screen = att.who === 'screen';
-    if (!screen && !room.players.some((p) => p.id === att.playerId)) { // removed by the host: send them back to the join form
-      try { ws.send(JSON.stringify({ type: 'fatal', error: 'The host removed you from the table.', clear: true })); ws.serializeAttachment?.({ who: null }); } catch { /* socket gone */ }
+    if (!screen && seatStale(room, att)) { // removed by the host, or the seat was opened for someone else: back to the join form
+      try { ws.send(JSON.stringify({ type: 'fatal', error: room.players.some((p) => p.id === att.playerId) ? 'The host opened your seat for someone else.' : 'The host removed you from the table.', clear: true })); ws.serializeAttachment?.({ who: null }); } catch { /* socket gone */ }
       continue;
     }
     const view = screen ? viewForScreen(room, connected) : viewForPlayer(room, att.playerId, connected);

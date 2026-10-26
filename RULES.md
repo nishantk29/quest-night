@@ -1,0 +1,50 @@
+# Quest Night house rules and the tests that guard them
+
+`build-deploy` runs the whole suite first (`scripts/test-gate.mjs`) and writes nothing if any test fails. Every rule below has a row here and a named test.
+"Since" is the `rulesVersion` that introduced the rule; a room keeps the version it was created with (rule R12). Latest is 2. A room with no field is version 1 and is never backfilled.
+`rules-gate` = `test/rules-gate.test.js`: one `describe('house rule: ...')` per rule, which checks that every cited test still exists and adds direct checks where nothing else owns the rule.
+
+| # | House rule (plain words) | Since | Test (file: name) |
+|---|---|---|---|
+| R1 | Merlin sees every Evil player except Mordred (Oberon included). | v1 | rules-gate `house rule: Merlin sees Evil but not Mordred`; rules `exactly what each Avalon role knows`, `who sees whom`; audit-v2 `knowledge-order` |
+| R2 | Percival sees Merlin and Morgana as two candidates, in a random order that is fixed for the game and never sent to a client. Without Morgana he sees Merlin alone. | v1; random order v2 (games dealt earlier keep seat order) | rules-gate `house rule: Percival sees Merlin and Morgana in random order`; audit-v2 `percival-order` (2 tests), `old-game-order`; roles-sheet `Percival and Morgana say Percival sees two candidates` |
+| R3 | Evil players see each other but not Oberon; Oberon sees nobody. At the strike nobody learns more than their card already said. | v1; strike list v1 (fix) | rules-gate `house rule: Evil see each other but not Oberon, and Oberon is alone`; rules `exactly what each Avalon role knows`; audit-v2 `assassin-phase-oberon`, `strike-no-oracle` |
+| R4 | Good players cannot sabotage: a Sabotage from a Loyal phone counts as Success, silently. | v1 | rules-gate `house rule: Good players cannot sabotage`; room `good cannot sabotage; one sabotage fails a normal quest`; audit-v2 `good-never-sabotages` |
+| R5 | Quest 4 needs two Sabotage cards at 7+ players, one below. | v1 | rules-gate `house rule: quest 4 needs two fails at 7+ players`; rules `two sabotage cards needed only on quest 4 with 7+ players`; logic-audit `quest 4 needs two fails from 7 players up`; audit-v2 `quest-four`; room `quest 4 at 7 players survives one sabotage` |
+| R6 | The fifth rejected team in a row is an Evil win; a tied vote is a rejection. | v1 | rules-gate `house rule: the fifth rejection in a row is an Evil win`; room `five rejects hand Evil the game`; audit-v2 `five-rejections` |
+| R7 | After three successes the Assassin strikes, only when an Assassin exists; without one Good wins at once. Evil wins at once on three failed quests. An absent Assassin can be skipped by the Host: a random strike at someone else, logged in the open (physical roles: no strike, the Servants survive). | v1; skip v2 | rules-gate `house rule: the Assassin strikes after three successes, only when an Assassin exists`; room `assassin: naming Merlin...`, `without Merlin, three successes...`, `three failed quests win for Evil`; audit-v2 `no-assassin`, `evil-wins-at-once`, `assassin-skip` (3 tests, the v1 one proves the gate) |
+| R8 | Lantern (optional): starts right of the first leader, used after quests 2, 3 and 4, passes on, never back, shows the true side. | v1 | rules-gate `house rule: Lantern`; table `the Lantern: starts right of the first leader...`; audit-v2 `lantern` |
+| R9 | The roles sheet is static: the same for every viewer and phase, never names a player, and joiners see the same dealt setup. | v1 | rules-gate `house rule: the roles sheet is static and identical for everyone`; roles-sheet `identical for every viewer and every phase...`, `a watcher or screen joining mid-game...`, `counts sum to the seat count...` |
+| R10 | Every role gets the same reveal look and duration; the hidden card never contains the role; Success and Sabotage look identical. | v1 | rules-gate `house rule: every role gets the same reveal look and duration`; phones `reveal: every role takes the same path`, `phones mode: ...` (2 tests); audit-v2 notes (quest cards count-only) |
+| R11 | Restart (Host) keeps the room, players, settings and Host, re-deals, bumps the game number and clears chat, log, quests, votes and timers. Only the Host, never from the lobby. | v1 | rules-gate `house rule: Restart keeps the room and re-deals on the latest rules`; restart (all 10 tests) |
+| R12 | A room keeps the rulesVersion it was created with. Only Restart, Play again's next start and new rooms move to the latest; joining, settings and viewing never write it. | v2 | rules-gate `house rule: a room keeps the rulesVersion it was created with`; restart `newRoom is on the latest rules...`, `a v1 room moves to the latest rules on restart...`, `Play again from the end screen leaves a v1 room on v1...` |
+| R13 | Nothing leaks to a phone or the table screen in any phase: no other role, side, token, host key, quest card owner or order key. A host who rejoined as a watcher gets no moderator view; a kicked seat's old phone gets nothing. | v1 | rules-gate `house rule: no leaks in any phase`; table `secrecy: ...`; room `secrecy: ...` (2 tests); audit-v2 `screen-view`, `quest-cards-private`, `moderator-view`, `kicked-socket`, `percival-order: the order key never reaches any view`; sim-invariants `sim: no leaks` |
+| R14 | Reconnecting to a living game gives the same private card and own vote. | v1 | rules-gate `house rule: reconnecting to a living game gives the same view`; audit-v2 `reconnect` |
+| R15 | Error pages (404, 426, 500, expired or closed room) are styled, offer both buttons, are escaped, and never show an error message or stack. | v1 | rules-gate `house rule: error pages are styled and leak nothing`; error-pages (all) |
+| R16 | The FAQ lists exactly the roles, settings, house rules and modes the game has. | v1 | rules-gate `house rule: the FAQ matches the game`; faq-drift (3 tests) |
+| R17 | The service worker VERSION matches the content hash of `public/`, so installed phones pick up changes. | v1 | rules-gate `house rule: the service worker version is fresh`; pwa-fresh; `build-deploy` also refuses a stale one |
+| R18 | Many whole simulated games never reach an impossible state, always crown the right winner, deal correct knowledge, leak nothing and reset on restart. | v1 | rules-gate `house rule: whole simulated games never break an invariant`; sim-invariants `sim: no impossible states`, `sim: right winner`, `sim: knowledge correct`, `sim: no leaks`, `sim: restart resets` |
+| R19 | The deploy gate blocks on a red test, never passes on a crash or no tests, and build-deploy has no bypass. Worker name, binding and compat date come from `wrangler.jsonc` (`quest-night`, ROOM -> Room, migration v1 only). | v1 | deploy-gate (6 tests); deploy-config (5 tests) |
+| R20 | The host flow never dead-ends: on the Host's phone (and the leader's, Lantern holder's, Assassin's) every step that needs a choice shows a greyed button whose label names the missing choice, plus a skip chip that takes the most neutral way on; steps with nothing to choose are enabled. In physical and hybrid modes too. Physical Assassin skip (no strike, Servants survive) is gated; the Assassin step of a v1 room has no skip. | UI all; physical Assassin skip v2 | rules-gate `house rule: the host flow never dead-ends`; host-no-dead-end `host flow never dead-ends: ...` (4 tests); audit-v2 `assassin-skip: physical roles skip to no strike...` |
+
+## Logic audit fixes (AUDIT.md)
+
+All in `test/audit-v2.test.js`. "Gated" fixes apply only at `rulesVersion >= 2`; the rest are leak, display or crash fixes that apply to every room.
+
+| Fix | Since | Test |
+|---|---|---|
+| Percival's and Merlin's/Evil's candidate lists follow a per-game random order, not seat order. | new games | `percival-order: ...` (2), `knowledge-order: ...`, `old-game-order: ...` |
+| At the strike, Evil get the list their card already knows; Oberon gets none. | all | `assassin-phase-oberon: ...` |
+| The Assassin may name any other player; a refusal never reveals a side. | all | `strike-no-oracle: ...` |
+| Host Skip on an absent Assassin makes a random open strike (gated). | v2 | `assassin-skip: ...` (3) |
+| A host who rejoined as a late watcher does not get the moderator view. | all | `moderator-view: ...` |
+| A seat the Host opened cannot keep acting from the old phone. | all | `kicked-socket: ...` |
+| Confirmed, no change: Good Sabotage, 5th rejection, quest 4, no-Assassin win, Evil wins at once, vote and card guards, team size, Lantern, undo, pause, screen view, quest cards, reconnect, skip in every phase. | all | `good-never-sabotages`, `five-rejections`, `quest-four`, `no-assassin`, `evil-wins-at-once`, `vote-and-card-guards`, `wrong-size-team`, `lantern`, `undo-across-phases`, `pause`, `screen-view`, `quest-cards-private`, `reconnect`, `skip-every-phase` |
+
+## How to add a rule
+
+1. Write the rule in one line, in the words you would use at the table.
+2. If it changes how a game plays (who sees what, win checks, legal moves), pin it to a new `rulesVersion`: bump `LATEST_RULES_VERSION` in `public/js/room.js` and gate the code with `(room.rulesVersion || 1) >= N`. Old rooms keep the old rule. Display-only and crash fixes need no pin.
+3. Add a named test, and a `describe('house rule: <the line>')` in `test/rules-gate.test.js` that cites it (or checks it directly), plus one test showing the previous version is unchanged.
+4. Add a row to this file with the exact test names and the "since" version; keep the FAQ in sync if players can see the rule (`faq-drift`).
+5. Run `node scripts/stamp-sw.mjs public` (or make-pwa), then `node scripts/build-deploy.mjs <out>`: it runs every test first and refuses to write the deploy file until all pass. There is no bypass.

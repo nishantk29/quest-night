@@ -4,7 +4,17 @@ import { ROLES, SIDES, QUEST_SIZES, MIN_PLAYERS, MAX_PLAYERS, MAX_REJECTS, fails
   knowledgeFor, proposalPasses, questWinner, cleanSettings, DEFAULT_SETTINGS, LANTERN_AFTER, HOUSE_DEFAULTS, sideOf } from './rules.js';
 import { newTable, reduceTable, tableView, onPhaseChange, modeProblem, log, byId, seated, seatIds } from './table.js';
 
-export function newRoom(code, hostKey) { return newTable(code, hostKey, DEFAULT_SETTINGS, HOUSE_DEFAULTS); }
+// Open rooms keep the rules they started with: a room without rulesVersion is version 1 (never backfilled). A new
+// room, a fresh start, Restart and Play again all move to the latest. Rule-affecting fixes are gated on
+// (room.rulesVersion || 1) >= 2.
+export const LATEST_RULES_VERSION = 2;
+export const rulesVersion = (room) => room.rulesVersion || 1;
+
+export function newRoom(code, hostKey) {
+  const room = newTable(code, hostKey, DEFAULT_SETTINGS, HOUSE_DEFAULTS);
+  room.rulesVersion = LATEST_RULES_VERSION; room.gameNo = 1;
+  return room;
+}
 
 const ok = (data = {}) => ({ ok: true, data });
 const err = (error) => ({ error });
@@ -24,7 +34,7 @@ function finish(room, winner, reason, now) {
   log(room, 'game', winner === 'good' ? 'The Loyal Servants of Arthur win.' : 'The Minions of Mordred win.', null, now);
 }
 
-function startGame(room, rng, now) {
+function startGame(room, rng, now, restart = false) {
   const ids = seat(room);
   const list = roleList(ids.length, room.settings);
   if (list.error) return err(list.error);
@@ -39,11 +49,18 @@ function startGame(room, rng, now) {
     results: [], questFails: [], quest: 0, rejects: 0, leader,
     team: [], votes: {}, cards: {}, ready: {}, history: [], lastVote: null, lastQuest: null,
     winner: null, reason: null, target: null, lantern: null,
+    order: shuffle(ids, rng), // the game's own random order for every "who you see" list (never sent to a client)
   };
   if (room.house.lantern) { const h = ids[(leader - 1 + n) % n]; room.game.lantern = { holder: h, held: [h], checks: [], seen: {} }; }
   room.phase = 'reveal';
   room.undo = [];
-  log(room, 'game', `New game: ${n} players, ${n - list.roles.filter((r) => sideOf(r) === 'evil').length} Loyal and ${list.roles.filter((r) => sideOf(r) === 'evil').length} Evil.`, null, now);
+  if (restart) { // a clean slate: nothing from the old game survives
+    room.log = []; room.logN = 0; room.timer = null; room.talk = null; room.paused = null; room.poll = null;
+    room.counters = []; room.nudges = {};
+  }
+  room.rulesVersion = LATEST_RULES_VERSION;
+  room.gameNo = (room.gameNo || 1) + 1;
+  log(room, 'game', `${restart ? 'Restarted: ' : 'New game: '}${n} players, ${n - list.roles.filter((r) => sideOf(r) === 'evil').length} Loyal and ${list.roles.filter((r) => sideOf(r) === 'evil').length} Evil.`, null, now);
   return ok();
 }
 
@@ -95,6 +112,16 @@ function gameReduce(room, actor, msg, rng, now) {
       if (!isHost) return err('Only the host can deal.');
       if (room.phase !== 'lobby') return err('The game has already started.');
       return startGame(room, rng, now);
+    }
+    case 'restart': { // host: a fresh deal for the same table, straight into the reveal
+      if (!isHost) return err('Only the host can restart.');
+      if (room.phase === 'lobby') return err('Nothing to restart yet.');
+      // Watchers who joined mid-game get a seat, exactly like Play again.
+      const was = room.players.map((p) => p.watch);
+      for (const p of room.players) p.watch = !!(p.host && room.house.sitOut);
+      const res = startGame(room, rng, now, true);
+      if (res.error) { room.players.forEach((p, i) => { p.watch = was[i]; }); return res; }
+      return res;
     }
     case 'ready': {
       if (room.phase !== 'reveal' || !seatedMe) return err('Not now.');
@@ -189,7 +216,8 @@ function gameReduce(room, actor, msg, rng, now) {
       if (!g.roles) return err('Roles are physical: the host enters the strike.');
       if (!me || g.roles[me.id] !== 'assassin') return err('Only the Assassin strikes.');
       const t = byId(room, msg.id);
-      if (!t || !seat(room).includes(t.id) || sideOf(g.roles[t.id]) !== 'good') return err('Choose one of the players you believe is Loyal.');
+      // Any other player may be named: a refusal would tell the Assassin a side (Oberon is Evil but unknown to them).
+      if (!t || !seat(room).includes(t.id) || t.id === me.id) return err('Choose another player.');
       g.target = t.id;
       log(room, 'game', `The Assassin struck ${t.name}.`, null, now);
       if (g.roles[t.id] === 'merlin') finish(room, 'evil', 'assassin', now); else finish(room, 'good', 'survived', now);
@@ -219,6 +247,20 @@ function gameReduce(room, actor, msg, rng, now) {
         if (Object.keys(g.cards).length >= g.team.length) resolveQuest(room, Object.values(g.cards).filter(Boolean).length, now); return ok();
       }
       if (room.phase === 'propose') { log(room, 'host', `The host passed the crown on from ${nm(room, leaderId(room))}.`, null, now); g.team = []; nextLeader(room); return ok(); }
+      if (room.phase === 'assassin' && rulesVersion(room) >= 2) { // an absent Assassin: a random strike at someone else, in the open
+        if (!g.roles) { // physical roles: the app cannot know Merlin, so the Assassin simply does not strike and the Servants survive
+          g.target = null;
+          log(room, 'host', 'The host skipped the Assassin: no strike was made.', null, now);
+          finish(room, 'good', 'unstruck', now);
+          return ok();
+        }
+        const pool = seat(room).filter((id) => g.roles[id] !== 'assassin');
+        const t = byId(room, pool[Math.floor(rng() * pool.length)]);
+        g.target = t.id;
+        log(room, 'host', `The host skipped the Assassin: the strike falls on ${t.name} at random.`, null, now);
+        if (g.roles[t.id] === 'merlin') finish(room, 'evil', 'assassin', now); else finish(room, 'good', 'survived', now);
+        return ok();
+      }
       if (room.phase === 'lantern') { log(room, 'host', 'The host skipped the Lantern this round.', null, now); room.phase = 'propose'; return ok(); }
       return err('Nothing to skip now.');
     }
@@ -277,27 +319,29 @@ function publicGame(room) {
 
 function endReveal(room, view, viewerId = null) {
   const g = room.game;
-  // Before the strike only Evil players may see the Evil team; Good players and the table screen may not.
-  if (g && room.phase === 'assassin' && g.roles && viewerId && g.roles[viewerId] && sideOf(g.roles[viewerId]) === 'evil') {
-    view.game.evil = seat(room).filter((id) => sideOf(g.roles[id]) === 'evil');
-    view.game.assassin = seat(room).find((id) => g.roles[id] === 'assassin');
+  // Before the strike only Evil players may see the Evil team, and only as far as their own card knows it:
+  // nobody learns who Oberon is, and Oberon learns no one. Good players and the table screen see nothing.
+  if (g && room.phase === 'assassin' && g.roles && viewerId && g.roles[viewerId] && sideOf(g.roles[viewerId]) === 'evil' && g.roles[viewerId] !== 'oberon') {
+    const known = new Set([viewerId, ...knowledgeFor(viewerId, g.roles, g.order).map((k) => k.id)]);
+    view.game.evil = seat(room).filter((id) => known.has(id));
+    view.game.assassin = view.game.evil.find((id) => g.roles[id] === 'assassin');
   }
   if (g && room.phase === 'over' && g.roles) view.game.roles = Object.fromEntries(seat(room).map((id) => [id, roleView(g.roles[id])]));
 }
 
 export function viewForPlayer(room, playerId, connected = new Set()) {
-  const view = { kind: 'player', ...tableView(room, playerId, connected), game: publicGame(room) };
+  const view = { kind: 'player', ...tableView(room, playerId, connected), rulesVersion: rulesVersion(room), game: publicGame(room) };
   const me = byId(room, playerId);
   const g = room.game;
   if (g && me && !me.watch && g.roles && g.roles[me.id]) {
     view.me.role = roleView(g.roles[me.id]);
-    view.me.sees = knowledgeFor(me.id, g.roles);
+    view.me.sees = knowledgeFor(me.id, g.roles, g.order);
     if (g.lantern?.seen[me.id]) view.me.lanternSeen = g.lantern.seen[me.id];
   }
   if (g && me && room.phase === 'vote' && me.id in g.votes) view.me.vote = g.votes[me.id];
   if (g && me && room.phase === 'quest' && me.id in g.cards) view.me.played = true;
   // A storyteller who sits out is the moderator: they see the whole deal on their own phone.
-  if (g && me?.host && me.watch && g.roles) view.moderator = { roles: Object.fromEntries(seat(room).map((id) => [id, roleView(g.roles[id])])) };
+  if (g && me?.host && me.watch && room.house.sitOut && g.roles) view.moderator = { roles: Object.fromEntries(seat(room).map((id) => [id, roleView(g.roles[id])])) };
   endReveal(room, view, playerId);
   return view;
 }
@@ -310,7 +354,7 @@ export function gameOverEvent(room, playerId = null) {
   if (!g || room.phase !== 'over') return null;
   const nm = (id) => room.players.find((p) => p.id === id)?.name || 'Merlin';
   const text = { rejects: 'Five parties in a row were rejected', quests: g.winner === 'good' ? 'Three quests succeeded' : 'Three quests were sabotaged',
-    assassin: `The Assassin named ${nm(g.target)}, Merlin`, survived: `The Assassin named ${nm(g.target)}, who was not Merlin` }[g.reason] || '';
+    assassin: `The Assassin named ${nm(g.target)}, Merlin`, survived: `The Assassin named ${nm(g.target)}, who was not Merlin`, unstruck: 'The Assassin made no strike' }[g.reason] || '';
   const me = playerId && g.roles ? byId(room, playerId) : null;
   const mine = me && !me.watch && g.roles[me.id] ? sideOf(g.roles[me.id]) : null;
   return { type: 'gameover', winner: g.winner, winnerName: g.winner === 'good' ? 'The Loyal Servants of Arthur' : 'The Minions of Mordred', reason: g.reason, text, won: mine ? mine === g.winner : null };

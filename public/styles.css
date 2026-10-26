@@ -670,3 +670,38 @@ html[data-screen="1"] .round{width:min(100%,620px)}
 
 /* no sideways pan on phones (PM5 drift guard) */
 html,body{overflow-x:clip}
+
+/* Info sheets (Roles in this game, Restart) and the setup steppers */
+.info-sheet{max-height:86dvh;overflow-y:auto;overscroll-behavior:contain}
+.info-sheet .sheet-head{display:flex;align-items:center;justify-content:space-between;gap:var(--s3);margin-bottom:var(--s3)}
+.info-sheet .sheet-title{margin:0;font-size:var(--fs-lg,1.25rem)}
+.info-sheet .sheet-actions{flex-direction:column;align-items:stretch}
+.info-sheet .sheet-actions .btn{width:100%;white-space:nowrap}
+.rs-group{margin:var(--s4) 0}
+.rs-side{margin:0 0 var(--s2);font-family:var(--display-serif);font-size:var(--fs-md)}
+.rs-side small{margin-left:.4em;color:var(--smoke);font-weight:600}
+.rs-list{list-style:none;margin:0;padding:0;display:grid;gap:var(--s2)}
+.rs-row{display:flex;gap:var(--s3);align-items:flex-start;padding:var(--s3);border-radius:var(--r-row);background:var(--panel-2)}
+.rs-ico{flex:none;display:grid;place-items:center;width:44px;height:44px;border-radius:50%;background:#26262E;box-shadow:0 0 0 3px var(--ring,#4C86F0)}
+.rs-group.a-evil .rs-ico{--ring:#D8404C}
+.rs-ico .ico{width:26px;height:26px;color:#fff}
+.rs-main{display:grid;gap:2px;min-width:0}
+.rs-n{color:var(--brass)}
+.rs-blurb{font-size:.9rem;color:var(--smoke)}
+.rs-note{font-size:.85rem;color:var(--candle)}
+.steppers{display:grid;gap:var(--s2)}
+.step-row{display:flex;gap:var(--s3);align-items:center;padding:var(--s3);border-radius:var(--r-row);background:var(--panel)}
+.step-row.is-fill{opacity:.8}
+.step-row .rs-ico{--ring:#4C86F0}
+.step-row.a-evil .rs-ico{--ring:#D8404C}
+.step-text{flex:1;min-width:0;display:grid;gap:2px}
+.step-text small{color:var(--smoke)}
+.step-ctl{display:flex;align-items:center;gap:var(--s2);flex:none}
+.step-ctl b{min-width:1.5ch;text-align:center;font-size:1.1rem}
+.step-ctl .icon-btn{background:var(--panel-2)}
+.step-ctl .icon-btn:disabled{opacity:.35}
+.step-why{margin:var(--s1) 0 0;font-size:.82rem;color:var(--smoke)}
+.sticky-act:has(.btn.ghost){display:grid;gap:var(--s2)}
+.sticky-act .btn{white-space:nowrap}
+/* Phone app bar: the room code must never be cut; the word "Table" stays for screen readers only. */
+@media (max-width:430px){.appbar-title .appbar-word{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}.appbar-title{overflow:visible;text-overflow:clip}}
