@@ -84,7 +84,7 @@ test('crash handler output never includes the error message or stack', () => {
 
 test('long disconnect keeps the banner and adds both home buttons; labels never wrap', () => {
   const app = fs.readFileSync(new URL('../public/js/app.js', import.meta.url), 'utf8');
-  assert.match(app, /banner-lost' : ''\}" role="status">.*Reconnecting to the room…\$\{S\.connLong \? errorButtons\(\) : ''\}/);
+  assert.match(app, /banner-lost' : ''\}" role="status">.*Reconnecting… Your seat and role are kept\.\$\{S\.connLong \? errorButtons\(\) : ''\}/);
   assert.match(app, /setTimeout\(\(\) => \{ if \(!S\.conn && !closed\) \{ S\.connLong = true; render\(\); \} \}, 20000\)/);
   const css = fs.readFileSync(new URL('../public/redesign.css', import.meta.url), 'utf8');
   assert.match(css, /\.err-actions \.btn\{[^}]*white-space:nowrap/);

@@ -201,3 +201,6 @@ h1,h2,.phase-title,.block-title,.path-title,.sheet-title{font-family:var(--displ
 /* theme.css's .stage>*{position:relative} beat the fixed dock, so it floated over the text above it: keep it pinned above the tab bar. */
 .stage>.sticky-act{position:fixed}
 @media (min-width:1100px){.stage>.sticky-act{position:sticky}}
+/* Reconnect notice as a compact callout (Nishant 2026-10-28: "This warning can have a call out box and can be in smaller font"). */
+.banner{font-size:var(--fs-xs);font-weight:600;line-height:1.35;color:color-mix(in srgb,var(--ink) 80%,transparent);background:color-mix(in srgb,var(--panel-2) 84%,var(--red-block));border:0;border-bottom:1px solid color-mix(in srgb,var(--red-block) 55%,transparent);padding:var(--s1) var(--gutter)}
+.banner > .ui-ico{color:color-mix(in srgb,var(--red-block) 45%,#fff);flex:none}

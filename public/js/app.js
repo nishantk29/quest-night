@@ -106,7 +106,7 @@ function screen() {
   if (S.mode === 'home') return home();
   if (S.mode === 'rules') return rulesPage() + siteFooter();
   if (S.mode === 'faq') return faqPage(FAQ, esc, ui, 'Rules & FAQ') + siteFooter();
-  const banner = !S.conn ? `<div class="banner${S.connLong ? ' banner-lost' : ''}" role="status">${ui('wifi-off')} Reconnecting to the room…${S.connLong ? errorButtons() : ''}</div>` : '';
+  const banner = !S.conn ? `<div class="banner${S.connLong ? ' banner-lost' : ''}" role="status">${ui('wifi-off')} Reconnecting… Your seat and role are kept.${S.connLong ? errorButtons() : ''}</div>` : '';
   const v = S.view;
   if (!v) {
     if (S.mode === 'screen' || store.get(`${KEY}.player.${S.code}`) || S.pendingJoin) return banner + `<main class="wrap"><div class="empty">${art('table')}<p>Riding to the table…</p></div></main>`;
