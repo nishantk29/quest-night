@@ -48,6 +48,8 @@ let fieldDown = false;
 addEventListener('pointerdown', (e) => { if (e.target.closest?.('input,textarea,select,label.field')) fieldDown = true; }, true);
 addEventListener('pointerup', () => { if (!fieldDown) return; setTimeout(() => { fieldDown = false; if (pending) render(); }, 350); }, true);
 addEventListener('pointercancel', () => { fieldDown = false; }, true);
+let toTop = false;
+if ('scrollRestoration' in history) history.scrollRestoration = 'manual'; // hash routes must not restore an old offset
 function render() {
   const a = document.activeElement;
   if (fieldDown) { pending = true; return; }
@@ -55,6 +57,7 @@ function render() {
   pending = false;
   if (vtBusy) return; // the pending transition paints the latest state when it starts
   const key = screenKey(S);
+  if (lastKey !== null && key !== lastKey) toTop = true; // a new screen (the deal, a new phase) opens at the top, card in view
   const animate = lastKey !== null && key !== lastKey && fx.enabled() && canTransition();
   lastKey = key;
   if (!animate) { paint(); return; }
@@ -76,7 +79,8 @@ function paint() {
   $html.dataset.screen = S.mode === 'screen' ? '1' : '';
   try { $app.innerHTML = screen(); } catch (e) { console.error(e); crash(); return; }
   S.ui.fresh = {}; S.ui.flip = false;
-  window.scrollTo(0, y);
+  // Same screen: keep the reader's place. New screen: start at the top (Nishant 2026-10-28: "open to the top", card still hidden).
+  window.scrollTo(0, toTop ? 0 : y); toTop = false;
   fx.after($app);
   for (const el of $app.querySelectorAll('[data-scroll]')) el.scrollTop = el.scrollHeight;
   wake.set(wantsWakeLock(S.view));
@@ -227,7 +231,10 @@ function layout(v) {
 
 function gameMain(v) {
   if (v.me?.watch && !v.me.host) return [track(v), roundTable(v), `<section class="stage"><p class="say">You are watching this game. You’ll see what the whole table sees.</p></section>`, lastReveals(v)].join('');
-  return [track(v), roundTable(v), stage(v), lastReveals(v), myCardBlock(v)].join('');
+  // At the deal, a player with a card to read sees it first, so the phone opens to the face-down card (Nishant 2026-10-28).
+  // Every player with a card gets the same order, so the layout says nothing about the card.
+  const cardFirst = v.phase === 'reveal' && v.game?.appRoles && !!v.me?.role && !v.game.ready.includes(v.me.id);
+  return (cardFirst ? [stage(v), track(v), roundTable(v), lastReveals(v), myCardBlock(v)] : [track(v), roundTable(v), stage(v), lastReveals(v), myCardBlock(v)]).join('');
 }
 
 // ---------------------------------------------------------------- lobby (the setup part of the Host dashboard)
@@ -390,7 +397,7 @@ function roundTable(v) {
   else if (v.phase === 'reveal') felt = g.appRoles ? `${g.ready.length} of ${n} have read their card` : 'Look at your card';
   else if (v.phase === 'lantern') felt = `<b>${esc(nameOf(v, g.lantern.holder))}</b> raises the Lantern`;
   else if (v.phase === 'assassin') felt = 'Evil stands revealed.';
-  else if (v.phase === 'over') felt = g.winner === 'good' ? 'The realm is saved.' : 'Evil prevails.';
+  else if (v.phase === 'over') felt = g.winner === 'good' ? 'Arthur’s side holds.' : 'Mordred’s side wins.';
   return `<section class="round" aria-label="The table"><div class="round-felt">${art('table')}<p>${felt}</p></div>${seatEls}</section>`;
 }
 
@@ -409,7 +416,7 @@ function stage(v) {
     if (!g.appRoles || !role) return `<section class="stage"><h1 class="phase-title">Secret Cards</h1>${say(g.appRoles ? 'The players are reading their cards.' : 'Everyone looks at their own card. The Host reads the eyes-closed script from the Host tab.')}
       ${D}</section>`;
     const ready = g.ready.includes(me.id);
-    return `<section class="stage"><h1 class="phase-title">Your Secret Card</h1>
+    return `<section class="stage reveal-stage"><h1 class="phase-title">Your Secret Card</h1>
       ${say('Shield your screen. Hold the card to see it, then let go.')}
       ${cardView(v, true)}
       ${ready ? '<p class="muted center">Waiting for the others to read their cards…</p>' : '<button class="btn big" data-a="ready">I’m Ready</button>'}
