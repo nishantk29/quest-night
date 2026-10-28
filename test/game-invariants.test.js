@@ -1,8 +1,8 @@
 // Quest Night adapter for the shared game-rules kit (test/kit/game-invariants.mjs, copied unchanged from
 // /workspace/code-team/shared/invariants/). Four properties over seeded games, every table size 5..10, the optional
 // roles and the Lantern: game over stays final, no step can block, no leaks (non-interference), no Undo after game over.
-// The Undo one is a KNOWN BUG on main (Undo on the end screen re-opens a finished game with every role revealed). It is
-// marked todo until the Quest -5 build fixes it in the reducer; then drop the todo so the gate enforces it.
+// The Undo one was a known bug until Quest -5 (Undo on the end screen re-opened a finished game with every role revealed);
+// the reducer now refuses it, so the gate enforces it.
 import { gameInvariantTests, pick } from './kit/game-invariants.mjs';
 import { newRoom, reduce, viewForPlayer } from '../public/js/room.js';
 import { roleList, knowledgeFor, shuffle, sideOf, QUEST_SIZES, MIN_PLAYERS, MAX_PLAYERS } from '../public/js/rules.js';
@@ -94,5 +94,4 @@ const adapter = {
 
 gameInvariantTests(adapter, {
   games: GAMES,
-  todo: { noUndoAfterOver: 'KNOWN BUG: Undo on the end screen re-opens a finished Quest game (QUEUE.md, Fennel ruling 2026-10-25: fixed in Quest -5). Remove this todo with the fix.' },
 });

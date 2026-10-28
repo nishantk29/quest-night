@@ -643,7 +643,7 @@ function wsTransport(code, asScreen) {
       else if (m.type === 'closed') { closed = true; store.del(`${KEY}.player.${code}`); store.del(`${KEY}.host.${code}`); S.ended = true; S.view = null; render(); }
       else if (m.type === 'fatal') { if (m.clear) { store.del(`${KEY}.player.${code}`); S.view = null; toast(m.error); render(); } else { closed = true; S.fatal = /expired/i.test(m.error) ? FATAL.gone : FATAL.closed; render(); } }
     };
-    ws.onclose = () => { if (closed) return; S.conn = false; if (!longTimer) longTimer = setTimeout(() => { if (!S.conn && !closed) { S.connLong = true; render(); } }, 20000); render(); timer = setTimeout(open, Math.min(8000, 400 * 2 ** tries++)); };
+    ws.onclose = () => { if (closed) return; S.conn = false; if (!longTimer) longTimer = setTimeout(() => { if (!S.conn && !closed) { S.connLong = true; render(); } }, 20000); render(); timer = setTimeout(open, Math.round(Math.min(8000, 400 * 2 ** tries++) * (0.75 + Math.random() * 0.5))); }; // +/-25% jitter so a room's phones don't all reconnect in lockstep
   };
   open();
   return {

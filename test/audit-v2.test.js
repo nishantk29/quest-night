@@ -316,3 +316,18 @@ test('skip-every-phase: with the leader, a voter, a team member, the Lantern hol
   must(act(room, t.host, { type: 'skip', id: room.game.lantern.holder })); assert.equal(room.phase, 'propose');
   void L;
 });
+
+test('no-undo-after-over: Undo on the end screen is refused and the finished game stays finished (all versions)', () => {
+  const t = started(7);
+  toAssassin(t);
+  assert.ok(viewForPlayer(t.room, t.host).canUndo, 'undo is still offered before the end');
+  must(act(t.room, roleOf(t, 'assassin'), { type: 'strike', id: t.ids.find((id) => t.room.game.roles[id] === 'servant') || t.ids[1] }));
+  assert.equal(t.room.phase, 'over');
+  const before = JSON.stringify({ phase: t.room.phase, game: t.room.game });
+  const r = act(t.room, t.host, { type: 'undo' });
+  assert.ok(r.error, 'undo refused'); assert.match(r.error, /over/i);
+  assert.equal(JSON.stringify({ phase: t.room.phase, game: t.room.game }), before);
+  assert.equal(viewForPlayer(t.room, t.host).canUndo, false, 'the Undo button is greyed on the end screen');
+  assert.deepEqual(t.room.undo, []);
+  must(act(t.room, t.host, { type: 'again' })); assert.equal(t.room.phase, 'lobby', 'Play again still works');
+});
