@@ -29,7 +29,7 @@ a{text-decoration-color:rgba(255,255,255,.4);text-decoration-thickness:2px;text-
 .chip b{font-size:1.45em;font-weight:900;font-variant-numeric:tabular-nums;letter-spacing:-.02em}
 .chip.is-out{background:var(--red-block);color:#fff}
 .chip.is-paused{background:var(--brass);color:var(--on-brass)}
-.tabbar{background:var(--room);-webkit-backdrop-filter:none;backdrop-filter:none;border-top:1px solid #26262E}
+.tabbar{background:var(--room);-webkit-backdrop-filter:none;backdrop-filter:none;border-top:1px solid var(--divider)}
 .tabbar button .ico{width:24px;height:24px;vertical-align:0}
 .tabbar button[aria-current="page"]{color:#fff;background:#26262E}
 .tabbar .badge{background:var(--red-block);color:#fff}
@@ -154,9 +154,9 @@ a{text-decoration-color:rgba(255,255,255,.4);text-decoration-thickness:2px;text-
 .field input,.chat-form input,.code-input,.search{min-height:56px;padding-inline:var(--s4);border:2px solid var(--rule-strong);border-radius:var(--r-row);background:var(--panel-2);color:#fff}
 .field select,.field textarea,.toggle select{border:2px solid var(--rule-strong);border-radius:var(--r-row);background:var(--panel-2);color:#fff}
 .search-field .search{padding-left:52px}
-.faq-q{border-bottom:1px solid var(--rule)}
+.faq-q{border-bottom:1px solid var(--divider)}
 .faq-a{color:#fff}
-.sizes th,.sizes td{border-bottom:1px solid var(--rule)}
+.sizes th,.sizes td{border-bottom:1px solid var(--divider)}
 .sizes th{color:var(--smoke)}
 .t-good{color:var(--town)} .t-evil{color:var(--mafia)}
 .cardart .crest{position:absolute;inset:8%;width:84%;height:84%;opacity:.18;color:var(--ink)}

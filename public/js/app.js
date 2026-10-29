@@ -70,7 +70,9 @@ function render() {
   if (vtBusy) return; // the pending transition paints the latest state when it starts
   const key = screenKey(S);
   if (lastKey !== null && key !== lastKey) toTop = true; // a new screen (the deal, a new phase) opens at the top, card in view
-  const animate = lastKey !== null && key !== lastKey && fx.enabled() && canTransition();
+  // The room's first view replacing the connecting placeholder is the same screen: no second slide right after the first.
+  const settling = lastKey !== null && lastKey.endsWith('|wait') && lastKey.split('|')[0] === key.split('|')[0];
+  const animate = lastKey !== null && key !== lastKey && !settling && fx.enabled() && canTransition();
   lastKey = key;
   if (!animate) { paint(); return; }
   vtBusy = true;

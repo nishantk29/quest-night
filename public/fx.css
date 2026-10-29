@@ -71,7 +71,7 @@
 .vc-text{color:#F3EAD3;font:500 var(--fs-md)/1.35 var(--font-ui)}
 .vc-status{padding:.15em .8em;border-radius:999px;background:#E4B94E;color:#0C1626;font:800 var(--fs-xl)/1.2 var(--font-display);}
 .vc-roles{list-style:none;display:grid;grid-template-columns:1fr 1fr;gap:6px;width:100%;max-height:30dvh;overflow:auto;padding:0;margin:0;text-align:left}
-.vc-roles li{display:flex;align-items:center;gap:8px;padding:6px 10px;border-radius:14px;background:rgba(8,14,26,.55);border:1px solid rgba(255,255,255,.14)}
+.vc-roles li{display:flex;align-items:center;gap:8px;padding:6px 10px;border-radius:14px;background:rgba(8,14,26,.55);border:1px solid var(--divider)}
 .vc-roles li.a-good{border-color:#8EBAF3} .vc-roles li.a-evil{border-color:#F46E62}
 .vc-roles .ico{width:24px;height:24px;flex:none;color:#F3EAD3}
 .vc-roles span{display:grid;line-height:1.15;min-width:0} .vc-roles b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#F3EAD3} .vc-roles small{color:#C9D2E0}

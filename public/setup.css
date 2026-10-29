@@ -65,7 +65,7 @@
 .cs-vellum .qtok{--ink:#fff}
 /* role rows */
 .cs-rows,.cs-sums{list-style:none;margin:0;padding:0}
-.cs-rows li,.cs-sum{display:flex;align-items:center;gap:var(--s3);min-height:60px;padding:var(--s2) 0;border-bottom:1px solid rgba(255,255,255,.14)}
+.cs-rows li,.cs-sum{display:flex;align-items:center;gap:var(--s3);min-height:60px;padding:var(--s2) 0;border-bottom:1px solid var(--divider)}
 .cs-rows li:last-child,.cs-sum:last-child{border-bottom:0}
 .cs-t{display:grid;gap:2px;flex:1;min-width:0}.cs-t b{font-weight:600;font-size:var(--fs-md)}.cs-t span{font-size:var(--fs-sm);color:var(--smoke)}
 .cs-n{font:700 1.25rem/1 var(--font-ui);min-width:24px;text-align:right;font-variant-numeric:tabular-nums}
@@ -80,7 +80,7 @@
 .cs-radio{width:24px;height:24px;border-radius:50%;box-shadow:inset 0 0 0 2px rgba(255,255,255,.4);flex:none}
 .cs-opt.on .cs-radio{box-shadow:inset 0 0 0 7px var(--brass)}
 /* advanced */
-.cs-adv{border-top:1px solid rgba(255,255,255,.14)}
+.cs-adv{border-top:1px solid var(--divider)}
 .cs-adv summary{display:flex;align-items:center;gap:var(--s3);min-height:56px;cursor:pointer;font-weight:600;list-style:none}
 .cs-adv summary::-webkit-details-marker{display:none}
 .cs-adv summary small{color:var(--smoke);font-weight:400;font-size:var(--fs-sm);margin-left:auto;text-align:right}
@@ -98,7 +98,7 @@
 /* presets page */
 .pr-group{margin:var(--s4) 0 0;font-size:var(--fs-md);color:var(--smoke);font-family:var(--font-ui);font-weight:600;letter-spacing:0}
 .pr-list{list-style:none;margin:0;padding:0}
-.pr{position:relative;border-bottom:1px solid rgba(255,255,255,.14)}
+.pr{position:relative;border-bottom:1px solid var(--divider)}
 .pr-main{display:grid;gap:var(--s1);width:100%;text-align:left;padding:var(--s4) 0;background:none;border:0;cursor:pointer;min-height:44px}
 .pr-top{display:flex;justify-content:space-between;gap:var(--s3);align-items:baseline}
 .pr h3{margin:0;font:800 1.4rem/1.1 var(--display-serif);letter-spacing:.015em}
@@ -129,7 +129,7 @@
 .cs-adv summary small{margin-left:auto}
 .preset-sheet .sheet-actions .btn:not(.ghost):not(.link),.saved-sheet .sheet-actions .btn:not(.ghost):not(.link):not(.danger){background:var(--brass);color:var(--on-brass);border-color:var(--brass);min-height:52px;box-shadow:inset 0 1px 0 rgba(255,255,255,.28),0 2px 0 #B58E1E}
 .roles-panel .rs-list{gap:0}
-.roles-panel .rs-row{background:none;border-radius:0;padding:var(--s3) 0;border-bottom:1px solid rgba(255,255,255,.14)}
+.roles-panel .rs-row{background:none;border-radius:0;padding:var(--s3) 0;border-bottom:1px solid var(--divider)}
 .roles-panel .rs-row:last-child{border-bottom:0}
 .roles-panel .rs-ico{background:#0E1F5C}
 .roles-chip{padding:0 var(--s3)}@media (min-width:420px){.roles-chip{padding:0 var(--s4)}}
