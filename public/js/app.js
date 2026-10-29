@@ -19,6 +19,11 @@ import { pruneClosedRooms } from './flair.js';
 import { rolesInGame, rolesSeats, rolesSheetBody } from './roles_sheet.js';
 import { setupSteppers, stepMessage } from './steppers.js';
 import { openSheet, closeSheets } from './sheets.js';
+import { rolesPanelHtml, rolesButtonLabel } from './roles_sheet.js';
+import { carousel, presetsPage, customizePage, previewBody } from './setup_ui.js';
+import { setupState, defaultSeating, modeFor, loadSetup, saveSetup, clampStep, firstBlocked } from './setup.js';
+import { allPresets, findPreset, presetSettings, savedPreset, misfit, fits } from './presets.js';
+import { SAVED_PRESETS_KEY, SAVED_PRESETS_MAX, SLIDE_MS, FADE_MS, SWIPE_PX, SETUP_STEPS } from './config-defaults.js';
 import { errorBody, errorButtons, crashHtml, FATAL, ENDED } from './error-screen.js';
 
 const $app = document.getElementById('app');
@@ -28,6 +33,11 @@ const KEY = 'quest';
 
 const S = { mode: 'home', code: null, view: null, fatal: null, conn: true, transport: null,
   ui: { showCard: false, flip: false, draft: {}, fresh: {}, tab: 'game', side: 'chat', tally: {}, team: [], fails: null, lantern: null, strike: null, hit: null } };
+// Setup carousel state (host only). Progress lives in localStorage (quest.setup.v1) so a refresh lands on the same step.
+const loadSaved = () => { try { const a = JSON.parse(localStorage.getItem(SAVED_PRESETS_KEY)); return Array.isArray(a) ? a.filter((x) => x && typeof x.id === 'string' && typeof x.name === 'string') : []; } catch { return []; } };
+S.saved = loadSaved(); S.setup = null; S.page = 'carousel';
+const persistSaved = () => store.set(SAVED_PRESETS_KEY, JSON.stringify(S.saved));
+const persistSetup = () => S.setup && saveSetup({ getItem: (k) => store.get(k), setItem: (k, v) => store.set(k, v) }, S.setup);
 const resetChoices = () => Object.assign(S.ui, { tally: {}, team: [], fails: null, lantern: null, strike: null, hit: null });
 
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -46,7 +56,8 @@ let pending = false; let lastKey = null; let vtBusy = false;
 // A repaint between a tap's pointerdown and the focus it causes would swallow the tap (the room code box "won't focus"),
 // so repaints wait while a finger or button is down on a text field.
 let fieldDown = false;
-addEventListener('pointerdown', (e) => { if (e.target.closest?.('input,textarea,select,label.field')) fieldDown = true; }, true);
+// A button tapped while a text field has focus blurs the field first; without this hold the repaint would replace the button before the tap lands.
+addEventListener('pointerdown', (e) => { if (e.target.closest?.('input,textarea,select,label.field') || (e.target.closest?.('#app button') && document.activeElement?.matches?.('input,textarea'))) fieldDown = true; }, true);
 addEventListener('pointerup', () => { if (!fieldDown) return; setTimeout(() => { fieldDown = false; if (pending) render(); }, 350); }, true);
 addEventListener('pointercancel', () => { fieldDown = false; }, true);
 let toTop = false;
@@ -83,6 +94,7 @@ function paint() {
   // Same screen: keep the reader's place. New screen: start at the top (Nishant 2026-10-28: "open to the top", card still hidden).
   window.scrollTo(0, toTop ? 0 : y); toTop = false;
   fx.after($app);
+  afterSetupPaint();
   for (const el of $app.querySelectorAll('[data-scroll]')) el.scrollTop = el.scrollHeight;
   wake.set(wantsWakeLock(S.view));
   if (S.mode === 'home' && !S.pruned) { S.pruned = true; pruneClosedRooms($app, (c) => { store.del(`${KEY}.player.${c}`); store.del(`${KEY}.host.${c}`); }); }
@@ -205,12 +217,13 @@ function joinForm() {
 // Phase badges use the icons drawn for Quest Night (art.js), not the stock set.
 const PHASE = { lobby: ['Lobby', 'table'], reveal: ['Secret Cards', 'good'], propose: ['Choosing a Party', 'crown'], vote: ['Vote', 'approve'],
   quest: ['On the Quest', 'chalice'], lantern: ['The Lantern', 'lantern'], assassin: ['Last Strike', 'broken'], over: ['Game Over', 'chalice'] };
-const rolesBtn = () => `<button type="button" class="icon-btn" data-a="roles" aria-label="Roles in this game" title="Roles in this game">${ui('rules')}</button>`;
+// The roles chip in every header: "8 roles", the same for every viewer. It opens the same sheet as the panel before the reveal.
+const rolesChip = (v) => { const n = v.game?.n || v.players.filter((p) => !p.watch).length; return `<button type="button" class="roles-chip" data-a="roles" aria-label="Roles in this game${n >= MIN_PLAYERS ? `, ${n} roles` : ''}">${n >= MIN_PLAYERS ? `${n} roles` : 'Roles'}</button>`; };
 function appbar(v) {
   const [label, icon] = PHASE[v.phase] || ['', 'crown'];
   return `<header class="appbar"><a class="appbar-mark" href="#/" aria-label="Home">${art('crown')}</a>
     <div class="appbar-title"><span class="appbar-word">Table</span> <span class="code">${esc(v.code)}</span></div>
-    ${T.timerChip(v)}${rolesBtn()}<span class="phase-badge">${art(icon)}<span class="pb-t">${label}</span></span></header>`;
+    ${T.timerChip(v)}${rolesChip(v)}<span class="phase-badge">${art(icon)}<span class="pb-t">${label}</span></span></header>`;
 }
 
 const nameOf = (v, id) => v.players.find((p) => p.id === id)?.name || '?';
@@ -219,7 +232,7 @@ const names = (v, ids) => ids.map((id) => esc(nameOf(v, id))).join(', ');
 // Phone: one pane at a time with a tab bar. Wide screens: log | table | chat-tools-host side by side.
 function layout(v) {
   const tab = S.ui.tab;
-  const main = v.phase === 'lobby' ? lobby(v) : gameMain(v);
+  const main = v.phase === 'lobby' ? lobby(v) : v.phase === 'reveal' && !rolesSeen(v) ? rolesPanel(v) : gameMain(v);
   const sideTabs = [['chat', 'Chat'], ['tools', 'Tools'], ...(v.me?.host ? [['host', 'Host']] : [])];
   const sideKey = ['chat', 'tools', 'host'].includes(tab) ? tab : S.ui.side;
   const side = sideKey === 'tools' ? T.toolsPane(v) : sideKey === 'host' ? hostPane(v) : T.chatPane(v);
@@ -249,7 +262,7 @@ const HOUSE = [
   ['noClaims', 'No-Claims Mode', 'Turns off posting claims in the chat. Claims are made out loud.'],
   ['sitOut', 'Host sits out', 'The Host doesn’t get a card and sees the whole deal on their own phone.'],
 ];
-function lobby(v) {
+function lobbyPlain(v) {
   const me = v.me; const seatedP = v.players.filter((p) => !p.watch); const n = seatedP.length; const host = me.host;
   const link = `${location.origin}/#/play/${v.code}`;
   const list = roleList(Math.max(5, Math.min(10, n)), v.settings);
@@ -291,6 +304,138 @@ function lobby(v) {
     ${guide}
     ${host ? `<div class="sticky-act"><button class="btn big ${n < 5 || list.error ? 'disabled' : ''}" data-a="start">${m.roles === 'app' ? 'Deal Cards' : 'Start Game'}</button></div>`
     : '<div class="empty">Waiting for the Host to start…</div>'}`;
+}
+
+// ---------------------------------------------------------------- setup carousel (host): Players, Preset, Seating, Deal
+const houseCount = (v) => HOUSE.filter(([k]) => v.house[k]).length;
+const TIMER_TEXT = { 0: 'no phase timer', 60: 'phase timer 1 min', 90: 'phase timer 1:30', 120: 'phase timer 2 min', 180: 'phase timer 3 min', 300: 'phase timer 5 min' };
+const setupFor = (v) => { if (!S.setup || S.setup.code !== v.code) S.setup = loadSetup({ getItem: (k) => store.get(k) }, v.code); return S.setup; };
+const setupCtx = (v) => {
+  const setup = setupFor(v);
+  const n = v.players.filter((p) => !p.watch).length;
+  const st = setupState(v, S.saved, setup);
+  const seating = setup.seatingChosen && setup.seating ? setup.seating : defaultSeating(v.players);
+  return { v, esc, ui, glyph, st, n, step: setup.step, seating, advanced: setup.advancedOpen, draft: S.ui.draft, link: `${location.origin}/#/play/${v.code}`, dir: S.ui.slide || '',
+    advancedHtml: advancedBlock(v, n), advSummary: !v.house.turnTimer && !houseCount(v) ? 'Classic rules, no timer' : `${TIMER_TEXT[v.house.turnTimer] || 'no phase timer'}, ${houseCount(v)} house ${houseCount(v) === 1 ? 'rule' : 'rules'} on`,
+    saved: S.saved, savedList: S.saved.map(savedPreset), pickedId: st.preset?.id || null, steppers: steppersHtml(n, v.settings, true) };
+};
+function lobby(v) {
+  if (!v.me.host) return lobbyPlain(v);
+  const c = setupCtx(v);
+  if (S.page === 'presets') return presetsPage(c);
+  if (S.page === 'customize') return customizePage(c);
+  return carousel(c);
+}
+// Everything the old setup screen had that the carousel does not show by default: seat order, hybrid pieces, house rules, timers, card guide.
+function advancedBlock(v, n) {
+  const m = v.mode;
+  const list = roleList(Math.max(5, Math.min(10, n)), v.settings);
+  const seats = v.players.map((p, i) => `<li><span class="n">${p.watch ? '–' : i + 1}</span><span class="who">${esc(p.name)}${p.host ? ' <small class="muted">Host</small>' : ''}${p.phoneless ? ' <small class="muted">no phone</small>' : ''}</span>
+      <button type="button" class="icon-btn" data-a="move" data-id="${p.id}" data-dir="up" aria-label="Move ${esc(p.name)} up" ${i === 0 ? 'disabled' : ''}>${ui('caret-down', 'flip-up')}</button>
+      <button type="button" class="icon-btn" data-a="move" data-id="${p.id}" data-dir="down" aria-label="Move ${esc(p.name)} down" ${i === v.players.length - 1 ? 'disabled' : ''}>${ui('caret-down')}</button></li>`).join('');
+  const pieces = m.play === 'hybrid' ? `<div class="pieces">${Object.entries(PIECE_TEXT).map(([k, [t]]) => `<div class="piece"><span>${t}</span><span class="seg mini">${['app', 'physical'].map((x) => `<button type="button" data-a="piece" data-k="${k}" data-v="${x}" aria-pressed="${m[k] === x}">${x === 'app' ? 'In the app' : 'Physical'}</button>`).join('')}</span></div>`).join('')}</div>` : '';
+  const house = HOUSE.map(([k, t, d]) => `<label class="toggle ${v.house[k] ? 'is-on' : ''}"><input type="checkbox" data-a="houseSet" data-k="${k}" ${v.house[k] ? 'checked' : ''}><span><b>${t}</b><span class="muted">${d}</span></span></label>`).join('');
+  const sel = (k, o) => `<select data-a="houseSel" data-k="${k}">${o.map(([val, l]) => `<option value="${val}" ${String(v.house[k]) === String(val) ? 'selected' : ''}>${l}</option>`).join('')}</select>`;
+  const guide = m.roles === 'physical' && n >= 5 && !list.error ? cardGuideBlock(n, v.settings, v.house) : '';
+  return `<h3 class="cs-adv-h">House rules</h3><p class="muted">All off unless you turn them on. Otherwise the rules are the classic game. These are pinned for this room when you deal.</p>
+    <div class="settings">${house}
+    <label class="toggle"><span><b>Phase Timer</b><span class="muted">A countdown starts each phase. Nothing happens at zero. The Host decides.</span></span>${sel('turnTimer', [[0, 'Off'], [60, '1 min'], [90, '1:30'], [120, '2 min'], [180, '3 min'], [300, '5 min']])}</label>
+    <label class="toggle"><span><b>Vote Reveal Delay</b><span class="muted">A short drumroll before votes are shown.</span></span>${sel('revealDelay', [[0, 'Off'], [3, '3 s'], [5, '5 s']])}</label>
+    <label class="toggle"><span><b>First Leader</b><span class="muted">Who wears the crown first.</span></span>${sel('firstLeader', [['random', 'Random'], ['host', 'The Host']])}</label></div>
+    ${pieces ? `<h3 class="cs-adv-h">Real cards or the app</h3>${pieces}` : ''}
+    ${m.play !== 'phone' ? '<p class="muted">Real cards: <a href="/print.html" target="_blank" rel="noopener">print the card guide or the Quest Night cards</a>. The Host enters anything physical and never sees a secret.</p>' : ''}
+    <h3 class="cs-adv-h">Seat order</h3><p class="muted">Seat order is the order the crown travels. Match it to how everyone is sitting.</p>
+    <ul class="seat-list">${seats}</ul><div class="btn-row"><button type="button" class="btn ghost" data-a="shuffleSeats">${ui('shuffle')} Shuffle Seats</button></div>${guide}`;
+}
+
+// ---- carousel actions
+const stepName = (i) => SETUP_STEPS[i];
+const announce = (t) => { const el = document.getElementById('step-live'); if (el) el.textContent = t; };
+function goStep(i, dir) {
+  const v = S.view; if (!v) return;
+  const setup = setupFor(v); const from = setup.step; const to = clampStep(i);
+  const st = setupState(v, S.saved, setup);
+  // Forward past a problem snaps back to the first step that needs fixing, and says why.
+  let target = to;
+  if (to > from) { const b = firstBlocked(st, to); if (b >= 0) { target = b; toast(st.problems[b].text); } }
+  setup.step = target; S.page = 'carousel';
+  S.ui.slide = target === from ? '' : (dir || (target > from ? 'fwd' : 'back')); S.ui.focusHead = true;
+  persistSetup(); announce(`Step ${target + 1} of ${SETUP_STEPS.length}, ${stepName(target)}`); render();
+}
+function afterSetupPaint() {
+  const card = $app.querySelector('#cs-card');
+  const slide = S.ui.slide; S.ui.slide = '';
+  if (card && slide && card.animate) {
+    const calm = matchMedia('(prefers-reduced-motion: reduce)').matches || !fx.enabled();
+    const a = calm ? [{ opacity: 0 }, { opacity: 1 }] : [{ transform: `translateX(${slide === 'fwd' ? '100%' : '-100%'})` }, { transform: 'none' }];
+    try { card.animate(a, { duration: dur(calm ? FADE_MS : SLIDE_MS), easing: 'cubic-bezier(.2,.8,.2,1)' }); } catch { /* never blocks */ }
+  }
+  if (S.ui.focusHead) { S.ui.focusHead = false; $app.querySelector('#cs-h')?.focus({ preventScroll: true }); }
+  if (S.ui.focusId) { const f = document.getElementById(S.ui.focusId); S.ui.focusId = null; f?.focus(); }
+}
+function useSetupSettings(settings) { send({ type: 'settings', settings: { merlin: !!settings.merlin, percival: !!settings.percival, morgana: !!settings.morgana, mordred: !!settings.mordred, oberon: !!settings.oberon } }); }
+function previewPreset(id) {
+  const v = S.view; if (!v) return;
+  const p = findPreset(id, S.saved); if (!p) return;
+  const n = v.players.filter((x) => !x.watch).length;
+  const ok = !!p.mix(n);
+  const pick = () => { useSetupSettings(presetSettings(p)); setupFor(v).presetId = p.id; goStep(1, 'back'); };
+  openSheet({ title: p.name, cls: 'preset-sheet', bodyHtml: previewBody(p, n, { esc, glyph }),
+    buttons: ok ? [{ label: 'Use this', onClick: pick }, { label: 'Customize from here', cls: 'link', onClick: () => { useSetupSettings(presetSettings(p)); setupFor(v).presetId = p.id; persistSetup(); S.page = 'customize'; render(); } }]
+      : [{ label: 'Add players', onClick: () => goStep(0, 'back') }, { label: 'Pick another', cls: 'ghost' }] });
+}
+function savedMenu(id) {
+  const p = S.saved.find((x) => x.id === id); if (!p) return;
+  let nameEl = null; // the sheet closes before onClick runs, so keep the input itself
+  const dlg = openSheet({ title: p.name, cls: 'saved-sheet',
+    bodyHtml: `<label class="field"><span>Name</span><input id="sv-name" maxlength="24" value="${esc(p.name)}"></label>`,
+    buttons: [{ label: 'Save name', onClick: () => { const nm = (nameEl?.value || '').trim().slice(0, 24); if (nm) { p.name = nm; persistSaved(); render(); } } },
+      { label: 'Delete', cls: 'ghost danger', close: false, onClick: () => { const b = document.querySelector('.saved-sheet .danger'); if (b?.dataset.sure) { S.saved = S.saved.filter((x) => x.id !== id); persistSaved(); dlg.close(); render(); } else if (b) { b.dataset.sure = '1'; b.textContent = 'Tap again to delete'; } } }] });
+  nameEl = document.getElementById('sv-name');
+}
+function savePresetNow() {
+  const v = S.view; if (!v) return;
+  const st = setupState(v, S.saved, setupFor(v));
+  if (st.list.error) { toast(st.list.error); return; }
+  const name = (S.ui.draft.presetName || '').trim().slice(0, 24) || `My setup ${S.saved.length + 1}`;
+  const item = { id: `s${Date.now().toString(36)}`, name, settings: { merlin: !!v.settings.merlin, percival: !!v.settings.percival, morgana: !!v.settings.morgana, mordred: !!v.settings.mordred, oberon: !!v.settings.oberon } };
+  S.saved = [...S.saved, item].slice(-SAVED_PRESETS_MAX); persistSaved();
+  setupFor(v).presetId = item.id; persistSetup(); S.ui.draft.presetName = '';
+  toast('Saved on this phone.'); goStep(1, 'back');
+}
+function dealNow() {
+  const v = S.view; const setup = setupFor(v);
+  const st = setupState(v, S.saved, setup);
+  if (st.problems[3]) { toast(st.problems[3].text); return; }
+  const seating = setup.seatingChosen && setup.seating ? setup.seating : defaultSeating(v.players);
+  const mm = modeFor(seating, v.mode, v.players);
+  if (mm) send({ type: 'mode', mode: mm });
+  send({ type: 'start' });
+}
+// Swipe is extra: Back, Next and the step dots always work.
+{
+  let sx = 0, sy = 0, down = false;
+  $app.addEventListener('pointerdown', (e) => { down = !!e.target.closest('.cs-view') && !e.target.closest('input,select,textarea,summary,.cs-adv-body'); sx = e.clientX; sy = e.clientY; });
+  $app.addEventListener('pointerup', (e) => {
+    if (!down) return; down = false;
+    const dx = e.clientX - sx; const dy = e.clientY - sy;
+    if (Math.abs(dx) < SWIPE_PX || Math.abs(dy) > Math.abs(dx) / 1.5 || !S.view || S.page !== 'carousel') return;
+    const cur = setupFor(S.view).step;
+    goStep(cur + (dx < 0 ? 1 : -1), dx < 0 ? 'fwd' : 'back');
+  });
+  $app.addEventListener('toggle', (e) => { if (e.target.matches?.('[data-adv]') && S.setup) { S.setup.advancedOpen = e.target.open; persistSetup(); } }, true);
+  $app.addEventListener('keydown', (e) => { // arrow keys move between steps while a step dot has focus
+    if (!e.target.classList?.contains('cs-dot') || !['ArrowLeft', 'ArrowRight'].includes(e.key)) return;
+    e.preventDefault(); goStep(setupFor(S.view).step + (e.key === 'ArrowRight' ? 1 : -1));
+  });
+}
+
+// ---- the roles panel before the reveal (same for every phone) and its "seen" memory
+const seenKey = (v) => `${v.code}:${v.gameNo || 1}`;
+const rolesSeen = (v) => store.get(`${KEY}.rolesSeen`) === seenKey(v);
+function rolesPanel(v) {
+  const info = rolesInGame(rolesSeats(v), v.settings);
+  return rolesPanelHtml(info, esc, glyph, rolesButtonLabel(v));
 }
 
 function steppersHtml(n, settings, host) {
@@ -624,7 +769,7 @@ function hostPane(v) {
 // ---------------------------------------------------------------- shared table screen (TV / laptop)
 function tableScreen(v) {
   const g = v.game;
-  const head = `<header class="appbar"><span class="appbar-mark">${art('crown')}</span><div class="appbar-title">Quest Night · <span class="code">${esc(v.code)}</span></div>${T.timerChip(v)}${rolesBtn()}<span class="phase-badge">${art(PHASE[v.phase]?.[1] || 'crown')}<span class="pb-t">${PHASE[v.phase]?.[0] || ''}</span></span></header>`;
+  const head = `<header class="appbar"><span class="appbar-mark">${art('crown')}</span><div class="appbar-title">Quest Night · <span class="code">${esc(v.code)}</span></div>${T.timerChip(v)}${rolesChip(v)}<span class="phase-badge">${art(PHASE[v.phase]?.[1] || 'crown')}<span class="pb-t">${PHASE[v.phase]?.[0] || ''}</span></span></header>`;
   if (!g) return `${head}<main class="wrap screen-lobby"><h1 class="phase-title">Join at ${esc(location.host)}</h1><p class="room-code">${esc(v.code)}</p><p class="say">${v.players.filter((p) => !p.watch).map((p) => esc(p.name)).join(' · ') || 'Nobody yet.'}</p></main>`;
   const lines = phaseScript(v).slice(0, 2);
   return `${head}<div class="layout is-screen"><main class="col col-main wrap game">${track(v)}${roundTable({ ...v, me: null })}${v.phase === 'over' ? over(v) : `<section class="stage"><p class="say">${esc(lines.join(' '))}</p></section>`}${lastReveals(v)}</main>
@@ -745,6 +890,7 @@ $app.addEventListener('change', (e) => {
 });
 $app.addEventListener('click', (e) => {
   const el = e.target.closest('[data-a]');
+  if (el) fieldDown = false;
   if (!el || ['set', 'houseSet', 'houseSel', 'modeSet', 'fxSet'].includes(el.dataset.a)) return;
   if (el.getAttribute('aria-disabled') === 'true') { if (el.dataset.a === 'play') toast('The Loyal Servants can only play Success.'); return; }
   if (el.dataset.a === 'flip') { if (e.detail === 0) { rv.press(); rv.release(); } return; } // keyboard; touch and mouse use pointer events
@@ -813,6 +959,22 @@ async function act(a, el) {
     case 'share': try { await navigator.share({ title: 'Quest Night', text: 'Join my Quest Night table', url: d.link }); } catch { /* cancelled */ } return;
     case 'qrFull': showQr(d.link, d.code); return;
     case 'roles': showRoles(); return;
+    case 'rolesSeen': store.set(`${KEY}.rolesSeen`, seenKey(S.view)); window.scrollTo(0, 0); render(); return;
+    case 'csNext': { const st = setupState(S.view, S.saved, setupFor(S.view)); const p = st.problems[setupFor(S.view).step]; if (p) { toast(p.text); return; } goStep(setupFor(S.view).step + 1, 'fwd'); return; }
+    case 'csBack': goStep(setupFor(S.view).step - 1, 'back'); return;
+    case 'csGo': { const t = +d.s; if (t > setupFor(S.view).step) return; goStep(t, t > setupFor(S.view).step ? 'fwd' : 'back'); return; }
+    case 'csDeal': dealNow(); return;
+    case 'csFix': {
+      if (d.go === 'presets') { S.page = 'presets'; S.ui.focusHead = true; render(); return; }
+      goStep(+d.go, 'back'); if (d.focus) S.ui.focusId = `cs-${d.focus}`; return;
+    }
+    case 'seating': { const setup = setupFor(S.view); setup.seating = d.v; setup.seatingChosen = true; persistSetup(); const mm = modeFor(d.v, S.view.mode, S.view.players); if (mm) send({ type: 'mode', mode: mm }); render(); return; }
+    case 'presetsOpen': S.page = 'presets'; S.ui.focusHead = true; render(); window.scrollTo(0, 0); return;
+    case 'presetsBack': S.page = 'carousel'; S.ui.focusHead = true; render(); return;
+    case 'presetPreview': previewPreset(d.id); return;
+    case 'customize': S.page = 'customize'; S.ui.focusHead = true; render(); window.scrollTo(0, 0); return;
+    case 'savedMenu': savedMenu(d.id); return;
+    case 'savePreset': savePresetNow(); return;
     case 'step': { const msg = stepMessage(rolesSeatsLobby(), S.view.settings, d.k, +d.d, !!S.view.me?.host); if (msg) send(msg); else if (S.view.me?.host) toast('That change would make the setup invalid.'); return; }
     case 'restart': send({ type: 'restart' }); return;
     case 'restartAsk': restartAsk(); return;
