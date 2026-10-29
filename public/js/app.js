@@ -25,6 +25,14 @@ import { setupState, defaultSeating, modeFor, loadSetup, saveSetup, clampStep, f
 import { allPresets, findPreset, presetSettings, savedPreset, misfit, fits } from './presets.js';
 import { SAVED_PRESETS_KEY, SAVED_PRESETS_MAX, SLIDE_MS, FADE_MS, SWIPE_PX, SETUP_STEPS } from './config-defaults.js';
 import { errorBody, errorButtons, crashHtml, FATAL, ENDED } from './error-screen.js';
+import { backClosesSheets } from './back-sheet.js';
+// Back (Android Back, the iOS edge swipe) closes the top sheet or confirm first, the same as Escape. They are <dialog>s on
+// <body>, so watching body's children keeps Back in step with them.
+const backNav = backClosesSheets(() => {
+  const d = [...document.querySelectorAll('dialog[open]')].at(-1);
+  return d ? { key: `${d.className}|${(d.querySelector('h2') || d).textContent.trim().slice(0, 40)}`, close: () => d.dispatchEvent(new Event('cancel', { cancelable: true })) } : null;
+});
+new MutationObserver(() => backNav.sync()).observe(document.body, { childList: true });
 
 const $app = document.getElementById('app');
 const $toast = document.getElementById('toast');
