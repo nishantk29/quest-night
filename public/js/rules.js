@@ -33,7 +33,7 @@ export const ROLES = {
   servant: { id: 'servant', name: 'Loyal Servant of Arthur', side: 'good', icon: 'servant',
     blurb: 'You know nothing but your own heart. Find the minions by how they vote.' },
   merlin: { id: 'merlin', name: 'Merlin', side: 'good', icon: 'merlin',
-    blurb: 'You see Evil. Guide the realm, but softly: if they find you at the end, all is lost.' },
+    blurb: 'You see Evil. Steer the table quietly: if the Assassin names you at the end, Evil wins.' },
   percival: { id: 'percival', name: 'Percival', side: 'good', icon: 'percival',
     blurb: 'You know who might be Merlin. Shield them, and do not be fooled by Morgana.' },
   minion: { id: 'minion', name: 'Minion of Mordred', side: 'evil', icon: 'minion',
