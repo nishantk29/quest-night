@@ -61,7 +61,7 @@ export function makeTable(ctx) {
     return `<section class="pane-sec chat" aria-label="Table chat"><h2 class="block-title">Table chat</h2>
       <p class="muted">Everyone at the table sees this. There is no private channel: secrets stay secret.${claims ? ' Post a claim to put it on the record.' : ' No-claims mode: make claims out loud.'}</p>
       <ol class="msgs" data-scroll="chat">${msgs.map((m) => entry(v, m, isHost(v))).join('') || '<li class="muted">No messages yet.</li>'}</ol>
-      ${can ? `<form class="chat-form" data-f="chat"><label class="sr-only" for="chat-in">Message</label><input id="chat-in" data-i="chat" maxlength="280" autocomplete="off" enterkeyhint="send" placeholder="${claims ? 'Say something, or post a claim' : 'Say something'}" value="${esc(S.ui.draft.chat || '')}">
+      ${can ? `<form class="chat-form" data-f="chat"><label class="sr-only" for="chat-in">Message</label><input id="chat-in" data-i="chat" maxlength="280" autocomplete="off" enterkeyhint="send" placeholder="${claims ? 'Say something or claim' : 'Say something'}" value="${esc(S.ui.draft.chat || '')}">
         <button type="button" class="btn" data-a="chat">Send</button>${claims ? '<button type="button" class="btn ghost" data-a="claim" title="Put it in the claims log">Claim</button>' : ''}</form>`
     : v.me?.muted ? '<p class="note is-warn">The Host muted you in the chat.</p>' : ''}
     </section>`;
