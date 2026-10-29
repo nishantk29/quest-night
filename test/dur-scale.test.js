@@ -28,7 +28,7 @@ const DECL = /(transition|animation)[\w-]*\s*:[^;}]*|--t-[\w-]+\s*:[^;}]*/g;
 function offenders(src) {
   const bad = [];
   for (const d of src.match(DECL) || []) {
-    if (/\binfinite\b/.test(d)) continue; // ambient loops keep their period (documented)
+    if (/\bqn-(twinkle|flutter|pennant)\b/.test(d)) continue; // the ambient sky, flag and pennant keep their period (they play once now: test/play-once.test.js)
     // literal not followed by "* var(--dur-scale)" and not inside a scaled group
     const flat = d.replace(/calc\(\s*\((?:[^()]|\([^()]*\))*\)\s*\*\s*var\(--dur-scale\)\)/g, '').replace(/calc\(\s*[\d.]+m?s\s*\*\s*var\(--dur-scale\)\)/g, '');
     for (const m of flat.matchAll(TIME)) if (parseFloat(m[1]) !== 0) bad.push(d.trim());

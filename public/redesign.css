@@ -19,13 +19,13 @@ h1,h2,.phase-title,.block-title,.path-title,.sheet-title{font-family:var(--displ
 #app{position:relative;z-index:1}
 .bg-art{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden;background:radial-gradient(120% 80% at 80% 100%,rgba(47,107,214,.20),transparent 60%),radial-gradient(90% 60% at 10% 0%,rgba(224,174,82,.07),transparent 60%)}
 .bg-sky{position:absolute;right:0;bottom:0;width:min(100vw,900px);height:min(44vh,430px);opacity:.78}
-.bg-stars{animation:qn-twinkle 6s var(--qn-ease) infinite alternate}
+.bg-stars{animation:qn-twinkle 6s var(--qn-ease) 1 both}
 .bg-stars-b{animation-duration:calc(9s * var(--dur-scale));animation-delay:-3s}
-.bg-win{animation:qn-twinkle calc(7s * var(--dur-scale)) ease-in-out infinite alternate;animation-delay:-2s}
+.bg-win{animation:qn-twinkle calc(7s * var(--dur-scale)) ease-in-out 1 both;animation-delay:-2s}
 @keyframes qn-twinkle{from{opacity:.35}to{opacity:1}}
-/* the flag mostly hangs still, then flutters for about a second every few seconds */
+/* the flag hangs still, flutters once about four seconds in, then rests (no looping motion: Nishant, Oct 28 11:09 PM ET) */
 .bg-flag{transform-box:fill-box}
-.flag-cloth{transform-origin:2.4px -36px;transform-box:view-box;animation:qn-flutter 7s var(--qn-ease) infinite}
+.flag-cloth{transform-origin:2.4px -36px;transform-box:view-box;animation:qn-flutter 7s var(--qn-ease) 1}
 @keyframes qn-flutter{0%,56%,100%{transform:none}64%{transform:skewY(-9deg) scaleX(.93)}72%{transform:skewY(7deg) scaleX(1.04)}80%{transform:skewY(-5deg) scaleX(.97)}88%{transform:skewY(3deg)}}
 @media (max-width:640px){.bg-sky{width:130vw;height:34vh;opacity:.5}}
 
@@ -166,7 +166,7 @@ h1,h2,.phase-title,.block-title,.path-title,.sheet-title{font-family:var(--displ
 /* ---- hero castle tower with a pennant that ripples every 5s (transform only), idle between */
 .home-brand{position:relative}
 .tower{position:absolute;top:-6px;left:104px;width:56px;height:84px;pointer-events:none}
-.pennant{transform-box:view-box;transform-origin:27px 10px;animation:qn-pennant 5s var(--qn-ease) infinite}
+.pennant{transform-box:view-box;transform-origin:27px 10px;animation:qn-pennant 5s var(--qn-ease) 1}
 @keyframes qn-pennant{0%,30%,100%{transform:none}42%{transform:skewY(-12deg) scaleX(.8)}54%{transform:skewY(9deg) scaleX(1.12)}66%{transform:skewY(-8deg) scaleX(.88)}78%{transform:skewY(5deg) scaleX(1.05)}90%{transform:skewY(-2deg) scaleX(.98)}}
 @media (min-width:900px){.tower{left:auto;right:0;top:-24px;width:72px;height:108px}}
 @media (prefers-reduced-motion:reduce){.pennant{animation:none!important}}
