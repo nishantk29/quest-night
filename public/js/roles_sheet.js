@@ -34,3 +34,13 @@ export function rolesSheetBody(info, esc, glyph) {
   if (info.error) return `<p class="note is-warn">${esc(info.error)}</p>`;
   return info.groups.map((g) => `<section class="rs-group a-${g.side}" data-side="${g.side}"><h3 class="rs-side">${esc(g.title)} <small>${g.count}</small></h3><ul class="rs-list">${g.roles.map((r) => `<li class="rs-row" data-role="${r.id}"><span class="rs-ico">${glyph(r.icon)}</span><span class="rs-main"><b>${esc(r.name)}${r.count > 1 ? ` <span class="rs-n">×${r.count}</span>` : ''}</b><span class="rs-blurb">${esc(r.blurb)}</span>${r.note ? `<span class="rs-note">${esc(r.note)}</span>` : ''}</span></li>`).join('')}</ul></section>`).join('');
 }
+
+// The panel every phone sees once, before its own role: the same list for everyone. The button label depends only on the
+// table's mode and the phone's seat (a phone that holds a card says "See my role"), never on which role it holds.
+export const rolesButtonLabel = (v) => (v.game?.appRoles && v.me && !v.me.watch && !v.me.phoneless ? 'See my role' : 'Continue');
+export function rolesPanelHtml(info, esc, glyph, buttonLabel) {
+  const intro = `${info.seats} players. Every phone shows this same list.`;
+  return `<section class="stage roles-panel" aria-labelledby="rp-h"><h1 class="phase-title" id="rp-h" tabindex="-1">Roles in this game</h1><p class="rp-sub">${esc(intro)}</p>${rolesSheetBody(info, esc, glyph)}
+    <p class="muted rp-foot">This is what’s in the game, not who has what.</p>
+    <div class="sticky-act"><button type="button" class="btn big" data-a="rolesSeen">${esc(buttonLabel)}</button></div></section>`;
+}

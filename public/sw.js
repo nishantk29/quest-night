@@ -3,7 +3,7 @@
 // - Navigations: network-first, falling back to the cached app shell.
 // - /api/* and /ws/* never touch the cache.
 // VERSION is a content hash of every precached file, so it changes whenever a file does.
-const VERSION = 'ecd775ece9';
+const VERSION = '004d55ef86';
 const PREFIX = 'quest-';
 const CACHE = PREFIX + VERSION;
 
@@ -29,6 +29,7 @@ const PRECACHE = [
   '/js/app.js',
   '/js/art.js',
   '/js/cards.js',
+  '/js/config-defaults.js',
   '/js/device.js',
   '/js/error-screen.js',
   '/js/faq.js',
@@ -37,6 +38,7 @@ const PRECACHE = [
   '/js/glyphs.js',
   '/js/host-nav.js',
   '/js/motion.js',
+  '/js/presets.js',
   '/js/print-guide.js',
   '/js/print.js',
   '/js/qr.js',
@@ -44,6 +46,8 @@ const PRECACHE = [
   '/js/roles_sheet.js',
   '/js/room.js',
   '/js/rules.js',
+  '/js/setup.js',
+  '/js/setup_ui.js',
   '/js/sheets.js',
   '/js/steppers.js',
   '/js/table.js',
@@ -57,8 +61,9 @@ const PRECACHE = [
   '/print/quest-night-cards.pdf',
   '/pwa-install.js',
   '/redesign.css',
+  '/setup.css',
   '/styles.css',
-  '/theme.css',
+  '/theme.css'
 ];
 
 const isLive = (url) => url.pathname.startsWith('/api/') || url.pathname.startsWith('/ws/');
