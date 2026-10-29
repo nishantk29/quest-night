@@ -203,3 +203,18 @@ h1,h2,.phase-title,.block-title,.path-title,.sheet-title{font-family:var(--displ
 /* Reconnect notice as a compact callout (Nishant 2026-10-28: "This warning can have a call out box and can be in smaller font"). */
 .banner{font-size:var(--fs-xs);font-weight:600;line-height:1.35;color:color-mix(in srgb,var(--ink) 80%,transparent);background:color-mix(in srgb,var(--panel-2) 84%,var(--red-block));border:0;border-bottom:1px solid color-mix(in srgb,var(--red-block) 55%,transparent);padding:var(--s1) var(--gutter)}
 .banner > .ui-ico{color:color-mix(in srgb,var(--red-block) 45%,#fff);flex:none}
+/* Polish sweep (Oct 28). App bar: the room code keeps its width; a long phase label shortens instead of running under the settings button. */
+.appbar-title{flex:0 0 auto;margin-right:auto}
+.phase-badge{flex:1 1 0;min-width:0;max-width:max-content;overflow:hidden}
+.phase-badge>.pb-t{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* Outline buttons in the fixed action bar get a solid fill, so the page under them can't show through. */
+.sticky-act .btn.ghost{background:var(--room)}
+/* Segmented switches, log filters, dice sides and the small links are 44px targets. */
+.seg button,.seg.mini button{min-height:44px;min-width:44px}
+.link.tiny{min-height:44px}
+/* Phones: the tab bar and the game screen's fixed action button step aside while a field has focus, so they can't cover it above the
+   keyboard. A form's own submit button (Take Seat) stays. */
+@media (pointer:coarse) and (max-width:1099px){
+  html:has(input:not([type=checkbox]):not([type=radio]):not([type=range]):focus,textarea:focus) :is(.tabbar,.layout .sticky-act){display:none!important}
+  html:has(input:not([type=checkbox]):not([type=radio]):not([type=range]):focus,textarea:focus) .chat-form{bottom:env(safe-area-inset-bottom)}
+}

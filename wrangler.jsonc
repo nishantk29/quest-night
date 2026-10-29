@@ -1,7 +1,8 @@
 {
   "name": "quest-night",
   "main": "src/worker.js",
-  "compatibility_date": "2025-09-01",
+  // 2026-10-01 matches the rest of the family. Flags that changed since 2025-09-01 are pinned in test/compat-date.test.js.
+  "compatibility_date": "2026-10-01",
   "workers_dev": true,
   "assets": { "directory": "./public", "binding": "ASSETS", "not_found_handling": "404-page" },
   "durable_objects": { "bindings": [{ "name": "ROOM", "class_name": "Room" }] },
