@@ -11,6 +11,7 @@ import { roleCards, ROLE_CARD, PIECES as CARD_PIECES } from './cards.js';
 import { FAQ } from './faq.js';
 import { fx, dur } from './fx.js';
 import { createReveal } from './reveal.js';
+import { wakeReconnect } from './wake.js';
 import { haptic, createWakeLock, wantsWakeLock, canFullscreen, enterFullscreen } from './device.js';
 import { screenKey, canTransition } from './motion.js';
 import { qrSvg } from './qr.js';
@@ -209,7 +210,7 @@ function appbar(v) {
   const [label, icon] = PHASE[v.phase] || ['', 'crown'];
   return `<header class="appbar"><a class="appbar-mark" href="#/" aria-label="Home">${art('crown')}</a>
     <div class="appbar-title"><span class="appbar-word">Table</span> <span class="code">${esc(v.code)}</span></div>
-    ${T.timerChip(v)}${rolesBtn()}<span class="phase-badge">${art(icon)}${label}</span></header>`;
+    ${T.timerChip(v)}${rolesBtn()}<span class="phase-badge">${art(icon)}<span class="pb-t">${label}</span></span></header>`;
 }
 
 const nameOf = (v, id) => v.players.find((p) => p.id === id)?.name || '?';
@@ -623,7 +624,7 @@ function hostPane(v) {
 // ---------------------------------------------------------------- shared table screen (TV / laptop)
 function tableScreen(v) {
   const g = v.game;
-  const head = `<header class="appbar"><span class="appbar-mark">${art('crown')}</span><div class="appbar-title">Quest Night · <span class="code">${esc(v.code)}</span></div>${T.timerChip(v)}${rolesBtn()}<span class="phase-badge">${art(PHASE[v.phase]?.[1] || 'crown')}${PHASE[v.phase]?.[0] || ''}</span></header>`;
+  const head = `<header class="appbar"><span class="appbar-mark">${art('crown')}</span><div class="appbar-title">Quest Night · <span class="code">${esc(v.code)}</span></div>${T.timerChip(v)}${rolesBtn()}<span class="phase-badge">${art(PHASE[v.phase]?.[1] || 'crown')}<span class="pb-t">${PHASE[v.phase]?.[0] || ''}</span></span></header>`;
   if (!g) return `${head}<main class="wrap screen-lobby"><h1 class="phase-title">Join at ${esc(location.host)}</h1><p class="room-code">${esc(v.code)}</p><p class="say">${v.players.filter((p) => !p.watch).map((p) => esc(p.name)).join(' · ') || 'Nobody yet.'}</p></main>`;
   const lines = phaseScript(v).slice(0, 2);
   return `${head}<div class="layout is-screen"><main class="col col-main wrap game">${track(v)}${roundTable({ ...v, me: null })}${v.phase === 'over' ? over(v) : `<section class="stage"><p class="say">${esc(lines.join(' '))}</p></section>`}${lastReveals(v)}</main>
@@ -635,8 +636,9 @@ function wsTransport(code, asScreen) {
   let ws; let closed = false; let tries = 0; let timer; let longTimer;
   const creds = () => { try { return JSON.parse(store.get(`${KEY}.player.${code}`) || 'null'); } catch { return null; } };
   const open = () => {
-    ws = new WebSocket(`${location.protocol === 'https:' ? 'wss' : 'ws'}://${location.host}/ws/${code}`);
-    ws.onopen = () => { tries = 0; S.conn = true; S.connLong = false; clearTimeout(longTimer); longTimer = null; const c = creds();
+    // Each socket's handlers check s === ws, so a socket abandoned by a wake-up reconnect can't schedule another one.
+    const s = ws = new WebSocket(`${location.protocol === 'https:' ? 'wss' : 'ws'}://${location.host}/ws/${code}`);
+    ws.onopen = () => { if (s !== ws) return s.close(); tries = 0; S.conn = true; S.connLong = false; clearTimeout(longTimer); longTimer = null; const c = creds();
       if (asScreen) ws.send(JSON.stringify({ type: 'hello', screen: true }));
       else if (c) ws.send(JSON.stringify({ type: 'hello', ...c }));
       else if (S.pendingJoin) { ws.send(JSON.stringify({ type: 'hello', join: S.pendingJoin, hostKey: store.get(`${KEY}.host.${code}`) || undefined })); S.pendingJoin = null; }
@@ -650,12 +652,14 @@ function wsTransport(code, asScreen) {
       else if (m.type === 'closed') { closed = true; store.del(`${KEY}.player.${code}`); store.del(`${KEY}.host.${code}`); S.ended = true; S.view = null; render(); }
       else if (m.type === 'fatal') { if (m.clear) { store.del(`${KEY}.player.${code}`); S.view = null; toast(m.error); render(); } else { closed = true; S.fatal = /expired/i.test(m.error) ? FATAL.gone : FATAL.closed; render(); } }
     };
-    ws.onclose = () => { if (closed) return; S.conn = false; if (!longTimer) longTimer = setTimeout(() => { if (!S.conn && !closed) { S.connLong = true; render(); } }, 20000); render(); timer = setTimeout(open, Math.round(Math.min(8000, 400 * 2 ** tries++) * (0.75 + Math.random() * 0.5))); }; // +/-25% jitter so a room's phones don't all reconnect in lockstep
+    ws.onclose = () => { if (closed || s !== ws) return; S.conn = false; if (!longTimer) longTimer = setTimeout(() => { if (!S.conn && !closed) { S.connLong = true; render(); } }, 20000); render(); timer = setTimeout(open, Math.round(Math.min(8000, 400 * 2 ** tries++) * (0.75 + Math.random() * 0.5))); }; // +/-25% jitter so a room's phones don't all reconnect in lockstep
   };
   open();
+  // Phone back (screen on, app switched back, signal back): reconnect now instead of waiting up to 8 s for the timer.
+  const stopWake = wakeReconnect({ getSocket: () => ws, isStopped: () => closed, reconnect: () => { clearTimeout(timer); tries = 0; open(); } });
   return {
     send: (a) => { if (ws?.readyState === 1) ws.send(JSON.stringify(a)); else toast('Couldn’t reach the room yet. Try again in a moment.'); },
-    close: () => { closed = true; clearTimeout(timer); clearTimeout(longTimer); ws?.close(); },
+    close: () => { closed = true; stopWake(); clearTimeout(timer); clearTimeout(longTimer); ws?.close(); },
   };
 }
 
