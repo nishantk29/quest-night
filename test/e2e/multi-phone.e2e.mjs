@@ -45,7 +45,7 @@ try {
   await checkPhones(L, all, 'lobby');
 
   // Start: every seat gets its secret role card.
-  // Setup is a 4-step carousel (Players, Preset, Seating, Deal): Next three times, then Deal roles.
+  // Setup is a 4-step carousel (Players, Preset, Seating, Deal): Next three times, then Deal N roles.
   for (let i = 1; i <= 3; i++) { await host.page.locator('.cs-btn').click({ timeout: 10000 }); await host.page.waitForSelector(`.cs[data-step="${i}"]`, { timeout: 5000 }); }
   await host.page.locator('[data-a="csDeal"]').click({ timeout: 10000 });
   // Every phone first sees "Roles in this game", then taps See my role.

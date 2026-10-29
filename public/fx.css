@@ -9,7 +9,7 @@
 .fx-p{position:absolute;display:block;width:10px;height:10px;opacity:0}
 .fx-p.spark{clip-path:polygon(50% 0,62% 38%,100% 50%,62% 62%,50% 100%,38% 62%,0 50%,38% 38%)}
 .fx-p.chip{width:8px;height:12px;border-radius:2px}
-.fx-stamp{position:absolute;left:50%;top:38%;padding:.1em .45em;border:.14em double currentColor;border-radius:.2em;font:800 clamp(2rem,9vw,4rem)/1 var(--font-display);letter-spacing:.08em;text-transform:uppercase;white-space:nowrap;opacity:0}
+.fx-stamp{position:absolute;left:50%;top:38%;padding:.1em .45em;border:.14em double currentColor;border-radius:var(--f-r-inset);font:800 clamp(2rem,9vw,4rem)/1 var(--font-display);letter-spacing:.08em;text-transform:uppercase;white-space:nowrap;opacity:0}
 .fx-stamp.is-red{color:#FFD6CF;background:rgba(168,49,43,.92)}
 .fx-glow{position:absolute;inset:0;opacity:0;background:radial-gradient(circle at 50% 40%,rgba(246,217,138,.42),rgba(228,185,78,.16) 40%,transparent 70%)}
 
@@ -26,7 +26,7 @@
 
 /* team votes: every tile flips together */
 .vtiles{display:grid;grid-template-columns:1fr 1fr;gap:var(--s3);perspective:900px}
-.vtile{position:relative;transform-style:preserve-3d;border-radius:20px}
+.vtile{position:relative;transform-style:preserve-3d;border-radius:var(--f-r-card)}
 .vt-face{display:grid;justify-items:center;align-content:center;gap:2px;min-height:112px;padding:var(--s3);border-radius:inherit;color:#F3EAD3;backface-visibility:hidden}
 .vt-face b{font:900 clamp(4rem,20vw,6.5rem)/1 var(--font-display);letter-spacing:-.04em;display:block}
 .vt-face small{font:800 var(--fs-md) var(--font-ui);letter-spacing:.12em;text-transform:uppercase}
@@ -46,7 +46,7 @@
 @keyframes qc-ico{from{opacity:0}to{opacity:1}}
 
 /* the Lantern */
-.lantern-glow{position:absolute;inset:-20px;border-radius:50%;pointer-events:none;background:radial-gradient(circle,rgba(246,217,138,.9),rgba(228,185,78,.35) 45%,transparent 70%);animation:lg calc(400ms * var(--dur-scale)) var(--ease-out) both;will-change:transform,opacity}
+.lantern-glow{position:absolute;inset:-20px;border-radius:var(--f-r-round);pointer-events:none;background:radial-gradient(circle,rgba(246,217,138,.9),rgba(228,185,78,.35) 45%,transparent 70%);animation:lg calc(400ms * var(--dur-scale)) var(--ease-out) both;will-change:transform,opacity}
 .servant-lantern.is-glow .ico{animation:lg-icon calc(400ms * var(--dur-scale)) var(--ease-out) both}
 @keyframes lg{0%{transform:scale(.3);opacity:0}25%{opacity:1}100%{transform:scale(1.9);opacity:0}}
 @keyframes lg-icon{0%{transform:scale(1)}40%{transform:scale(1.3)}100%{transform:scale(1)}}
@@ -56,22 +56,22 @@
 [data-roll]{display:inline-block}
 
 /* ---------------------------------------------------------------- Liquid Glass */
-.glass{position:relative;isolation:isolate;overflow:clip;border:1px solid rgba(255,255,255,.24);background:var(--glass-tint);border-radius:var(--r-panel);padding:var(--s4);box-shadow:var(--lift-2)}
+.glass{position:relative;isolation:isolate;overflow:clip;border:1px solid rgba(255,255,255,.24);background:var(--glass-tint);border-radius:var(--f-r-card);padding:var(--s4);box-shadow:var(--lift-2)}
 
 /* ---------------------------------------------------------------- the victory card */
 .fx-victory{position:absolute;inset:0;display:grid;place-items:center;padding:16px;background:rgba(6,11,20,.6)}
 .fx-victory.a-good{--glass-tint:rgb(30,60,110);--team:#8EBAF3}
 .fx-victory.a-evil{--glass-tint:rgb(98,26,36);--team:#F46E62}
 .vc-wrap{pointer-events:auto;width:min(100%,420px)}
-.vc-tilt{display:grid;justify-items:center;gap:var(--s3);padding:var(--s5) var(--s4) var(--s4);border-radius:var(--r-card);text-align:center;max-height:calc(100dvh - 32px);overflow:auto;
+.vc-tilt{display:grid;justify-items:center;gap:var(--s3);padding:var(--s5) var(--s4) var(--s4);border-radius:var(--f-r-sheet);text-align:center;max-height:calc(100dvh - 32px);overflow:auto;
   box-shadow:inset 0 1px 0 rgba(255,255,255,.4),inset 0 0 0 1px rgba(255,255,255,.08),0 2px 0 rgba(0,0,0,.4),0 8px 0 -2px rgba(0,0,0,.25),0 24px 40px -14px rgba(0,0,0,.75),0 50px 80px -40px rgba(0,0,0,.8)}
 .vc-crest{color:#F6D98A}
 .vc-crest .ico{width:88px;height:88px;filter:drop-shadow(0 4px 0 rgba(0,0,0,.35))}
 .vc-tilt h2{font:800 clamp(2rem,9vw,2.75rem)/1.05 var(--font-display);color:#F6D98A;}
 .vc-text{color:#F3EAD3;font:500 var(--fs-md)/1.35 var(--font-ui)}
-.vc-status{padding:.15em .8em;border-radius:999px;background:#E4B94E;color:#0C1626;font:800 var(--fs-xl)/1.2 var(--font-display);}
+.vc-status{padding:.15em .8em;border-radius:var(--f-r-pill);background:#E4B94E;color:#0C1626;font:800 var(--fs-xl)/1.2 var(--font-display);}
 .vc-roles{list-style:none;display:grid;grid-template-columns:1fr 1fr;gap:6px;width:100%;max-height:30dvh;overflow:auto;padding:0;margin:0;text-align:left}
-.vc-roles li{display:flex;align-items:center;gap:8px;padding:6px 10px;border-radius:14px;background:rgba(8,14,26,.55);border:1px solid var(--divider)}
+.vc-roles li{display:flex;align-items:center;gap:8px;padding:6px 10px;border-radius:var(--f-r-field);background:rgba(8,14,26,.55);border:1px solid var(--divider)}
 .vc-roles li.a-good{border-color:#8EBAF3} .vc-roles li.a-evil{border-color:#F46E62}
 .vc-roles .ico{width:24px;height:24px;flex:none;color:#F3EAD3}
 .vc-roles span{display:grid;line-height:1.15;min-width:0} .vc-roles b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#F3EAD3} .vc-roles small{color:#C9D2E0}

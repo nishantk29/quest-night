@@ -7,7 +7,7 @@
 .side-tag.a-hidden{background:#3A3A4C;color:#fff}
 .rcard.is-hidden .rcard-face{opacity:.6}
 .rcard.is-hidden .rcard-inner{position:relative}
-.reveal-cue{grid-area:1 / 1;align-self:center;justify-self:center;z-index:2;padding:var(--s3) var(--s5);border-radius:999px;background:#fff;color:var(--on-brass);font-weight:900;letter-spacing:-.01em;pointer-events:none}
+.reveal-cue{grid-area:1 / 1;align-self:center;justify-self:center;z-index:2;padding:var(--s3) var(--s5);border-radius:var(--f-r-pill);background:#fff;color:var(--on-brass);font-weight:900;letter-spacing:-.01em;pointer-events:none}
 .rcard.is-unveil .rcard-face{animation:qn-unveil var(--t-open) var(--ease-out) both} /* class set for the press that showed the card only */
 @keyframes qn-unveil{from{opacity:.2;transform:scale(.985)}to{opacity:1;transform:none}}
 .sees-box{width:min(100%,360px);min-height:15.5rem;display:grid;align-content:start;gap:var(--s2)}
@@ -21,13 +21,13 @@
 .choice-pair .choice[aria-disabled]{opacity:1}
 
 /* ---- QR on the host lobby */
-.qr-tap{all:unset;box-sizing:border-box;display:grid;justify-items:center;gap:var(--s2);margin:var(--s3) 0;cursor:pointer;color:var(--smoke);font-weight:700;font-size:var(--fs-sm);border-radius:var(--r-block)}
+.qr-tap{all:unset;box-sizing:border-box;display:grid;justify-items:center;gap:var(--s2);margin:var(--s3) 0;cursor:pointer;color:var(--smoke);font-weight:700;font-size:var(--fs-sm);border-radius:var(--f-r-card)}
 .qr-tap:focus-visible{outline:3px solid var(--focus);outline-offset:4px}
-.qr-tap .qr{width:min(100%,200px);height:auto;border-radius:var(--r-row);display:block}
+.qr-tap .qr{width:min(100%,200px);height:auto;border-radius:var(--f-r-card);display:block}
 .qr-full{position:fixed;inset:0;z-index:200;display:grid;place-items:center;padding:max(var(--s5),env(safe-area-inset-top)) var(--gutter-r) max(var(--s5),env(safe-area-inset-bottom)) var(--gutter-l);background:#0B0B0D;overflow:auto;animation:qn-fade var(--t-open) var(--ease-out) both}
 @keyframes qn-fade{from{opacity:0}to{opacity:1}}
 .qr-card{display:grid;justify-items:center;gap:var(--s4);text-align:center;width:min(100%,520px)}
-.qr-card .qr{width:min(100%,70vmin,420px);height:auto;border-radius:var(--r-block)}
+.qr-card .qr{width:min(100%,70vmin,420px);height:auto;border-radius:var(--f-r-card)}
 .qr-card .room-code{margin:0}
 
 /* ---- View Transitions: screen and step changes, plus two morphs (seal, role card) */

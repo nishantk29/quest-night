@@ -132,7 +132,7 @@ function victory(o) {
       <div class="vc-crest">${o.crest}</div>
       <h2 id="vc-title"></h2><p class="vc-text"></p>${o.status ? `<p class="vc-status"></p>` : ''}
       <ul class="vc-roles"></ul>
-      <div class="vc-btns">${o.onRestart ? '<button type="button" class="btn big" data-vc="restart">Restart</button>' : ''}${o.onAgain ? `<button type="button" class="btn ${o.onRestart ? 'ghost' : 'big'}" data-vc="again">${o.onRestart ? 'Change setup first' : 'Play again'}</button>` : ''}<button type="button" class="btn ${o.onAgain || o.onRestart ? 'ghost' : 'big'}" data-vc="close">Close</button></div></div></div>`;
+      <div class="vc-btns">${o.onRestart ? '<button type="button" class="btn big" data-vc="restart">Play again</button>' : ''}${o.onAgain ? `<button type="button" class="btn ${o.onRestart ? 'ghost' : 'big'}" data-vc="again">${o.onRestart ? 'Change setup first' : 'Play again'}</button>` : ''}<button type="button" class="btn ${o.onAgain || o.onRestart ? 'ghost' : 'big'}" data-vc="close">Close</button></div></div></div>`;
   el.querySelector('#vc-title').textContent = o.title; el.querySelector('.vc-text').textContent = o.text;
   if (o.status) el.querySelector('.vc-status').textContent = o.status;
   const ul = el.querySelector('.vc-roles');

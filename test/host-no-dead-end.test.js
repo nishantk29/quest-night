@@ -121,7 +121,7 @@ function playGame(g) {
         const yes = shuffled(rng, ids).slice(0, 1 + Math.floor(rng() * ids.length));
         for (const id of yes) { ui.tally[id] = true; }
         const n2 = hostNav(viewForPlayer(room, hostId), ui);
-        assert.equal(n2.disabled, false); assert.match(n2.label, new RegExp(`^Confirm: ${yes.length} Approve, ${ids.length - yes.length} Reject$`));
+        assert.equal(n2.disabled, false); assert.match(n2.label, new RegExp(`^Record: ${yes.length} Approve, ${ids.length - yes.length} Reject$`));
         continue;
       }
       assert.equal(nav.missing, 'votes'); assert.match(nav.label, /^Waiting for \d+ votes?$/);
@@ -137,7 +137,7 @@ function playGame(g) {
         if (useSkipNow()) { assert.equal(nav.skip.label, '0 Sabotage'); useSkip(nav, 'fails'); continue; }
         ui.fails = Math.floor(rng() * (gm.team.length + 1));
         const n2 = hostNav(viewForPlayer(room, hostId), ui);
-        assert.equal(n2.disabled, false); assert.equal(n2.label, `Confirm: ${ui.fails} sabotage`);
+        assert.equal(n2.disabled, false); assert.equal(n2.label, `Record: ${ui.fails} sabotage`);
         continue;
       }
       assert.equal(nav.missing, 'cards'); assert.match(nav.label, /^Waiting for \d+ cards?$/);
@@ -184,7 +184,7 @@ function playGame(g) {
     assert.equal(nav.missing, 'hit'); assert.match(nav.label, /^Say if .* was Merlin$/);
     ui.hit = rng() < 0.5;
     const n2 = hostNav(viewForPlayer(room, hostId), ui);
-    assert.equal(n2.disabled, false); assert.match(n2.label, /^Confirm: /);
+    assert.equal(n2.disabled, false); assert.match(n2.label, /^Record: /);
   }
   assert.equal(room.phase, 'over', `game ${g} v${version} never ended in ${STEP_BOUND} steps (phase ${room.phase})`);
   stats.finished++;
@@ -208,7 +208,7 @@ test('host flow never dead-ends: steps with nothing to choose are enabled right 
   const view = viewForPlayer(c.room, c.H.playerId);
   assert.equal(view.phase, 'reveal');
   const nav = hostNav(view, {});
-  assert.equal(nav.disabled, false); assert.equal(nav.label, 'Start First Party'); assert.deepEqual(nav.send, { type: 'skipReveal' });
+  assert.equal(nav.disabled, false); assert.equal(nav.label, 'Start the first quest'); assert.deepEqual(nav.send, { type: 'skipReveal' });
   assert.equal(hostNav({ ...view, phase: 'lobby' }, {}), null);
   assert.equal(hostNav({ ...view, kind: 'screen' }, {}), null);
 });
