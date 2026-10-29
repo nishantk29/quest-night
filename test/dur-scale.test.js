@@ -52,5 +52,5 @@ test('JS animation timings go through dur()', () => {
     for (const m of src.matchAll(/(?:transition|animation)[\w-]*\s*:[^;'"`}]*/g)) assert.doesNotMatch(m[0], TIME, `${f}: ${m[0]}`);
     for (const m of src.matchAll(/duration:\s*([^,}]+)/g)) assert.match(m[1], /dur\(/, `${f}: duration ${m[1]}`);
   }
-  assert.match(html, /duration:450\*sc/);
+  assert.doesNotMatch(html, /duration:\d/); // the old 450 ms hub FLIP is gone (test/hub-arrival.test.js)
 });
