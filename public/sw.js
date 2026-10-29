@@ -53,8 +53,6 @@ const PRECACHE = [
   '/motion.css',
   '/print.css',
   '/print.html',
-  '/print/quest-night-card-guide.pdf',
-  '/print/quest-night-cards.pdf',
   '/pwa-install.js',
   '/redesign.css',
   '/styles.css',
