@@ -1,6 +1,5 @@
 @font-face{font-family:"Cinzel";font-weight:800;src:url(/fonts/cinzel-800.woff2) format("woff2")}
 @font-face{font-family:"Cinzel";font-weight:600;src:url(/fonts/cinzel-600.woff2) format("woff2")}
-@font-face{font-family:"Cinzel Decorative";font-weight:700;src:url(/fonts/cinzel-decorative-700.woff2) format("woff2")}
 @font-face{font-family:"Alegreya Sans";font-weight:400;src:url(/fonts/alegreya-sans-400.woff2) format("woff2")}
 @font-face{font-family:"Alegreya Sans";font-weight:700;src:url(/fonts/alegreya-sans-700.woff2) format("woff2")}
 @font-face{font-family:"Alegreya";font-style:italic;font-weight:400 900;src:url(/fonts/alegreya-italic-var.woff2) format("woff2")}
@@ -12,7 +11,7 @@ body{margin:0;font:400 11pt/1.4 "Alegreya Sans",sans-serif;color:#17202F;backgro
 @media print{.noprint{display:none}}
 .sheet{max-width:190mm;margin:0 auto;padding:4mm 0}
 .sheet.cardpage{padding:0}
-h1{font:700 26pt/1.1 "Cinzel Decorative",serif;margin:0 0 2mm;color:#0C1626}
+h1{font:800 26pt/1.1 "Cinzel",serif;margin:0 0 2mm;color:#0C1626}
 h2{font:800 14pt/1.2 Cinzel,serif;margin:6mm 0 2mm;color:#0C1626;border-bottom:1.5pt solid #B78F2E;padding-bottom:1mm}
 h3{font:800 11pt Cinzel,serif;margin:3mm 0 1mm}
 p,li{margin:0 0 1.5mm}

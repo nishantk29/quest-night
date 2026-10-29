@@ -128,7 +128,7 @@ const HUB_LOGO = '<svg viewBox="0 0 48 48"><rect x="7" y="7" width="15" height="
 // One footer for every page: the game links, then the licences tucked behind "Credits".
 function siteFooter() {
   return `<footer class="site-foot"><nav aria-label="Game Night games"><a href="${HUB}">All Games</a><a href="https://mafia.hatethespurs.com">Mafia Night</a><a href="https://secrethitler.hatethespurs.com">The Gilded Chamber</a><a href="https://avalon.hatethespurs.com" aria-current="page">Quest Night</a></nav>
-    <details class="credits-box"><summary>Credits</summary><p>Crown, chalice, lantern and crest icons drawn for Quest Night. Role icons from <a href="https://game-icons.net" target="_blank" rel="noopener">game-icons.net</a> by Lorc, Delapouite and contributors (CC BY 3.0). Interface icons from <a href="https://phosphoricons.com" target="_blank" rel="noopener">Phosphor</a> (MIT). Fonts Rubik, Cinzel and Cinzel Decorative (SIL OFL 1.1).</p></details></footer>`;
+    <details class="credits-box"><summary>Credits</summary><p>Crown, chalice, lantern and crest icons drawn for Quest Night. Role icons from <a href="https://game-icons.net" target="_blank" rel="noopener">game-icons.net</a> by Lorc, Delapouite and contributors (CC BY 3.0). Interface icons from <a href="https://phosphoricons.com" target="_blank" rel="noopener">Phosphor</a> (MIT). Fonts Rubik and Cinzel (SIL OFL 1.1).</p></details></footer>`;
 }
 const CHEV_L = '<svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>';
 const CHEV = '<svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg>';
