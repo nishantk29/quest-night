@@ -57,10 +57,10 @@ test('embedded ASSETS serves the 404 page for a missing file', () => {
 });
 test('wrangler serves the 404 page for unknown assets', () => assert.match(fs.readFileSync(new URL('../wrangler.jsonc', import.meta.url), 'utf8'), /"not_found_handling": "404-page"/));
 test('public/404.html is in sync with the template', () => assert.equal(fs.readFileSync(new URL('../public/404.html', import.meta.url), 'utf8'), errorPage({ status: 404 })));
-test('404 copy: shadows title, sentence-case Rubik title class', () => {
+test('404 copy: plain title, sentence-case Rubik title class', () => {
   const h = errorPage({ status: 404 });
-  assert.match(h, /<title>This page slipped into the shadows · Quest Night<\/title>/);
-  assert.match(h, /<h1 class="err-title">This page slipped into the shadows<\/h1>/);
+  assert.match(h, /<title>Page not found \| Quest Night<\/title>/);
+  assert.match(h, /<h1 class="err-title">Page not found<\/h1>/);
   assert.match(h, /The page you wanted isn’t here\. Head back to the games\./);
   const css = fs.readFileSync(new URL('../public/redesign.css', import.meta.url), 'utf8');
   assert.match(css, /\.err-title\{font-family:var\(--display-serif\);[^}]*text-transform:none/);

@@ -38,7 +38,7 @@ export const FAQ_COVERS = {
 export const FAQ_GAME = { roles: Object.keys(ROLES), settings: OPTIONAL, house: Object.keys({ ...COMMON_HOUSE, ...HOUSE_DEFAULTS }), modes: ['phone', 'hybrid', ...Object.keys(MODE_PRESETS).filter((k) => k !== 'phone')] };
 
 export const FAQ = [
-  ['How to Play', [
+  ['How to play', [
     ['What happens on a tied vote?', `<p>A tie is a rejection. A party goes only on a <b>strict majority</b> of everyone at the table (${MAJORITY_TEXT}).</p>`],
     [`What happens after ${WORD[MAX_REJECTS]} rejected parties?`, `<p>${WORD[MAX_REJECTS][0].toUpperCase() + WORD[MAX_REJECTS].slice(1)} rejected parties <b>in a row on the same quest</b> and the Minions of Mordred win at once. The count resets after every quest that goes out, whatever its result. The last allowed party is marked on the board and in the Host script.</p>`],
     ['Can the leader put themselves on the party?', '<p>Yes. The leader picks any players, including themselves.</p>'],

@@ -7,6 +7,8 @@ export const BANNED = [
   /\bnavigat(e|ing) the\b/i, /\bharness(es|ing)? the\b/i, /\bmeticulous/i, /\bcutting[- ]edge\b/i,
   /\bbuckle up\b/i, /\bthrilling\b/i, /\bep(ic|ically)\b/i, /\bultimate\b/i, /\brealm\b/i,
   /\bit['’]?s worth noting\b/i, /\bfurthermore\b/i, /\bmoreover\b/i, /\bdive (in|into)\b/i,
+  // From LangChain design-agent examples/brands/example-studio/voice.md ("Words we avoid"), 2026-10-29:
+  /\brevolution(ize|izes|ized|izing|ary)\b/i, /\bnext[- ]level\b/i, /\bsynerg(y|ies|istic)\b/i,
 ];
 // Heuristics: more than one em dash in a sentence; three comma-separated adjectives before a noun is reviewed by hand.
 export function lintCopy(text) {
