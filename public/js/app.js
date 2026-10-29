@@ -209,7 +209,7 @@ function appbar(v) {
   const [label, icon] = PHASE[v.phase] || ['', 'crown'];
   return `<header class="appbar"><a class="appbar-mark" href="#/" aria-label="Home">${art('crown')}</a>
     <div class="appbar-title"><span class="appbar-word">Table</span> <span class="code">${esc(v.code)}</span></div>
-    ${T.timerChip(v)}${rolesBtn()}<span class="phase-badge">${art(icon)}${label}</span></header>`;
+    ${T.timerChip(v)}${rolesBtn()}<span class="phase-badge">${art(icon)}<span class="pb-t">${label}</span></span></header>`;
 }
 
 const nameOf = (v, id) => v.players.find((p) => p.id === id)?.name || '?';
@@ -623,7 +623,7 @@ function hostPane(v) {
 // ---------------------------------------------------------------- shared table screen (TV / laptop)
 function tableScreen(v) {
   const g = v.game;
-  const head = `<header class="appbar"><span class="appbar-mark">${art('crown')}</span><div class="appbar-title">Quest Night · <span class="code">${esc(v.code)}</span></div>${T.timerChip(v)}${rolesBtn()}<span class="phase-badge">${art(PHASE[v.phase]?.[1] || 'crown')}${PHASE[v.phase]?.[0] || ''}</span></header>`;
+  const head = `<header class="appbar"><span class="appbar-mark">${art('crown')}</span><div class="appbar-title">Quest Night · <span class="code">${esc(v.code)}</span></div>${T.timerChip(v)}${rolesBtn()}<span class="phase-badge">${art(PHASE[v.phase]?.[1] || 'crown')}<span class="pb-t">${PHASE[v.phase]?.[0] || ''}</span></span></header>`;
   if (!g) return `${head}<main class="wrap screen-lobby"><h1 class="phase-title">Join at ${esc(location.host)}</h1><p class="room-code">${esc(v.code)}</p><p class="say">${v.players.filter((p) => !p.watch).map((p) => esc(p.name)).join(' · ') || 'Nobody yet.'}</p></main>`;
   const lines = phaseScript(v).slice(0, 2);
   return `${head}<div class="layout is-screen"><main class="col col-main wrap game">${track(v)}${roundTable({ ...v, me: null })}${v.phase === 'over' ? over(v) : `<section class="stage"><p class="say">${esc(lines.join(' '))}</p></section>`}${lastReveals(v)}</main>
