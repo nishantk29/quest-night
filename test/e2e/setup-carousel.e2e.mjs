@@ -45,9 +45,12 @@ try {
   for (const nm of NAMES) {
     const p = await phone(browser, srv.base, nm, 'p390');
     await p.goto(`/#/play/${code}`);
-    await p.page.fill('[data-i="joinName"]', nm);
-    await p.page.click('[data-a="join"]');
-    await p.page.waitForSelector('.layout');
+    // Live rooms: the socket may still be opening, so retry the join until the lobby shows (max 4 tries).
+    for (let t = 0; t < 4; t++) {
+      await p.page.fill('[data-i="joinName"]', nm).catch(() => {});
+      await p.page.click('[data-a="join"]', { timeout: 3000 }).catch(() => {});
+      if (await p.page.waitForSelector('.layout', { timeout: 5000 }).then(() => true, () => false)) break;
+    }
     phones.push(p);
   }
   await hp.waitForFunction(() => document.querySelectorAll('.cs-chip').length === 5);
