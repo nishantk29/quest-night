@@ -19,7 +19,7 @@ sync();
 const MAX_PARTS = 20;
 const marks = new Map();
 let layer;
-export const dur = (ms) => ms * (parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--dur-scale')) || 1);
+export const dur = (ms) => ms; // JS motion timings; the gate checks each stays within 400ms
 const raf = (f) => requestAnimationFrame(f);
 const $layer = () => layer || (layer = Object.assign(document.body.appendChild(document.createElement('div')), { id: 'fx' }));
 

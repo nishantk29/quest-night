@@ -181,3 +181,65 @@ export function pressProblems(sources, { rowSelectors = [] } = {}) {
   if (!pressRule) bad.push('no :active rule applies transition-duration:var(--f-press)');
   return bad;
 }
+
+// --- 2026-10-29 spec additions: no --dur-scale, play once (no loops), transform and opacity only ---
+const COMPOSITOR = /^(transform|opacity|translate|scale|rotate|offset[\w-]*|animation-timing-function|visibility|display|overlay|--[\w-]+)$/;
+
+// Every file under public/ and src/ (including sw.js and pwa-install.js) that still mentions --dur-scale.
+export function durScaleUses(repo) {
+  const bad = [];
+  (function walk(d) {
+    if (!fs.existsSync(d)) return;
+    for (const f of fs.readdirSync(d)) {
+      const p = path.join(d, f);
+      if (fs.statSync(p).isDirectory()) { if (!/^(fonts|icons|print|art|node_modules)$/.test(f)) walk(p); }
+      else if (/\.(css|html|js|mjs)$/.test(f)) {
+        const s = fs.readFileSync(p, 'utf8');
+        for (const m of s.matchAll(/--dur-scale/g)) bad.push(`${path.relative(repo, p)}:${s.slice(0, m.index).split('\n').length}`);
+      }
+    }
+  })(path.join(repo, 'public'));
+  for (const sub of ['src']) {
+    const d = path.join(repo, sub); if (!fs.existsSync(d)) continue;
+    for (const f of fs.readdirSync(d)) if (/\.(js|mjs)$/.test(f)) { const s = fs.readFileSync(path.join(d, f), 'utf8'); if (s.includes('--dur-scale')) bad.push(`${sub}/${f}`); }
+  }
+  return bad;
+}
+
+// Any looping animation: CSS infinite / iteration-count above 1, or JS iterations above 1 / Infinity.
+export function loops(sources, pub) {
+  const bad = [];
+  for (const { file, css } of sources) {
+    for (const m of css.matchAll(/(?<![\w-])animation(-iteration-count)?\s*:([^;{}]*)/g)) {
+      if (/\binfinite\b/.test(m[2])) bad.push(`${file}: animation${m[1] || ''}:${m[2].trim()}`);
+      else if (m[1]) { const n = parseFloat(m[2]); if (!(n <= 1)) bad.push(`${file}: animation-iteration-count:${m[2].trim()}`); }
+    }
+  }
+  for (const f of listFiles(pub).filter((x) => /\.(js|html)$/.test(x))) {
+    const s = fs.readFileSync(f, 'utf8');
+    for (const m of s.matchAll(/iterations\s*:\s*([\w.]+)/g)) if (!(+m[1] <= 1)) bad.push(`${path.relative(pub, f)}: iterations: ${m[1]}`);
+    for (const m of s.matchAll(/animationIterationCount\s*=\s*['"]?([\w.]+)/g)) if (!(+m[1] <= 1)) bad.push(`${path.relative(pub, f)}: animationIterationCount = ${m[1]}`);
+  }
+  return bad;
+}
+
+// Keyframes and transitions animate transform and opacity only (colour and shadow changes land instantly).
+export function nonCompositor(sources) {
+  const bad = [];
+  for (const { file, css } of sources) {
+    for (const m of css.matchAll(/@keyframes\s+([\w-]+)\s*\{((?:[^{}]*\{[^{}]*\})*)\s*\}/g)) {
+      const props = [...new Set([...m[2].matchAll(/([\w-]+)\s*:/g)].map((x) => x[1]))].filter((p) => !COMPOSITOR.test(p));
+      if (props.length) bad.push(`${file}: @keyframes ${m[1]} animates ${props.join(', ')}`);
+    }
+    for (const m of css.matchAll(/(?<![\w-])transition(-property)?\s*:([^;{}]*)/g)) {
+      if (SKIP_CTX.test(ctxAt(css, m.index))) continue;
+      for (const layer of splitTop(m[2], ',')) {
+        const p = layer.trim().split(/\s+/)[0];
+        if (!p || /^(none|all\b)/.test(p) && p !== 'all') continue;
+        if (/^(-?\d|var\(|calc\(|\$\{)/.test(p) && !m[1]) continue;
+        if (p === 'all' || (!COMPOSITOR.test(p) && !/^(none|var\(|\$\{)/.test(p))) bad.push(`${file}: transition${m[1] || ''}: ${layer.trim()}`);
+      }
+    }
+  }
+  return bad;
+}

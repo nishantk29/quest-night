@@ -20,8 +20,8 @@ test('no infinite or repeating animation anywhere (CSS, inline styles, JS)', () 
 const keyframes = (name) => strip(rd('redesign.css')).match(new RegExp(`@keyframes ${name}\\{((?:[^{}]|\\{[^{}]*\\})*)\\}`))[1];
 const decl = (sel) => strip(rd('redesign.css')).match(new RegExp(`(?:^|[}\\n])${sel.replace(/[.]/g, '\\.')}\\{([^}]*)\\}`))[1];
 test('the sky twinkles once in 400ms; the flag and pennant hold their resting pose (400ms budget, 2026-10-29)', () => {
-  assert.match(decl('.bg-stars'), /animation:qn-twinkle calc\(400ms \* var\(--dur-scale\)\) var\(--qn-ease\) 1 both/);
-  assert.match(decl('.bg-win'), /animation:qn-twinkle calc\(400ms \* var\(--dur-scale\)\) ease-in-out 1 both/);
+  assert.match(decl('.bg-stars'), /animation:qn-twinkle 400ms var\(--qn-ease\) 1 both/);
+  assert.match(decl('.bg-win'), /animation:qn-twinkle 400ms ease-in-out 1 both/);
   assert.match(decl('.flag-cloth'), /animation:none\b/);
   assert.match(decl('.pennant'), /animation:none\b/);
 });

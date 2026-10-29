@@ -38,16 +38,16 @@
 /* quest cards: shuffle in a stack, then pop out one by one, face up */
 .qcards{--w:56px;--gap:8px;perspective:900px}
 .qcards .flip{position:relative;--off:calc(((var(--n) - 1) / 2 - var(--i)) * (var(--w) + var(--gap)))}
-.qcards.fx-q .flip{animation:qc-pop calc(300ms * var(--dur-scale)) var(--ease-out) calc(var(--i) * var(--step)) both}
-.qcards.fx-q .flip::after{content:"";position:absolute;inset:0;border-radius:inherit;background:repeating-linear-gradient(45deg,rgba(228,185,78,.2) 0 1px,transparent 1px 7px),#13213A;box-shadow:inset 0 0 0 2px rgba(228,185,78,.7);animation:qc-back calc(2ms * var(--dur-scale)) linear calc(var(--i) * var(--step) + calc(150ms * var(--dur-scale))) both}
-.qcards.fx-q .flip .ico{animation:qc-ico calc(2ms * var(--dur-scale)) linear calc(var(--i) * var(--step) + calc(150ms * var(--dur-scale))) both}
+.qcards.fx-q .flip{animation:qc-pop 300ms var(--ease-out) calc(var(--i) * var(--step)) both}
+.qcards.fx-q .flip::after{content:"";position:absolute;inset:0;border-radius:inherit;background:repeating-linear-gradient(45deg,rgba(228,185,78,.2) 0 1px,transparent 1px 7px),#13213A;box-shadow:inset 0 0 0 2px rgba(228,185,78,.7);animation:qc-back 2ms linear calc(var(--i) * var(--step) + 150ms) both}
+.qcards.fx-q .flip .ico{animation:qc-ico 2ms linear calc(var(--i) * var(--step) + 150ms) both}
 @keyframes qc-pop{from{transform:translateY(8px) rotateY(180deg)}to{transform:none}}
 @keyframes qc-back{from{opacity:1}to{opacity:0}}
 @keyframes qc-ico{from{opacity:0}to{opacity:1}}
 
 /* the Lantern */
-.lantern-glow{position:absolute;inset:-20px;border-radius:50%;pointer-events:none;background:radial-gradient(circle,rgba(246,217,138,.9),rgba(228,185,78,.35) 45%,transparent 70%);animation:lg calc(400ms * var(--dur-scale)) var(--ease-out) both;will-change:transform,opacity}
-.servant-lantern.is-glow .ico{animation:lg-icon calc(400ms * var(--dur-scale)) var(--ease-out) both}
+.lantern-glow{position:absolute;inset:-20px;border-radius:50%;pointer-events:none;background:radial-gradient(circle,rgba(246,217,138,.9),rgba(228,185,78,.35) 45%,transparent 70%);animation:lg 400ms var(--ease-out) both;will-change:transform,opacity}
+.servant-lantern.is-glow .ico{animation:lg-icon 400ms var(--ease-out) both}
 @keyframes lg{0%{transform:scale(.3);opacity:0}25%{opacity:1}100%{transform:scale(1.9);opacity:0}}
 @keyframes lg-icon{0%{transform:scale(1)}40%{transform:scale(1.3)}100%{transform:scale(1)}}
 
@@ -79,7 +79,7 @@
 .vc-btns .btn.ghost{background:rgba(8,14,26,.45);border-color:rgba(255,255,255,.4);color:#F3EAD3}
 .vc-btns .btn.big{min-height:56px}
 .is-fx .vc-wrap{animation:vc-in var(--t-reveal) var(--ease-out) both;will-change:transform,opacity}
-.is-fx .vc-roles li{animation:vc-chip calc(280ms * var(--dur-scale)) var(--ease-out) calc((40ms + var(--i) * 10ms) * var(--dur-scale)) both;will-change:transform,opacity}
+.is-fx .vc-roles li{animation:vc-chip 280ms var(--ease-out) calc((40ms + var(--i) * 10ms)) both;will-change:transform,opacity}
 @keyframes vc-in{from{transform:translateY(24px) scale(.96);opacity:0}to{transform:none;opacity:1}}
 @keyframes vc-chip{from{transform:translateY(6px);opacity:0}to{transform:none;opacity:1}}
 

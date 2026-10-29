@@ -7,8 +7,8 @@ const pub = new URL('../public/', import.meta.url);
 const read = (f) => fs.readFileSync(new URL(f, pub), 'utf8');
 const CSS = fs.readdirSync(pub).filter((f) => f.endsWith('.css') && f !== 'print.css');
 
-test('entrance timing is --t-enter: 180ms (x --dur-scale 1)', () => {
-  assert.match(read('styles.css'), /--t-enter:calc\(180ms \* var\(--dur-scale\)\)/);
+test('entrance timing is --t-enter: 180ms (as written; no scale knob)', () => {
+  assert.match(read('styles.css'), /--t-enter:180ms/);
   assert.match(read('redesign.css'), /::view-transition-new\(step\)\{animation:\w+-step-in var\(--t-enter\)/);
   assert.match(read('redesign.css'), /\.boot [^{]*\{animation:\w+-rise var\(--t-enter\)/);
 });
