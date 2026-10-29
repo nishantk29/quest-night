@@ -172,14 +172,14 @@ h1,h2,.phase-title,.block-title,.path-title,.sheet-title{font-family:var(--displ
 @media (prefers-reduced-motion:reduce){.pennant{animation:none!important}}
 .fx-off .pennant{animation:none!important}
 
-/* ---- hub handoff, game end: logo at the HANDOFF POSE on first paint (no JS needed), then FLIP into place */
-#hand{display:none}
+/* ---- arriving from the hub (game end of the handoff): ONE opacity fade of the page, 150ms base (300ms at --dur-scale 2).
+   Nothing moves: no logo overlay flying in from the handoff pose (Nishant, Oct 28: "That logo moving on game night is kinda
+   janky") and the first-load rise is skipped. html.hand is set by the inline <head> script, never under reduced motion, and
+   stays for the page's life, so nothing replays when html.boot goes. */
 .hand{background:#0B0B0D}
-.hand #hand{display:block;position:fixed;inset:0;z-index:500;pointer-events:none}
-.hand #hand-logo{position:absolute;left:calc(50% - 36px);top:calc(45% - 36px);transform:scale(1.5556)}
-.hand #app,.hand .bg-art{opacity:0}
-.hand-go #hand{background:none}
-@media (prefers-reduced-motion:reduce){#hand{display:none!important}.hand #app,.hand .bg-art{opacity:1}}
+.hand #app,.hand .bg-art{animation:qn-hub-fade calc(150ms * var(--dur-scale)) var(--qn-ease) both}
+.hand.boot .home-hero > *,.hand.boot .home-paths > *,.hand.boot .more-games{animation:none}
+@keyframes qn-hub-fade{from{opacity:0}to{opacity:1}}
 
 /* ---- error screens: one layout for 404, bad code, ended rooms, crashes and long disconnects */
 .err-actions{display:grid;gap:var(--s3);width:100%;max-width:20rem;margin-top:var(--s3);justify-items:center}
