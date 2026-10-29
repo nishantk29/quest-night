@@ -63,7 +63,7 @@ h1,h2,.phase-title,.block-title,.path-title,.sheet-title{font-family:var(--displ
 .more-card:focus-visible{outline:3px solid var(--focus,#fff);outline-offset:3px}
 
 /* ---- footer: game links, then a quiet Credits expander */
-.site-foot{width:min(100%,46rem);margin-inline:auto;padding-inline:var(--gutter-l,16px);display:grid;gap:var(--s3);padding-block:var(--s5) var(--s6);margin-top:var(--s4);border-top:1px solid rgba(255,255,255,.12);max-width:100%}
+.site-foot{width:min(100%,46rem);margin-inline:auto;padding-inline:var(--gutter-l,16px);display:grid;gap:var(--s3);padding-block:var(--s5) var(--s6);margin-top:var(--s4);border-top:1px solid var(--divider);max-width:100%}
 .site-foot nav{display:flex;flex-wrap:wrap;gap:var(--s2) var(--s5)}
 .site-foot nav a{display:inline-flex;align-items:center;min-height:44px;color:#fff;font-weight:700;text-decoration:none}
 .site-foot nav a[aria-current]{color:var(--brass)}
@@ -141,17 +141,17 @@ h1,h2,.phase-title,.block-title,.path-title,.sheet-title{font-family:var(--displ
 @supports (view-transition-name:none){
   #app > main.wrap{view-transition-name:step}
   ::view-transition-old(root),::view-transition-new(root){animation:none;mix-blend-mode:normal}
-  ::view-transition-old(step){animation:qn-step-out calc(160ms * var(--dur-scale)) var(--qn-ease) both}
-  ::view-transition-new(step){animation:qn-step-in calc(380ms * var(--dur-scale)) var(--qn-ease) both}
+  ::view-transition-old(step){animation:qn-step-out calc(50ms * var(--dur-scale)) var(--qn-ease) both}
+  ::view-transition-new(step){animation:qn-step-in var(--t-enter) var(--qn-ease) both}
 }
-@keyframes qn-step-out{to{opacity:0;transform:translateX(-26px)}}
-@keyframes qn-step-in{from{opacity:0;transform:translateX(40px)}}
+@keyframes qn-step-out{to{opacity:0;transform:translateX(-8px)}}
+@keyframes qn-step-in{from{opacity:0;transform:translateX(16px)}}
 
 /* ---- first-load entrance on the home screen only (html.boot is removed 1.6s after load) */
-.boot .home-hero > *,.boot .home-paths > *,.boot .more-games{animation:qn-rise calc(640ms * var(--dur-scale)) var(--qn-ease) both}
-.boot .home-hero > :nth-child(2){animation-delay:calc(60ms * var(--dur-scale))}.boot .home-hero > :nth-child(3){animation-delay:calc(120ms * var(--dur-scale))}.boot .home-hero > :nth-child(4){animation-delay:calc(180ms * var(--dur-scale))}
-.boot .home-paths > :nth-child(1){animation-delay:calc(80ms * var(--dur-scale))}.boot .home-paths > :nth-child(2){animation-delay:calc(150ms * var(--dur-scale))}.boot .home-paths > :nth-child(3){animation-delay:calc(220ms * var(--dur-scale))}.boot .more-games{animation-delay:calc(300ms * var(--dur-scale))}
-@keyframes qn-rise{from{opacity:0;transform:translateY(18px)}}
+.boot .home-hero > *,.boot .home-paths > *,.boot .more-games{animation:qn-rise var(--t-enter) var(--qn-ease) both}
+.boot .home-hero > :nth-child(2){animation-delay:calc(15ms * var(--dur-scale))}.boot .home-hero > :nth-child(3){animation-delay:calc(30ms * var(--dur-scale))}.boot .home-hero > :nth-child(4){animation-delay:calc(45ms * var(--dur-scale))}
+.boot .home-paths > :nth-child(1){animation-delay:calc(20ms * var(--dur-scale))}.boot .home-paths > :nth-child(2){animation-delay:calc(37ms * var(--dur-scale))}.boot .home-paths > :nth-child(3){animation-delay:calc(55ms * var(--dur-scale))}.boot .more-games{animation-delay:calc(75ms * var(--dur-scale))}
+@keyframes qn-rise{from{opacity:0;transform:translateY(8px)}}
 
 /* ---- reduced motion and the Animations switch */
 @media (prefers-reduced-motion:reduce){
