@@ -6,7 +6,8 @@
     "dev": "wrangler dev",
     "test": "node --test test/*.test.js",
     "stamp": "node scripts/stamp-sw.mjs",
-    "deploy": "wrangler deploy"
+    "deploy": "wrangler deploy",
+    "e2e": "node test/e2e/multi-phone.e2e.mjs"
   },
   "devDependencies": {
     "wrangler": "^4"
