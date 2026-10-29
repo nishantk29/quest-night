@@ -83,7 +83,7 @@ function render() {
     for (const p of [vt.ready, vt.updateCallbackDone, vt.finished]) p.catch(() => {});
   } catch { clearTimeout(guard); once(); }
 }
-const TITLES = { home: 'Quest Night', rules: 'How to Play | Quest Night', faq: 'Rules & FAQ | Quest Night', screen: 'Table Screen | Quest Night' };
+const TITLES = { home: 'Quest Night', rules: 'How to play | Quest Night', faq: 'Rules & FAQ | Quest Night', screen: 'Table Screen | Quest Night' };
 function paint() {
   document.title = S.ended ? 'Game ended | Quest Night' : S.mode === 'play' && S.code ? `Table ${S.code} | Quest Night` : TITLES[S.mode] || 'Quest Night';
   const y = window.scrollY;
@@ -155,21 +155,20 @@ function home() {
     <div class="home-hero">
       <div class="home-brand"><span class="logo-mark" aria-hidden="true">${art('crown')}</span>
         <h1 class="wordmark"><span>Quest</span> <span>Night</span></h1><svg class="tower" viewBox="0 0 56 84" aria-hidden="true" focusable="false"><path d="M13 84V34h-3v-8h5v-4h4v4h4v-4h4v4h4v-4h4v4h4v8h-3v50z" fill="#1D1D68"/><path d="M19 84V58a6 6 0 0 1 12 0v26z" fill="#0B0B3A"/><rect x="21.5" y="38" width="4" height="9" rx="2" fill="#F6D98A"/><rect x="24.8" y="2" width="2.2" height="22" rx="1" fill="#B7A66C"/><path class="pennant" d="M27 3c8 3 13-3 22 1.5L44.5 11 49 18c-9-4-14 2-22-1z" fill="#E0AE52"/></svg></div>
-      <p class="tagline">A table of servants. A few minions.</p>
       <p class="lede">Pick a party for each quest, vote it through, and find out who sabotaged it. For 5–10 players. Play on phones, with real cards, or both.</p>
       <div class="home-art" aria-hidden="true">${seals}</div>
     </div>
     <div class="home-paths">
-      <section class="path"><h2 class="path-title">Host a Table</h2>
+      <section class="path"><h2 class="path-title">Host a table</h2>
         <p class="muted">You’re the Host. Play too, or sit out. Everyone else joins with a 6-letter room code.</p>
-        <label class="field"><span>Your Name</span><input data-i="hostName" maxlength="20" autocomplete="nickname" enterkeyhint="go" value="${esc(S.ui.draft.hostName || store.get(`${KEY}.name`) || '')}"></label>
+        <label class="field"><span>Your name</span><input data-i="hostName" maxlength="20" autocomplete="nickname" enterkeyhint="go" value="${esc(S.ui.draft.hostName || store.get(`${KEY}.name`) || '')}"></label>
         <button type="button" class="btn big" data-a="host">Open Table</button>
         ${mine.map((c) => `<p class="resume-row" data-room="${esc(c)}"><a class="resume" href="#/play/${esc(c)}">Back to table <b class="code">${esc(c)}</b></a><button type="button" class="resume-x" data-a="forgetRoom" data-v="${esc(c)}" aria-label="Forget table ${esc(c)} on this phone">${ui('x')}</button></p>`).join('')}</section>
-      <section class="path"><h2 class="path-title">Join a Table</h2>
-        <div class="join-row"><label class="field"><span>Room Code</span><input class="code-input" data-i="joinCode" maxlength="6" autocapitalize="characters" autocomplete="off" spellcheck="false" enterkeyhint="go" placeholder="6 letters" value="${esc(S.ui.draft.joinCode || '')}"></label>
+      <section class="path"><h2 class="path-title">Join a table</h2>
+        <div class="join-row"><label class="field"><span>Room code</span><input class="code-input" data-i="joinCode" maxlength="6" autocapitalize="characters" autocomplete="off" spellcheck="false" enterkeyhint="go" placeholder="6 letters" value="${esc(S.ui.draft.joinCode || '')}"></label>
         <button type="button" class="btn" data-a="goJoin">Join Table</button></div></section>
       <a class="side-card" href="#/faq"><span><b>Rules &amp; FAQ</b><small>Roles, table sizes, and what to do when it gets weird.</small></span>${CHEV}</a>
-      <section class="how-sec"><h2 class="block-title">How to Play</h2>
+      <section class="how-sec"><h2 class="block-title">How to play</h2>
         <ol class="how">
           <li><h3>Join</h3><p>Everyone joins with the 6-letter code. Each player gets a secret card: Loyal Servant or Minion of Mordred.</p></li>
           <li><h3>Choose</h3><p>The leader (the crown) picks a party. Everyone votes, and a strict majority sends it out.</p></li>
@@ -186,18 +185,18 @@ function home() {
 }
 
 function rulesPage() {
-  const rows = Object.keys(QUEST_SIZES).map((n) => `<tr><td>${n}</td><td>${n - EVIL_COUNT[n]} / ${EVIL_COUNT[n]}</td><td>${QUEST_SIZES[n].map((s, i) => (n >= 7 && i === 3 ? `${s}*` : s)).join(' · ')}</td></tr>`).join('');
-  const role = (id, extra) => `<li class="a-${ROLES[id].side}">${glyph(ROLES[id].icon)}<span><b>${ROLES[id].name}</b><small>${esc(extra)} · card ${ROLE_CARD[id]}</small></span></li>`;
+  const rows = Object.keys(QUEST_SIZES).map((n) => `<tr><td>${n}</td><td>${n - EVIL_COUNT[n]} / ${EVIL_COUNT[n]}</td><td>${QUEST_SIZES[n].map((s, i) => (n >= 7 && i === 3 ? `${s}*` : s)).join(', ')}</td></tr>`).join('');
+  const role = (id, extra) => `<li class="a-${ROLES[id].side}">${glyph(ROLES[id].icon)}<span><b>${ROLES[id].name}</b><small>${esc(extra)}, card ${ROLE_CARD[id]}</small></span></li>`;
   return `<main class="wrap game rules-page">
-    <p><a class="link" href="#/">${ui('back')} Home</a> · <a class="link" href="#/faq">Rules &amp; FAQ</a></p>
-    <section class="stage"><h1 class="phase-title">How to Play</h1>
+    <p class="linkrow"><a class="link" href="#/">${ui('back')} Home</a><a class="link" href="#/faq">Rules &amp; FAQ</a></p>
+    <section class="stage"><h1 class="phase-title">How to play</h1>
       <p>Everyone gets a secret card. Most of you are <b class="t-good">the Loyal Servants</b>. A few are <b class="t-evil">the Minions of Mordred</b>, and they know each other.</p>
       <p>Each round a <b>leader</b> (the crown) picks a party for the quest. Everyone votes to approve or reject it, and the votes are shown together. A strict majority sends the party out; otherwise the crown passes left. <b>Five rejected parties in a row and the Minions of Mordred win.</b></p>
       <p>On a quest each member plays a card face down: Loyal must play <b>Success</b>, Evil may play <b>Sabotage</b>. One sabotage breaks the quest, except quest 4 at 7+ players, which needs two (marked *).</p>
       <p>Three successful quests and the Loyal Servants of Arthur win, unless Merlin is in play: then the Assassin gets one last strike, and naming Merlin steals the game.</p>
       <p><b>The Lantern</b> (optional): after quests 2, 3 and 4 its holder secretly learns one player’s side, and the Lantern passes to them. Nobody who has held it can be looked at.</p>
     </section>
-    <section class="stage"><h2 class="block-title">Table Sizes</h2>
+    <section class="stage"><h2 class="block-title">Table sizes</h2>
       <table class="sizes"><thead><tr><th>Players</th><th>Loyal / Evil</th><th>Quest Parties</th></tr></thead><tbody>${rows}</tbody></table></section>
     <section class="stage"><h2 class="block-title">Cards</h2><ul class="roles-list">
       ${role('servant', 'No special knowledge')}${role('merlin', 'Sees Evil (not Mordred)')}${role('percival', 'Sees Merlin and Morgana, not which is which')}
@@ -282,7 +281,7 @@ function lobbyPlain(v) {
   const house = HOUSE.map(([k, t, d]) => `<label class="toggle ${v.house[k] ? 'is-on' : ''}"><input type="checkbox" data-a="houseSet" data-k="${k}" ${v.house[k] ? 'checked' : ''} ${host ? '' : 'disabled'}><span><b>${t}</b><span class="muted">${d}</span></span></label>`).join('');
   const sel = (k, opts2) => `<select data-a="houseSel" data-k="${k}" ${host ? '' : 'disabled'}>${opts2.map(([val, l]) => `<option value="${val}" ${String(v.house[k]) === String(val) ? 'selected' : ''}>${l}</option>`).join('')}</select>`;
   const guide = m.roles === 'physical' && n >= 5 && !list.error ? cardGuideBlock(n, v.settings, v.house) : '';
-  return `<section class="join-code"><p class="muted">Room Code</p><p class="room-code">${esc(v.code)}</p>
+  return `<section class="join-code"><p class="muted">Room code</p><p class="room-code">${esc(v.code)}</p>
       <p class="muted join-link">${esc(link)}</p>
       ${host ? `<button type="button" class="qr-tap" data-a="qrFull" data-link="${esc(link)}" data-code="${esc(v.code)}" aria-label="Show the join QR code full screen">${qrSvg(link, `QR code to join room ${v.code}`)}<span>Tap for Full Screen</span></button>` : ''}
       <div class="btn-row"><button class="btn ghost" data-a="copy" data-link="${esc(link)}">${ui('copy')} Copy Link</button>
@@ -481,7 +480,7 @@ function track(v) {
   }).join('');
   const pips = Array.from({ length: g.maxRejects }, (_, i) => `<i class="${i < g.rejects ? 'on' : ''} ${i === g.maxRejects - 1 ? 'last' : ''}"></i>`).join('');
   return `<section class="track" aria-label="Quests"><div class="seals">${seals}</div>
-    <div class="seals-legend"><span><b data-roll="ok">${g.results.filter((r) => r === 'success').length}</b> succeeded · <b data-roll="bad">${g.results.filter((r) => r === 'fail').length}</b> failed</span>
+    <div class="seals-legend"><span><b data-roll="ok">${g.results.filter((r) => r === 'success').length}</b> succeeded, <b data-roll="bad">${g.results.filter((r) => r === 'fail').length}</b> failed</span>
     <span class="rejects" title="Rejected parties this quest">Rejected ${pips}</span></div></section>`;
 }
 
@@ -769,7 +768,7 @@ function hostPane(v) {
 // ---------------------------------------------------------------- shared table screen (TV / laptop)
 function tableScreen(v) {
   const g = v.game;
-  const head = `<header class="appbar"><span class="appbar-mark">${art('crown')}</span><div class="appbar-title">Quest Night · <span class="code">${esc(v.code)}</span></div>${T.timerChip(v)}${rolesChip(v)}<span class="phase-badge">${art(PHASE[v.phase]?.[1] || 'crown')}<span class="pb-t">${PHASE[v.phase]?.[0] || ''}</span></span></header>`;
+  const head = `<header class="appbar"><span class="appbar-mark">${art('crown')}</span><div class="appbar-title">Quest Night <span class="code">${esc(v.code)}</span></div>${T.timerChip(v)}${rolesChip(v)}<span class="phase-badge">${art(PHASE[v.phase]?.[1] || 'crown')}<span class="pb-t">${PHASE[v.phase]?.[0] || ''}</span></span></header>`;
   if (!g) return `${head}<main class="wrap screen-lobby"><h1 class="phase-title">Join at ${esc(location.host)}</h1><p class="room-code">${esc(v.code)}</p><p class="say">${v.players.filter((p) => !p.watch).map((p) => esc(p.name)).join(' · ') || 'Nobody yet.'}</p></main>`;
   const lines = phaseScript(v).slice(0, 2);
   return `${head}<div class="layout is-screen"><main class="col col-main wrap game">${track(v)}${roundTable({ ...v, me: null })}${v.phase === 'over' ? over(v) : `<section class="stage"><p class="say">${esc(lines.join(' '))}</p></section>`}${lastReveals(v)}</main>

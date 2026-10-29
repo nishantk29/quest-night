@@ -130,7 +130,7 @@ export function makeTable(ctx) {
       <p class="muted">“Replace” opens a seat mid-game: the next person who joins takes it over with the same secret card. “Make host” hands you off.</p>
       <h3 class="sub">Table screen</h3><p class="muted">Open this on a TV or laptop everyone can see. It never shows anything secret.</p>
       <p><a class="btn ghost" href="#/screen/${esc(v.code)}" target="_blank" rel="noopener">${ui('expand')} Open the table screen</a></p>
-      <p class="muted"><a href="#/faq">Rules &amp; FAQ</a> · <a href="/print.html" target="_blank" rel="noopener">Print the card guide</a></p>
+      <p class="muted linkrow"><a href="#/faq">Rules &amp; FAQ</a><a href="/print.html" target="_blank" rel="noopener">Print the card guide</a></p>
       <h3 class="sub">Close the room</h3><p class="muted">Ends the table for everyone, deletes the room and frees the code.</p>
       <p><button type="button" class="btn danger" data-a="closeRoom">Close room</button></p>
     </section>`;
@@ -206,7 +206,7 @@ export function makeTable(ctx) {
 
 // ------------------------------------------------------------ FAQ (collapsible, with a quick search)
 export function faqPage(groups, esc, ui, title = 'Questions and answers') {
-  return `<main class="wrap game faq"><p><a class="link" href="#/">${ui('back')} Home</a> · <a class="link" href="#/rules">How to play</a></p>
+  return `<main class="wrap game faq"><p class="linkrow"><a class="link" href="#/">${ui('back')} Home</a><a class="link" href="#/rules">How to play</a></p>
     <section class="stage"><h1 class="phase-title">${esc(title)}</h1>
     <label class="field"><span>Search</span><input type="search" data-faq="search" placeholder="Try “tie”, “veto”, “cards”, “timer”" autocomplete="off"></label>
     <p class="muted" data-faq="none" hidden>Nothing matches. Try a different word.</p></section>

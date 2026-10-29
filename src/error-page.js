@@ -9,7 +9,7 @@ const CSS = `.err-page{min-height:100svh;display:grid;align-content:center}
 @keyframes err-rise{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}`;
 
 export const ERRORS = {
-  404: { title: 'This page slipped into the shadows', line: 'The page you wanted isn’t here. Head back to the games.' },
+  404: { title: 'Page not found', line: 'The page you wanted isn’t here. Head back to the games.' },
   426: { title: 'Wrong door', line: 'That address is for the game itself. Open the game from the home page.' },
   500: { title: 'Something broke', line: 'The quest took an unexpected turn. Try again in a moment.' },
 };
@@ -21,7 +21,7 @@ export const errorPage = ({ status = 404, title, line } = {}) => {
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>${title || d.title} · Quest Night</title>
+<title>${title || d.title} | Quest Night</title>
 <meta name="robots" content="noindex">
 <meta name="color-scheme" content="dark">
 <meta name="theme-color" content="#0B0B0D">
