@@ -19,13 +19,13 @@ h1,h2,.phase-title,.block-title,.path-title,.sheet-title{font-family:var(--displ
 #app{position:relative;z-index:1}
 .bg-art{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden;background:radial-gradient(120% 80% at 80% 100%,rgba(47,107,214,.20),transparent 60%),radial-gradient(90% 60% at 10% 0%,rgba(224,174,82,.07),transparent 60%)}
 .bg-sky{position:absolute;right:0;bottom:0;width:min(100vw,900px);height:min(44vh,430px);opacity:.78}
-.bg-stars{animation:qn-twinkle 6s var(--qn-ease) 1 both}
-.bg-stars-b{animation-duration:calc(9s * var(--dur-scale));animation-delay:-3s}
-.bg-win{animation:qn-twinkle calc(7s * var(--dur-scale)) ease-in-out 1 both;animation-delay:-2s}
+.bg-stars{animation:qn-twinkle calc(400ms * var(--dur-scale)) var(--qn-ease) 1 both}
+.bg-stars-b{animation-duration:calc(400ms * var(--dur-scale));animation-delay:calc(-130ms * var(--dur-scale))}
+.bg-win{animation:qn-twinkle calc(400ms * var(--dur-scale)) ease-in-out 1 both;animation-delay:calc(-110ms * var(--dur-scale))}
 @keyframes qn-twinkle{from{opacity:.35}to{opacity:1}}
 /* the flag hangs still, flutters once about four seconds in, then rests (no looping motion: Nishant, Oct 28 11:09 PM ET) */
 .bg-flag{transform-box:fill-box}
-.flag-cloth{transform-origin:2.4px -36px;transform-box:view-box;animation:qn-flutter 7s var(--qn-ease) 1}
+.flag-cloth{transform-origin:2.4px -36px;transform-box:view-box;animation:none} /* holds its resting pose: a flutter squeezed into 400ms reads as a twitch (2026-10-29) */
 @keyframes qn-flutter{0%,56%,100%{transform:none}64%{transform:skewY(-9deg) scaleX(.93)}72%{transform:skewY(7deg) scaleX(1.04)}80%{transform:skewY(-5deg) scaleX(.97)}88%{transform:skewY(3deg)}}
 @media (max-width:640px){.bg-sky{width:130vw;height:34vh;opacity:.5}}
 
@@ -78,8 +78,8 @@ h1,h2,.phase-title,.block-title,.path-title,.sheet-title{font-family:var(--displ
 .wrap.home .site-foot{width:auto;padding-inline:0;margin-inline:0}
 
 /* ---- cards: tilt with the mouse (gentle on touch), crafted surface, no side stripes anywhere */
-[data-card],.path,.side-card,.more-card,.role-token,.how-sec li{--crx:0deg;--cry:0deg;transform:perspective(900px) rotateX(var(--crx)) rotateY(var(--cry));transition:transform calc(320ms * var(--dur-scale)) var(--qn-ease);transform-style:flat;backface-visibility:hidden}
-[data-tilting]{transition:transform calc(90ms * var(--dur-scale)) linear!important}
+[data-card],.path,.side-card,.more-card,.role-token,.how-sec li{--crx:0deg;--cry:0deg;transform:perspective(900px) rotateX(var(--crx)) rotateY(var(--cry));transition:transform calc(400ms * var(--dur-scale)) var(--qn-ease);transform-style:flat;backface-visibility:hidden}
+[data-tilting]{transition:transform calc(180ms * var(--dur-scale)) linear!important}
 @media (hover:hover) and (pointer:fine){.more-card:hover,.side-card:hover,.path:hover{box-shadow:inset 0 0 0 1px rgba(255,255,255,.14),0 14px 30px rgba(0,0,0,.45)}}
 .path,.side-card,.more-card{position:relative}
 .path::after,.side-card::after,.more-card::after{content:"";position:absolute;inset:0;border-radius:inherit;background:var(--paper);background-size:160px;opacity:.05;mix-blend-mode:overlay;pointer-events:none}
@@ -102,7 +102,7 @@ h1,h2,.phase-title,.block-title,.path-title,.sheet-title{font-family:var(--displ
 .role-token input:focus-visible{outline:3px solid #fff;outline-offset:2px}
 .role-token.is-on{background:#1F2036;box-shadow:inset 0 0 0 2px var(--brass),0 8px 18px rgba(0,0,0,.4)}
 .role-token.is-on::before{content:"";position:absolute;top:0;left:50%;width:22px;height:14px;margin-left:-11px;background:var(--brass);clip-path:polygon(0 0,100% 0,100% 100%,50% 70%,0 100%)}
-.role-token:active{transform:perspective(900px) scale(.97)}
+.role-token:active{transform:perspective(900px) scale(var(--f-press-scale))}
 .role-token:has(input:disabled){opacity:1;cursor:default}
 @media (max-width:430px){.settings:has(> .role-token){grid-template-columns:repeat(2,minmax(0,1fr))}}
 
@@ -141,7 +141,7 @@ h1,h2,.phase-title,.block-title,.path-title,.sheet-title{font-family:var(--displ
 @supports (view-transition-name:none){
   #app > main.wrap{view-transition-name:step}
   ::view-transition-old(root),::view-transition-new(root){animation:none;mix-blend-mode:normal}
-  ::view-transition-old(step){animation:qn-step-out calc(50ms * var(--dur-scale)) var(--qn-ease) both}
+  ::view-transition-old(step){animation:qn-step-out calc(100ms * var(--dur-scale)) var(--qn-ease) both}
   ::view-transition-new(step){animation:qn-step-in var(--t-enter) var(--qn-ease) both}
 }
 @keyframes qn-step-out{to{opacity:0;transform:translateX(-8px)}}
@@ -149,8 +149,8 @@ h1,h2,.phase-title,.block-title,.path-title,.sheet-title{font-family:var(--displ
 
 /* ---- first-load entrance on the home screen only (html.boot is removed 1.6s after load) */
 .boot .home-hero > *,.boot .home-paths > *,.boot .more-games{animation:qn-rise var(--t-enter) var(--qn-ease) both}
-.boot .home-hero > :nth-child(2){animation-delay:calc(15ms * var(--dur-scale))}.boot .home-hero > :nth-child(3){animation-delay:calc(30ms * var(--dur-scale))}.boot .home-hero > :nth-child(4){animation-delay:calc(45ms * var(--dur-scale))}
-.boot .home-paths > :nth-child(1){animation-delay:calc(20ms * var(--dur-scale))}.boot .home-paths > :nth-child(2){animation-delay:calc(37ms * var(--dur-scale))}.boot .home-paths > :nth-child(3){animation-delay:calc(55ms * var(--dur-scale))}.boot .more-games{animation-delay:calc(75ms * var(--dur-scale))}
+.boot .home-hero > :nth-child(2){animation-delay:calc(30ms * var(--dur-scale))}.boot .home-hero > :nth-child(3){animation-delay:calc(60ms * var(--dur-scale))}.boot .home-hero > :nth-child(4){animation-delay:calc(90ms * var(--dur-scale))}
+.boot .home-paths > :nth-child(1){animation-delay:calc(40ms * var(--dur-scale))}.boot .home-paths > :nth-child(2){animation-delay:calc(74ms * var(--dur-scale))}.boot .home-paths > :nth-child(3){animation-delay:calc(110ms * var(--dur-scale))}.boot .more-games{animation-delay:calc(150ms * var(--dur-scale))}
 @keyframes qn-rise{from{opacity:0;transform:translateY(8px)}}
 
 /* ---- reduced motion and the Animations switch */
@@ -166,18 +166,18 @@ h1,h2,.phase-title,.block-title,.path-title,.sheet-title{font-family:var(--displ
 /* ---- hero castle tower with a pennant that ripples every 5s (transform only), idle between */
 .home-brand{position:relative}
 .tower{position:absolute;top:-6px;left:104px;width:56px;height:84px;pointer-events:none}
-.pennant{transform-box:view-box;transform-origin:27px 10px;animation:qn-pennant 5s var(--qn-ease) 1}
+.pennant{transform-box:view-box;transform-origin:27px 10px;animation:none} /* holds its resting pose (400ms motion budget, 2026-10-29) */
 @keyframes qn-pennant{0%,30%,100%{transform:none}42%{transform:skewY(-12deg) scaleX(.8)}54%{transform:skewY(9deg) scaleX(1.12)}66%{transform:skewY(-8deg) scaleX(.88)}78%{transform:skewY(5deg) scaleX(1.05)}90%{transform:skewY(-2deg) scaleX(.98)}}
 @media (min-width:900px){.tower{left:auto;right:0;top:-24px;width:72px;height:108px}}
 @media (prefers-reduced-motion:reduce){.pennant{animation:none!important}}
 .fx-off .pennant{animation:none!important}
 
-/* ---- arriving from the hub (game end of the handoff): ONE opacity fade of the page, 150ms base (300ms at --dur-scale 2).
+/* ---- arriving from the hub (game end of the handoff): ONE opacity fade of the page, 300ms.
    Nothing moves: no logo overlay flying in from the handoff pose (Nishant, Oct 28: "That logo moving on game night is kinda
    janky") and the first-load rise is skipped. html.hand is set by the inline <head> script, never under reduced motion, and
    stays for the page's life, so nothing replays when html.boot goes. */
 .hand{background:#0B0B0D}
-.hand #app,.hand .bg-art{animation:qn-hub-fade calc(150ms * var(--dur-scale)) var(--qn-ease) both}
+.hand #app,.hand .bg-art{animation:qn-hub-fade calc(300ms * var(--dur-scale)) var(--qn-ease) both}
 .hand.boot .home-hero > *,.hand.boot .home-paths > *,.hand.boot .more-games{animation:none}
 @keyframes qn-hub-fade{from{opacity:0}to{opacity:1}}
 

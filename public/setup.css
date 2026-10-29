@@ -94,7 +94,7 @@
 .cs-btn{display:flex;align-items:center;justify-content:center;min-height:52px;width:100%;border:0;border-radius:3px;background:var(--cs-acc);color:var(--on-brass);font-size:var(--fs-md);font-weight:700;cursor:pointer;box-shadow:inset 0 1px 0 rgba(255,255,255,.28),0 2px 0 var(--cs-edge)}
 .cs-btn[aria-disabled="true"]{background:rgba(255,255,255,.14);color:#E6EBFB;box-shadow:none;cursor:not-allowed}
 .cs button:focus-visible,.cs input:focus-visible,.cs summary:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
-.cs-btn:active{transform:translateY(1px)}
+.cs-btn:active{transform:scale(var(--f-press-scale))}
 /* presets page */
 .pr-group{margin:var(--s4) 0 0;font-size:var(--fs-md);color:var(--smoke);font-family:var(--font-ui);font-weight:600;letter-spacing:0}
 .pr-list{list-style:none;margin:0;padding:0}
@@ -133,3 +133,9 @@
 .roles-panel .rs-row:last-child{border-bottom:0}
 .roles-panel .rs-ico{background:#0E1F5C}
 .roles-chip{padding:0 var(--s3)}@media (min-width:420px){.roles-chip{padding:0 var(--s4)}}
+
+/* press feedback (Nishant, 2026-10-29): lands on press-in in --f-press (120ms, never scaled by --dur-scale);
+   the release runs in --f-release (about 0.7x). Buttons and cards scale to .97. */
+@media (prefers-reduced-motion:no-preference){
+  :is(.btn,.choice,.cs-btn,.role-token,.side-card,.servant.can-pick .servant-disc):active,.servant.can-pick:active .servant-disc{transition-duration:var(--f-press)}
+}

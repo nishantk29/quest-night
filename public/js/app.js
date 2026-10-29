@@ -646,7 +646,7 @@ function lastReveals(v) {
     const q = g.lastQuest; const key = `quest:${q.quest}`;
     if (S.ui.fresh.quest) fx.cue(key, () => {
       const n = q.size; const step = Math.min(25, Math.floor(100 / Math.max(1, n - 1)));
-      setTimeout(() => (q.result === 'success' ? fx.burstAt('[data-fx="quest"]', 'gold', 18) : (fx.stamp('Sabotaged'), fx.burstAt('[data-fx="quest"]', 'red', 12))), dur(120 + (n - 1) * step));
+      setTimeout(() => (q.result === 'success' ? fx.burstAt('[data-fx="quest"]', 'gold', 18) : (fx.stamp('Sabotaged'), fx.burstAt('[data-fx="quest"]', 'red', 12))), dur(150 + (n - 1) * step));
     });
     const a = fx.on(key);
     const cards = shuffled(Array.from({ length: q.size }, (_, i) => (i < q.size - q.fails ? 's' : 'f')), q.quest + 1);

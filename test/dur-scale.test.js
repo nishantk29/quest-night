@@ -36,8 +36,8 @@ function offenders(src) {
   return [...new Set(bad)];
 }
 
-test('root --dur-scale is 2', () => {
-  assert.match(read('styles.css'), /:root\s*\{[^}]*--dur-scale:\s*2\b/);
+test('root --dur-scale is 1 (the 2x slow-motion ask was replaced by the 400ms budget, 2026-10-29)', () => {
+  assert.match(read('styles.css'), /:root\s*\{[^}]*--dur-scale:\s*1\b/);
 });
 
 for (const [name, src] of css) {

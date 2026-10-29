@@ -34,8 +34,8 @@
 @supports (view-transition-name: none) {
   .hseal.now,.seal.is-now{view-transition-name:quest-seal}
   .rcard-tap{view-transition-name:role-card}
-  ::view-transition-group(quest-seal),::view-transition-group(role-card){animation-duration:calc(360ms * var(--dur-scale));animation-timing-function:var(--ease-out)}
-  ::view-transition-old(root){animation:qn-out calc(50ms * var(--dur-scale)) var(--ease-out) both}
+  ::view-transition-group(quest-seal),::view-transition-group(role-card){animation-duration:calc(400ms * var(--dur-scale));animation-timing-function:var(--ease-out)}
+  ::view-transition-old(root){animation:qn-out calc(100ms * var(--dur-scale)) var(--ease-out) both}
   ::view-transition-new(root){animation:qn-in var(--t-enter) var(--ease-out) both}
 }
 @keyframes qn-out{to{opacity:0}}
