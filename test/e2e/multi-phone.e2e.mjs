@@ -29,8 +29,14 @@ try {
   for (const n of NAMES) {
     const p = await phone(browser, srv.base, n); all.push(p); players.push(p);
     await p.goto('/#/play/' + code);
-    await p.page.locator('[data-i="joinName"]').fill(n);
-    await p.page.locator('[data-a="join"]').click();
+    // The join form renders before the room socket is open, and a name sent then is not taken (Mafia's live run lost all
+    // five), so wait for the form and retry until it is gone.
+    const input = p.page.locator('[data-i="joinName"]');
+    await input.waitFor({ timeout: 10000 });
+    for (let i = 0; i < 3 && (await input.count()); i++) {
+      await input.fill(n).catch(() => {}); await p.page.locator('[data-a="join"]').click({ timeout: 3000 }).catch(() => {});
+      await input.waitFor({ state: 'detached', timeout: 4000 }).catch(() => {});
+    }
   }
   await host.page.waitForFunction((ns) => ns.every((n) => document.body.innerText.includes(n)), NAMES, { timeout: 15000 }).catch(() => {});
   const seen = await host.page.evaluate((ns) => ns.filter((n) => document.body.innerText.includes(n)).length, NAMES);
