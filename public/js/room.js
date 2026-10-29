@@ -291,6 +291,7 @@ export function reduce(room, actor, msg, rng = Math.random, now = Date.now()) {
   const snap = room.game && UNDOABLE.has(msg.type) ? JSON.stringify({ game: room.game, phase: room.phase }) : null;
   const res = gameReduce(room, actor, msg, rng, now);
   if (res.ok && snap) { room.undo.push(snap); if (room.undo.length > 12) room.undo.shift(); }
+  if (room.phase === 'over') room.undo = []; // no Undo after game over (every role is revealed at 'over')
   if (res.ok && room.phase !== before) onPhaseChange(room, now);
   return res;
 }
