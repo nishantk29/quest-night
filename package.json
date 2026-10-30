@@ -3,6 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "test:ailook": "node test/kit/ailook-check.mjs",
     "dev": "wrangler dev --local",
     "test": "node --test test/*.test.js",
     "stamp": "node scripts/stamp-sw.mjs",
