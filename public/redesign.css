@@ -1,7 +1,7 @@
 /* Quest Night redesign layer. Loaded last. Same structure as Mafia Night (actions left, title right on desktop, logo mark,
    step transitions, footer), in Quest Night's own navy + gold and its own Cinzel type.
    Motion: transform and opacity only, one easing, no layout shift. Off for reduced motion and html.fx-off. */
-@font-face{font-family:"Cinzel";font-weight:800;font-display:swap;src:url(/fonts/cinzel-800.woff2) format("woff2")}
+@font-face{font-family:"Cinzel";font-weight:800;font-display:swap;src:url(/fonts/cinzel-800-core.woff2) format("woff2");unicode-range:U+20-7E,U+A0,U+B7,U+D7,U+2013-2014,U+2018-2019,U+201C-201D,U+2022,U+2026}@font-face{font-family:"Cinzel";font-weight:800;font-display:swap;src:url(/fonts/cinzel-800-ext.woff2) format("woff2");unicode-range:U+A1-B6,U+B8-D6,U+D8-FF,U+102,U+131,U+152-153,U+2C6,U+2DA,U+2DC,U+300-301,U+303-304,U+308,U+201A,U+201E,U+2039-203A,U+2044,U+20AC,U+2122,U+2212,U+2215}
 :root{--qn-ease:cubic-bezier(.2,.8,.2,1);--display-serif:"Cinzel","Rubik Fallback",Georgia,serif;
   --paper:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 .5 0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)' opacity='.5'/%3E%3C/svg%3E")}
 

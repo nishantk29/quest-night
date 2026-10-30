@@ -15,9 +15,9 @@ test('no decorative or art deco display face (Cinzel Decorative, Limelight, Poir
 
 test('wordmark and headings use Cinzel 800 (self-hosted, swap, preloaded); only Rubik and Cinzel 800 are preloaded', () => {
   const css = fs.readFileSync(path.join(pub, 'redesign.css'), 'utf8');
-  assert.match(css, /@font-face\{font-family:"Cinzel";font-weight:800;font-display:swap;src:url\(\/fonts\/cinzel-800\.woff2\)/);
+  assert.match(css, /@font-face\{font-family:"Cinzel";font-weight:800;font-display:swap;src:url\(\/fonts\/cinzel-800-core\.woff2\)/);
   assert.match(css, /\.wordmark\{font-family:var\(--display-serif\);font-weight:800/);
   const html = fs.readFileSync(path.join(pub, 'index.html'), 'utf8');
   const pre = [...html.matchAll(/<link rel="preload" href="([^"]+)" as="font"/g)].map((m) => m[1]);
-  assert.deepEqual(pre, ['/fonts/rubik-var.woff2', '/fonts/cinzel-800.woff2']);
+  assert.deepEqual(pre, ['/fonts/rubik-var.woff2', '/fonts/cinzel-800-core.woff2']);
 });

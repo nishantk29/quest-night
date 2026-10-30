@@ -3,7 +3,7 @@
 // - Navigations: network-first, falling back to the cached app shell.
 // - /api/* and /ws/* never touch the cache.
 // VERSION is a content hash of every precached file, so it changes whenever a file does.
-const VERSION = 'a1bb78b4b8';
+const VERSION = '6709bfaffc';
 const PREFIX = 'quest-';
 const CACHE = PREFIX + VERSION;
 
@@ -13,11 +13,12 @@ const PRECACHE = [
   '/404.html',
   '/fonts/LICENSE-cinzel.txt',
   '/fonts/LICENSE-rubik.txt',
-  '/fonts/alegreya-italic-var.woff2',
-  '/fonts/alegreya-sans-400.woff2',
-  '/fonts/alegreya-sans-700.woff2',
-  '/fonts/cinzel-600.woff2',
-  '/fonts/cinzel-800.woff2',
+  '/fonts/alegreya-italic-print.woff2',
+  '/fonts/alegreya-sans-400-print.woff2',
+  '/fonts/alegreya-sans-700-print.woff2',
+  '/fonts/cinzel-600-print.woff2',
+  '/fonts/cinzel-800-core.woff2',
+  '/fonts/cinzel-800-ext.woff2',
   '/fonts/rubik-var.woff2',
   '/fx.css',
   '/icons/apple-touch-icon.png',

@@ -1,8 +1,8 @@
-@font-face{font-family:"Cinzel";font-weight:800;src:url(/fonts/cinzel-800.woff2) format("woff2")}
-@font-face{font-family:"Cinzel";font-weight:600;src:url(/fonts/cinzel-600.woff2) format("woff2")}
-@font-face{font-family:"Alegreya Sans";font-weight:400;src:url(/fonts/alegreya-sans-400.woff2) format("woff2")}
-@font-face{font-family:"Alegreya Sans";font-weight:700;src:url(/fonts/alegreya-sans-700.woff2) format("woff2")}
-@font-face{font-family:"Alegreya";font-style:italic;font-weight:400 900;src:url(/fonts/alegreya-italic-var.woff2) format("woff2")}
+@font-face{font-family:"Cinzel";font-weight:800;src:url(/fonts/cinzel-800-core.woff2) format("woff2");unicode-range:U+20-7E,U+A0,U+B7,U+D7,U+2013-2014,U+2018-2019,U+201C-201D,U+2022,U+2026}@font-face{font-family:"Cinzel";font-weight:800;src:url(/fonts/cinzel-800-ext.woff2) format("woff2");unicode-range:U+A1-B6,U+B8-D6,U+D8-FF,U+102,U+131,U+152-153,U+2C6,U+2DA,U+2DC,U+300-301,U+303-304,U+308,U+201A,U+201E,U+2039-203A,U+2044,U+20AC,U+2122,U+2212,U+2215}
+@font-face{font-family:"Cinzel";font-weight:600;src:url(/fonts/cinzel-600-print.woff2) format("woff2")}
+@font-face{font-family:"Alegreya Sans";font-weight:400;src:url(/fonts/alegreya-sans-400-print.woff2) format("woff2")}
+@font-face{font-family:"Alegreya Sans";font-weight:700;src:url(/fonts/alegreya-sans-700-print.woff2) format("woff2")}
+@font-face{font-family:"Alegreya";font-style:italic;font-weight:400 900;src:url(/fonts/alegreya-italic-print.woff2) format("woff2")}
 @page{margin:6mm 10mm}
 *{box-sizing:border-box}
 body{margin:0;font:400 11pt/1.4 "Alegreya Sans",sans-serif;color:#17202F;background:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact}
