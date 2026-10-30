@@ -2,7 +2,7 @@
 // Shared file: identical copy in each game repo (source /workspace/code-team/shared/ai/ask.js).
 // Privacy: the prompt holds the question and rules text only. This file never reads a room, so no role, card,
 // word or name can reach the model, whatever the question says.
-import { runText, filterOutput, cleanText, sha256Hex, cacheGet, cachePut } from './ai.js';
+import { runText, filterOutput, cleanText, sha256Hex, cacheGet, cachePut, aiOn } from './ai.js';
 
 const STOP = new Set('a an and are as at be but by can do does for from how i if in into is it its me my of on or our so than that the their them then there these they this to up us was we what when where which who whom why will with you your yours im ive whats dont cant isnt doesnt get got one'.split(' '));
 const stem = (w) => w.replace(/(ings|ing|ied|ies|ed|es|s)$/, (m) => (m === 'ies' || m === 'ied' ? 'y' : '')).replace(/(.)\1$/, '$1');
@@ -35,6 +35,7 @@ export function askMessages(game, question, hits) {
 /**
  * Answer a rules question. Never throws.
  * Returns { answer, source, from } where from is 'cache' | 'model' | 'none'. answer null means: show the FAQ link.
+ * Unless AI_MODE is 'on' the answer is always null: no model call, no budget, no cache read.
  */
 export async function askRule(env, { site, game, index, rulesVersion, question }) {
   const q = cleanText(question, 200);
@@ -43,6 +44,7 @@ export async function askRule(env, { site, game, index, rulesVersion, question }
   const hits = retrieve(index, q);
   if (!hits.length) return none();
   const source = `${hits[0].chunk.group}: ${hits[0].chunk.q}`;
+  if (!aiOn(env)) return none(source);
   const key = `ask:${site}:${rulesVersion}:${(await sha256Hex(terms(q).sort().join(' '))).slice(0, 40)}`;
   const cached = await cacheGet(env, key);
   if (cached) return { ...cached, from: 'cache' };

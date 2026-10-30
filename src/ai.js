@@ -6,7 +6,9 @@
 //  - A daily neuron budget with a durable counter, kept in a reserved instance of the existing Room class (no new
 //    class, no migration). A room code is 6 letters, so these reserved names can never be a room.
 //  - Output passes a code filter (length, banned phrases, forbidden terms) before anyone sees it.
-export const AI_VERSION = 1;
+//  - Only AI_MODE 'on' may call the model. 'dark', 'off', unset or anything else: no model call, no neurons reserved,
+//    no budget or cache read (Nishant's rule: no AI that could cost money goes live without his OK).
+export const AI_VERSION = 2;
 export const AI_MODEL = '@cf/google/gemma-4-26b-a4b-it';
 // Neurons per million tokens, from https://developers.cloudflare.com/workers-ai/platform/pricing/ (read 2026-10-29).
 export const RATES = { '@cf/google/gemma-4-26b-a4b-it': { in: 9091, out: 27273 } };
@@ -15,7 +17,6 @@ export const TIMEOUT_MS = 2500;
 // Mafia 2,000 + Odd, Quest, Gilded 1,500 each = 6,500, leaving 1,500 for the hub and Brass Wallet.
 export const ACCOUNT_GUARD = 8000;
 export const CAPS = { mafia: 2000, odd: 1500, quest: 1500, gilded: 1500, hub: 750, brass: 750 };
-export const DARK_CAP = 250; // while a site's helpers have no UI ("dark"), it may spend at most this much a day
 export const BUDGET_NAME = '__ai_budget__';
 export const CACHE_NAME = '__ai_cache__';
 export const CACHE_MAX = 500;
@@ -27,11 +28,11 @@ export function neuronsFor(model, inTok, outTok) {
   const r = RATES[model]; if (!r) return Infinity;
   return (inTok * r.in + outTok * r.out) / 1e6;
 }
-/** Daily cap for this site and mode ('off' | 'dark' | 'on'). */
+/** True only when AI_MODE is exactly 'on'. Every other value ('dark', 'off', unset) means no model call. */
+export const aiOn = (env) => env?.AI_MODE === 'on';
+/** Daily cap for this site and mode. Only 'on' has a budget. */
 export function capFor(site, mode) {
-  if (mode === 'on') return CAPS[site] ?? 0;
-  if (mode === 'dark') return Math.min(DARK_CAP, CAPS[site] ?? 0);
-  return 0;
+  return mode === 'on' ? CAPS[site] ?? 0 : 0;
 }
 
 // ---------- input cleaning ----------
@@ -132,8 +133,8 @@ export async function cachePut(env, key, value) { try { await withTimeout(intern
  */
 export async function runText(env, { site, messages, maxTokens = 160, filter = (t) => filterOutput(t), now = Date.now(), timeoutMs = TIMEOUT_MS }) {
   try {
-    const mode = env?.AI_MODE || 'off';
-    const cap = capFor(site, mode);
+    if (!aiOn(env)) return null;
+    const cap = capFor(site, env.AI_MODE);
     if (!env?.AI || !env?.ROOM || cap <= 0) return null;
     const inTok = estTokens(messages.map((m) => m.content).join('\n')) + 16 * messages.length;
     const reserved = Math.ceil(neuronsFor(AI_MODEL, inTok, maxTokens) * 1.25) + 1; // pessimistic, refunded on settle
