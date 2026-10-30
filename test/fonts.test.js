@@ -19,5 +19,5 @@ test('wordmark and headings use Cinzel 800 (self-hosted, swap, preloaded); only 
   assert.match(css, /\.wordmark\{font-family:var\(--display-serif\);font-weight:800/);
   const html = fs.readFileSync(path.join(pub, 'index.html'), 'utf8');
   const pre = [...html.matchAll(/<link rel="preload" href="([^"]+)" as="font"/g)].map((m) => m[1]);
-  assert.deepEqual(pre, ['/fonts/rubik-var.woff2', '/fonts/cinzel-800-core.woff2']);
+  assert.deepEqual(pre, ['/fonts/rubik.woff2', '/fonts/cinzel-800-core.woff2']);
 });
