@@ -17,8 +17,8 @@ if (!gate.ok) {
 if (swVersion() !== computeVersion()) { console.error('public/sw.js VERSION is stale (public/ changed since make-pwa); installed PWAs would keep old files.\n' + FIX_HINT); process.exit(1); }
 const be = spawnSync(process.execPath, [fileURLToPath(new URL('./build-embedded.mjs', import.meta.url))], { stdio: 'inherit' });
 if (be.status !== 0) { console.error('build-embedded failed; deploy file NOT written'); process.exit(1); }
-const { name, metadata } = deployConfig(fs.readFileSync('wrangler.jsonc', 'utf8'));
+const { name, metadata, workersDev } = deployConfig(fs.readFileSync('wrangler.jsonc', 'utf8'));
 const W = fs.readFileSync('dist-embedded/worker.js', 'utf8');
-const fn = deployFunction({ name, metadata, worker: W });
+const fn = deployFunction({ name, metadata, worker: W, workersDev });
 try { fs.writeFileSync(out, fn); } catch (e) { fs.rmSync(out, { force: true }); throw e; } // never leave a half-written deploy file
-console.log(out, fn.length, 'worker=' + name, 'bindings=' + metadata.bindings.map((b) => b.name).join(','));
+console.log(out, fn.length, 'worker=' + name, 'bindings=' + metadata.bindings.map((b) => b.name).join(','), 'workers.dev=' + JSON.stringify(workersDev));
