@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "wrangler dev",
+    "dev": "wrangler dev --local",
     "test": "node --test test/*.test.js",
     "stamp": "node scripts/stamp-sw.mjs",
     "deploy": "wrangler deploy",
