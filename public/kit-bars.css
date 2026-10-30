@@ -4,19 +4,22 @@
    Budget: 1 live blur layer (the tab bar). The dock CTA floats opaque (edge + shadow, no blur of its own). An open
    sheet or dialog makes the bar solid, so glass never sits on glass. */
 @media (max-width:1099px){
-  :root{--tabbar-h:calc(var(--f-tabbar-h) + var(--f-s3))}            /* reserve: bar + its 12px float gap */
-  .tabbar{left:var(--f-pad-l);right:var(--f-pad-r);bottom:var(--f-safe-b);min-height:0;height:var(--f-tabbar-h);padding:var(--f-s1);box-sizing:border-box;
+  :root{--kit-bar-gap:var(--f-s3);--kit-bar-b:var(--f-safe-b);--tabbar-h:calc(var(--f-tabbar-h) + var(--kit-bar-gap))}   /* reserve: bar + its float gap */
+  .tabbar{left:var(--f-pad-l);right:var(--f-pad-r);bottom:var(--kit-bar-b);min-height:0;height:var(--f-tabbar-h);padding:var(--f-s1);box-sizing:border-box;
     border:0;border-radius:var(--f-r-pill);background:var(--f-glass-tint);
     -webkit-backdrop-filter:var(--f-glass-blur);backdrop-filter:var(--f-glass-blur);
     box-shadow:var(--f-glass-edge),var(--f-glass-shadow);isolation:isolate;transform:translateZ(0)}
   .tabbar button{min-height:0;border-radius:var(--f-r-pill)}
   .tabbar button[aria-current="page"]{color:var(--f-ink);background:var(--f-glass-sel)} /* label on the capsule >= 4.5:1 over white */
   .tabbar button[aria-current="page"] :is(svg,.ico,.ui-ico){color:var(--brass)}       /* the icon carries the accent */
-  .sticky-act{bottom:calc(var(--f-safe-b) + var(--f-tabbar-h) + var(--f-s3))}
+  .sticky-act{bottom:calc(var(--kit-bar-b) + var(--f-tabbar-h) + var(--f-s3))}
   .sticky-act .btn.big:not(:disabled):not([aria-disabled="true"]){box-shadow:var(--f-glass-edge),var(--f-glass-shadow)}
   /* soft scroll edge: content fades out under the bars instead of colliding with them (no blur, static) */
   #app:has(.tabbar)::after{   /* inside #app's stacking context (z-index:1), so it sits under the bar (30), over content */
-    content:"";position:fixed;left:0;right:0;bottom:0;z-index:20;height:calc(var(--f-safe-b) + var(--f-tabbar-h) + var(--f-s5));pointer-events:none;
+    content:"";position:fixed;left:0;right:0;bottom:0;z-index:20;height:calc(var(--kit-bar-b) + var(--f-tabbar-h) + var(--f-s5));pointer-events:none;
     background:linear-gradient(to top,color-mix(in srgb,var(--f-bg) 70%,transparent),transparent)}
   html:has(dialog[open],[data-sheet][open],.glass:not([hidden])) .tabbar{-webkit-backdrop-filter:none;backdrop-filter:none;background:var(--f-glass-solid)}
 }
+/* short phones (iPhone SE class, no home indicator): float the bar 4px off the edge, so it takes no more height than the
+   old bar and docks riding on --tabbar-h don't cover content (same rule on every site). */
+@media (max-width:1099px) and (max-height:700px){:root{--kit-bar-gap:var(--f-s1);--kit-bar-b:max(var(--f-s1),env(safe-area-inset-bottom))}}

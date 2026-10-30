@@ -3,7 +3,7 @@
 // - Navigations: network-first, falling back to the cached app shell.
 // - /api/* and /ws/* never touch the cache.
 // VERSION is a content hash of every precached file, so it changes whenever a file does.
-const VERSION = 'a375e4c5b0';
+const VERSION = 'b102e687dd';
 const PREFIX = 'quest-';
 const CACHE = PREFIX + VERSION;
 
