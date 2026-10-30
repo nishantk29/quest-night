@@ -7,7 +7,7 @@ export class MemStorage {
   async put(k, v) { this.m.set(k, structuredClone(v)); }
   async delete(k) { return this.m.delete(k); }
 }
-export function fakeEnv({ mode = 'dark', ai, now, hangBudget = false } = {}) {
+export function fakeEnv({ mode = 'on', ai, now, hangBudget = false } = {}) {
   const stores = new Map(); const touched = [];
   const ROOM = {
     idFromName: (n) => { touched.push(n); if (n !== BUDGET_NAME && n !== CACHE_NAME) throw new Error(`AI code touched room ${n}`); return n; },
