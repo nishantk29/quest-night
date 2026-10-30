@@ -146,6 +146,10 @@ h1,h2,.phase-title,.block-title,.path-title,.sheet-title{font-family:var(--displ
 }
 @keyframes qn-step-out{to{opacity:0;transform:translateX(-8px)}}
 @keyframes qn-step-in{from{opacity:0;transform:translateX(16px)}}
+/* the FAQ page opens on opacity + transform only, 220 ms, no view transition (app.js render) */
+.faq-in{animation:qn-step-in 220ms var(--qn-ease) both}
+.fx-off .faq-in{animation:none}
+@media (prefers-reduced-motion:reduce){.faq-in{animation:none}}
 
 /* ---- first-load entrance on the home screen only (html.boot is removed 1.6s after load) */
 .boot .home-hero > *,.boot .home-paths > *,.boot .more-games{animation:qn-rise var(--t-enter) var(--qn-ease) both}

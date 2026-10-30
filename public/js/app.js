@@ -72,6 +72,13 @@ addEventListener('pointerup', () => { if (!fieldDown) return; setTimeout(() => {
 addEventListener('pointercancel', () => { fieldDown = false; }, true);
 let toTop = false;
 if ('scrollRestoration' in history) history.scrollRestoration = 'manual'; // hash routes must not restore an old offset
+const isFaqKey = (k) => typeof k === 'string' && k.startsWith('faq|');
+// A one-shot entrance class, dropped when its own animation ends (a child's animationend bubbles up, so check the target).
+function replayIn(el, cls) {
+  el.classList.remove(cls); void el.offsetWidth; el.classList.add(cls);
+  const end = (e) => { if (e.target !== el) return; el.classList.remove(cls); el.removeEventListener('animationend', end); };
+  el.addEventListener('animationend', end);
+}
 function render() {
   const a = document.activeElement;
   if (fieldDown) { pending = true; return; }
@@ -83,8 +90,12 @@ function render() {
   // The room's first view replacing the connecting placeholder is the same screen: no second slide right after the first.
   const settling = lastKey !== null && lastKey.endsWith('|wait') && lastKey.split('|')[0] === key.split('|')[0];
   const animate = lastKey !== null && key !== lastKey && !settling && fx.enabled() && canTransition();
+  // Opening or leaving the FAQ (Nishant, Oct 30 2026: "janky"): no view transition. Its snapshot groups animate width, height
+  // and backdrop-filter; the page fades and slides in on opacity + transform only (.faq-in, 220 ms).
+  const faqHop = isFaqKey(lastKey) || isFaqKey(key);
   lastKey = key;
   if (!animate) { paint(); return; }
+  if (faqHop) { paint(); replayIn($app.querySelector(':scope > main') || $app, 'faq-in'); return; }
   vtBusy = true;
   // If the browser never calls back (tab hidden mid-transition), paint anyway so the screen can't freeze.
   let painted = false; const once = () => { if (painted) return; painted = true; vtBusy = false; paint(); };
