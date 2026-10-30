@@ -3,11 +3,13 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "test:ailook": "node test/kit/ailook-check.mjs",
     "dev": "wrangler dev --local",
     "test": "node --test test/*.test.js",
     "stamp": "node scripts/stamp-sw.mjs",
     "deploy": "wrangler deploy",
-    "e2e": "node test/e2e/multi-phone.e2e.mjs"
+    "e2e": "node test/e2e/multi-phone.e2e.mjs",
+    "test:spacing": "node test/kit/spacing-check.mjs"
   },
   "devDependencies": {
     "wrangler": "^4.151.2"
