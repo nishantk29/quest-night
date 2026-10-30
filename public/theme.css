@@ -6,7 +6,7 @@
    Cards tilt and lift with CSS transforms only. Liquid Glass lives only on overlays (fx.css).
    Flat fallbacks: html.fx-off (reduced motion / host toggle). */
 @font-face{font-family:"Rubik Fallback";src:local("Arial"),local("Helvetica");size-adjust:106%;ascent-override:93%;descent-override:25%;line-gap-override:0%}
-:root{--font-display:"Rubik","Rubik Fallback",system-ui,sans-serif;--font-ui:"Rubik","Rubik Fallback",system-ui,-apple-system,"Segoe UI",sans-serif;--font-voice:var(--font-ui);--blue-block:#2F6BD6;--red-block:#B3131F;--r-lead:var(--r-card);--r-block:var(--r-panel);--quiet:rgba(255,255,255,.16)}
+:root{--font-display:"Rubik","Rubik Fallback",system-ui,sans-serif;--font-ui:"Rubik","Rubik Fallback",system-ui,-apple-system,"Segoe UI",sans-serif;--font-voice:var(--font-ui);--f-pop:#2F6BD6;--f-on-pop:#FFFFFF;--blue-block:var(--f-pop);--red-block:#B3131F;--r-lead:var(--r-card);--r-block:var(--r-panel);--quiet:rgba(255,255,255,.16)}
 body{background:var(--room)}
 h1,h2,.phase-title,.block-title,.wordmark{font-weight:900;letter-spacing:-.025em;overflow-wrap:anywhere}
 .phase-title{font-size:clamp(2rem,1.5rem + 3vw,3.2rem);line-height:1.02}
@@ -103,7 +103,7 @@ a{text-decoration-color:rgba(255,255,255,.4);text-decoration-thickness:2px;text-
 .seal b{font-weight:900;font-size:clamp(1.7rem,8vw,3rem);color:var(--brass);letter-spacing:-.04em}
 .seal small{color:var(--on-brass);font-weight:700;bottom:-1.7em}
 .seal.is-now{box-shadow:0 0 0 4px var(--brass),0 0 0 8px var(--on-brass)}
-.seal.is-success{background:var(--blue-block);color:#fff;border:0}
+.seal.is-success{background:var(--blue-block);color:var(--f-on-pop);border:0}
 .seal.is-fail{background:var(--red-block);color:#fff;border:0}
 .two-fail{background:#fff;color:var(--red-block);font-weight:900}
 .seals-legend{margin-top:0;color:var(--on-brass);font-weight:700;align-items:flex-end}
@@ -126,13 +126,13 @@ a{text-decoration-color:rgba(255,255,255,.4);text-decoration-thickness:2px;text-
 
 /* ---- choices and votes: big colour blocks, flat */
 .choice{border-radius:var(--f-r-card);border:0;padding:var(--s6) var(--s3);font:900 var(--fs-xl) var(--font-display);color:#fff;box-shadow:none;transition:transform var(--t-press) var(--ease-out)}
-.choice.yes,.choice.success{background:var(--blue-block);color:#fff;border:0}
+.choice.yes,.choice.success{background:var(--blue-block);color:var(--f-on-pop);border:0}
 .choice.no,.choice.sabotage{background:var(--red-block);color:#fff;border:0}
 .choice:active:not([aria-disabled="true"]){transform:scale(var(--f-press-scale))}
 .choice[aria-disabled="true"]{opacity:1;background:#26262E;color:#B9B9C6;box-shadow:none}
 @media (hover:hover){.choice:hover:not([aria-disabled="true"]){box-shadow:0 0 0 3px rgba(255,255,255,.4)}}
 .choice .ico,.choice .ico.art{width:72px;height:72px}
-.flip.s{background:var(--blue-block);color:#fff;box-shadow:none} .flip.f{background:var(--red-block);color:#fff;box-shadow:none}
+.flip.s{background:var(--blue-block);color:var(--f-on-pop);box-shadow:none} .flip.f{background:var(--red-block);color:#fff;box-shadow:none}
 
 /* ---- lists inside cards */
 .sees li,.roles-list li,.mini-card,.seat-list li,.toggle,.piece,.dash-list li,.tool-btn,.timer-big,.poll,.script,.card-key li{border:0;background:var(--panel);color:#fff;border-radius:var(--f-r-card)}
@@ -161,7 +161,7 @@ a{text-decoration-color:rgba(255,255,255,.4);text-decoration-thickness:2px;text-
 .t-good{color:var(--town)} .t-evil{color:var(--mafia)}
 .cardart .crest{position:absolute;inset:8%;width:84%;height:84%;opacity:.18;color:var(--ink)}
 .cardart .ico.big{filter:drop-shadow(0 4px 6px rgba(8,5,3,.7))}
-.rcard.a-good,.cardart.a-good{--c1:#2F6BD6;--c2:#17317E;--c3:#0B1A55;--ink:#fff}
+.rcard.a-good,.cardart.a-good{--c1:var(--f-pop);--c2:#17317E;--c3:#0B1A55;--ink:#fff}
 .rcard.a-evil,.cardart.a-evil{--c1:#B3131F;--c2:#6E0A12;--c3:#2A0408;--ink:#fff}
 .rcard-back{background:repeating-linear-gradient(45deg,rgba(255,210,90,.14) 0 1px,transparent 1px 9px),repeating-linear-gradient(-45deg,rgba(255,210,90,.14) 0 1px,transparent 1px 9px),#0E1F5C}
 .rcard-name{font-weight:900;letter-spacing:-.02em}

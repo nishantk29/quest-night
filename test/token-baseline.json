@@ -6,7 +6,7 @@
   "spacing": 93,
   "radius": 1,
   "iconSize": 54,
-  "colour": 224
+  "colour": 221
  },
  "distinct": {
   "lineHeight": 18
@@ -444,7 +444,6 @@
    "theme.css|.col-log,.col-side|background|#17317E": 1,
    "theme.css|.pane-sec.chat,.pane-sec.dash,.pane-sec[aria-label=\"Table Tools\"],.pane-sec[aria-label=\"Game log\"]|background|#17317E": 1,
    "theme.css|.chat-form|background|#17317E": 2,
-   "theme.css|.seal.is-success|color|#fff": 1,
    "theme.css|.seal.is-fail|color|#fff": 1,
    "theme.css|.two-fail|background|#fff": 1,
    "theme.css|.round|background|#2A2A86": 1,
@@ -456,12 +455,10 @@
    "theme.css|.servant.on-team .servant-disc|box-shadow|0 0 0 4px #fff": 1,
    "theme.css|.servant-mark|border-color|#fff": 1,
    "theme.css|.choice|color|#fff": 1,
-   "theme.css|.choice.yes,.choice.success|color|#fff": 1,
    "theme.css|.choice.no,.choice.sabotage|color|#fff": 1,
    "theme.css|.choice[aria-disabled=\"true\"]|background|#26262E": 1,
    "theme.css|.choice[aria-disabled=\"true\"]|color|#B9B9C6": 1,
    "theme.css|.choice:hover:not([aria-disabled=\"true\"])|box-shadow|0 0 0 3px rgba(255,255,255,.4)": 1,
-   "theme.css|.flip.s|color|#fff": 1,
    "theme.css|.flip.f|color|#fff": 1,
    "theme.css|.sees li,.roles-list li,.mini-card,.seat-list li,.toggle,.piece,.dash-list li,.tool-btn,.timer-big,.poll,.script,.card-k|color|#fff": 1,
    "theme.css|.toggle.is-on|box-shadow|inset 0 0 0 3px #fff": 1,
