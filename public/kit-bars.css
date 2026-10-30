@@ -1,0 +1,27 @@
+/* Floating Liquid Glass bars (Nishant 2026-10-30: glass only on the floating bars; FULL strength there).
+   Loaded LAST. Phone layout only (the tab bar is hidden from 1100 wide). Keeps the current tabs and tools (decision 5).
+   Uses only family tokens, so data-noblur / no-support / reduced transparency / more contrast make the bar solid.
+   Tab bar: a SOLID dark navy toolbar (Brave-style, Nishant 2026-10-30 6:59 PM), no blur. Budget: 0 live blur layers here. The dock CTA floats opaque (edge + shadow, no blur of its own). The bar is solid, so
+   glass never sits on glass. */
+@media (max-width:1099px){
+  :root{--kit-bar-gap:var(--f-s3);--kit-bar-b:var(--f-safe-b);--tabbar-h:calc(var(--f-tabbar-h) + var(--kit-bar-gap))}   /* reserve: bar + its float gap */
+  .tabbar{left:var(--f-pad-l);right:var(--f-pad-r);bottom:var(--kit-bar-b);min-height:0;height:var(--f-tabbar-h);padding:var(--f-s1);box-sizing:border-box;
+    border:1px solid var(--f-tabbar-line);border-radius:var(--f-r-pill);background:var(--f-tabbar-bg);
+    -webkit-backdrop-filter:none;backdrop-filter:none;color:var(--f-tabbar-ink);
+    box-shadow:var(--f-glass-shadow);isolation:isolate;transform:translateZ(0)}
+  .tabbar button{min-height:0;border-radius:var(--f-r-pill)}
+  .tabbar button{color:var(--f-tabbar-ink)}
+  .tabbar button :is(svg,.ico,.ui-ico){color:var(--f-tabbar-icon)}
+  .tabbar button[aria-current="page"]{color:var(--f-tabbar-ink-on)}
+  .tabbar button[aria-current="page"] :is(svg,.ico,.ui-ico){color:var(--f-tabbar-icon-on)}
+  .tabbar button[aria-current="page"]{background:var(--f-tabbar-sel)}
+  .sticky-act{bottom:calc(var(--kit-bar-b) + var(--f-tabbar-h) + var(--f-s3))}
+  .sticky-act .btn.big:not(:disabled):not([aria-disabled="true"]){box-shadow:var(--f-glass-edge),var(--f-glass-shadow)}
+  /* soft scroll edge: content fades out under the bars instead of colliding with them (no blur, static) */
+  #app:has(.tabbar)::after{   /* inside #app's stacking context (z-index:1), so it sits under the bar (30), over content */
+    content:"";position:fixed;left:0;right:0;bottom:0;z-index:20;height:calc(var(--kit-bar-b) + var(--f-tabbar-h) + var(--f-s5));pointer-events:none;
+    background:linear-gradient(to top,color-mix(in srgb,var(--f-bg) 70%,transparent),transparent)}
+}
+/* short phones (iPhone SE class, no home indicator): float the bar 4px off the edge, so it takes no more height than the
+   old bar and docks riding on --tabbar-h don't cover content (same rule on every site). */
+@media (max-width:1099px) and (max-height:700px){:root{--kit-bar-gap:var(--f-s1);--kit-bar-b:max(var(--f-s1),env(safe-area-inset-bottom))}}
