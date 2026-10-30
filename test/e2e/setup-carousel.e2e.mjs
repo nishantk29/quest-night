@@ -101,7 +101,7 @@ try {
   await hp.click('[data-a="savedMenu"]');
   await hp.waitForSelector('.saved-sheet');
   await hp.fill('#sv-name', 'Friday night');
-  await hp.click('.saved-sheet >> text=Save name');
+  await hp.click('.saved-sheet >> text="Save"');
   await hp.waitForFunction(() => document.querySelector('.cs-card')?.textContent.includes('Friday night'));
   L.check('Rename works', true);
   await hp.click('[data-a="savedMenu"]');
@@ -156,7 +156,7 @@ try {
   await Promise.all(phones.map((p) => p.page.waitForSelector('.roles-panel')));
   L.check('every phone shows "Roles in this game" before the reveal', true);
   const panelTexts = [];
-  for (const p of [host, ...phones]) panelTexts.push((await p.page.textContent('.roles-panel')).replace(/\s+/g, ' ').replace(/See my role|Continue/, '').trim());
+  for (const p of [host, ...phones]) panelTexts.push((await p.page.textContent('.roles-panel')).replace(/\s+/g, ' ').replace(/See my role|Close/, '').trim());
   L.check('the panel text is identical on all five phones', new Set(panelTexts).size === 1, panelTexts[0].slice(0, 100));
   L.check('the button reads "See my role"', (await hp.textContent('.roles-panel .btn')).trim() === 'See my role');
   L.check('roles panel: targets are 44px+ and text 13px+', (await audit(host)).length === 0, await audit(host));
@@ -194,7 +194,7 @@ try {
     await top(h); await h.shot(SHOTS, `step4-deal-${tag}`);
     await h.page.click('[data-a="csDeal"]');
     await h.page.waitForSelector('.roles-panel');
-    L.check(`${tag}: one-phone deal shows the roles panel`, /Continue|See my role/.test(await h.page.textContent('.roles-panel .btn')));
+    L.check(`${tag}: one-phone deal shows the roles panel`, /Close|See my role/.test(await h.page.textContent('.roles-panel .btn')));
     await top(h); await h.shot(SHOTS, `roles-panel-${tag}`);
     await checkPhones(L, [h], `at ${tag}`);
     await h.close();

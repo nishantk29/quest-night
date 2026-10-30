@@ -42,7 +42,7 @@ function stepPlayers(c) {
   const chips = seats.map((p) => `<li class="cs-chip ${p.watch ? 'is-off' : ''}"><span class="cs-ini">${esc((p.name[0] || '?').toUpperCase())}</span><span class="cs-nm">${esc(p.name)}${p.host ? '<small>Host</small>' : ''}${p.watch ? '<small>sits out</small>' : ''}</span>${p.phoneless ? '' : `<span class="cs-dev" title="On their own phone" role="img" aria-label="on their own phone">${ui('phone')}</span>`}${p.host ? '' : `<button type="button" class="cs-x" data-a="kick" data-id="${p.id}" aria-label="Remove ${esc(p.name)}">${ui('x')}</button>`}</li>`).join('');
   const n = seats.filter((p) => !p.watch).length;
   return `${hd('Who’s playing?', '', esc)}
-    <div class="cs-code"><span>Players join with code <b class="cs-code-v">${esc(v.code)}</b></span><span class="cs-code-act"><button type="button" class="cs-link" data-a="qrFull" data-link="${esc(link)}" data-code="${esc(v.code)}">Show QR</button><button type="button" class="cs-link" data-a="copy" data-link="${esc(link)}">Copy link</button></span></div>
+    <div class="cs-code"><span>Players join with code <b class="cs-code-v">${esc(v.code)}</b></span><span class="cs-code-act"><button type="button" class="cs-link" data-a="qrFull" data-link="${esc(link)}" data-code="${esc(v.code)}">Show QR code</button><button type="button" class="cs-link" data-a="copy" data-link="${esc(link)}">Copy link</button></span></div>
     <div class="cs-count"><b>${n} ${plural(n, 'player', 'players')}</b><span>${ui('phone')} joined on their own phone</span></div>
     <ul class="cs-chips">${chips}</ul>
     <div class="cs-add"><input id="cs-name" data-i="seatName" maxlength="20" placeholder="Add a name" aria-label="Add a name" enterkeyhint="done" autocomplete="off" value="${esc(draft.seatName || '')}"><button type="button" class="cs-sec" data-a="addSeat">Add</button></div>
@@ -96,7 +96,7 @@ export function carousel(c) {
   const { step, st, esc } = c;
   const body = [stepPlayers, stepPreset, stepSeating, stepDeal][step](c);
   const problem = st.problems[step];
-  return `<section class="cs" data-step="${step}" aria-label="Setup">${progress(step)}<div class="cs-view"><div class="cs-card" id="cs-card" data-dir="${c.dir || ''}">${body}</div></div>${dock(step, problem, esc, step === 3 ? 'Deal roles' : null)}</section>`;
+  return `<section class="cs" data-step="${step}" aria-label="Setup">${progress(step)}<div class="cs-view"><div class="cs-card" id="cs-card" data-dir="${c.dir || ''}">${body}</div></div>${dock(step, problem, esc, step === 3 ? nextLabel(3, c.n) : null)}</section>`;
 }
 
 // ---- presets page

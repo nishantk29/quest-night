@@ -53,7 +53,7 @@ export function setupState(v, saved = [], local = {}) {
   const problems = {
     0: n < MIN_PLAYERS ? { text: `Add ${MIN_PLAYERS - n} more ${MIN_PLAYERS - n === 1 ? 'player' : 'players'} to start (${MIN_PLAYERS} minimum).`, fix: { label: 'Add a name', go: 0, focus: 'name' } }
       : n > MAX_PLAYERS ? { text: `Quest Night seats ${MAX_PLAYERS}. Remove ${n - MAX_PLAYERS}.`, fix: { label: 'Remove a player', go: 0 } } : null,
-    1: n < MIN_PLAYERS ? { text: `Add players first. Quest Night needs ${MIN_PLAYERS}.`, fix: { label: 'Back to Players', go: 0 } }
+    1: n < MIN_PLAYERS ? { text: `Add players first. Quest Night needs ${MIN_PLAYERS}.`, fix: { label: 'Back to players', go: 0 } }
       : preset && !fits(preset, n) ? { text: `${preset.name}: ${misfit(preset, n).replace(/\.$/, '')}. Change preset or add players.`, fix: { label: 'Change preset', go: 'presets' } }
         : list.error ? { text: list.error, fix: { label: 'Change preset', go: 'presets' } } : null,
     2: null,
@@ -66,7 +66,7 @@ export function setupState(v, saved = [], local = {}) {
 
 // Next is disabled when the current step has a problem. Swiping forward past a problem snaps back to the first one.
 export const firstBlocked = (state, upTo) => { for (let i = 0; i < upTo; i++) if (state.problems[i]) return i; return -1; };
-export function nextLabel(step) { return ['Next: Pick roles', 'Next: Seating', 'Next: Review', 'Deal roles'][clampStep(step)]; }
+export function nextLabel(step, n = 0) { return ['Next: Pick roles', 'Next: Seating', 'Next: Review', n ? `Deal ${n} roles` : 'Deal'][clampStep(step)]; }
 
 // localStorage shape, kept per room code so an old room's step never opens a new room.
 export function loadSetup(store, code) {

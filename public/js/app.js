@@ -150,7 +150,7 @@ const HUB_LOGO = '<svg viewBox="0 0 48 48"><rect x="7" y="7" width="15" height="
 
 // One footer for every page: the game links, then the licences tucked behind "Credits".
 function siteFooter() {
-  return `<footer class="site-foot"><nav aria-label="Game Night games"><a href="${HUB}">All Games</a><a href="https://mafia.hatethespurs.com">Mafia Night</a><a href="https://secrethitler.hatethespurs.com">The Gilded Chamber</a><a href="https://avalon.hatethespurs.com" aria-current="page">Quest Night</a></nav>
+  return `<footer class="site-foot"><nav aria-label="Game Night games"><a href="${HUB}">All games</a><a href="https://mafia.hatethespurs.com">Mafia Night</a><a href="https://secrethitler.hatethespurs.com">The Gilded Chamber</a><a href="https://avalon.hatethespurs.com" aria-current="page">Quest Night</a></nav>
     <details class="credits-box"><summary>Credits</summary><p>Crown, chalice, lantern and crest icons drawn for Quest Night. Role icons from <a href="https://game-icons.net" target="_blank" rel="noopener">game-icons.net</a> by Lorc, Delapouite and contributors (CC BY 3.0). Interface icons from <a href="https://phosphoricons.com" target="_blank" rel="noopener">Phosphor</a> (MIT). Fonts Rubik and Cinzel (SIL OFL 1.1).</p></details></footer>`;
 }
 const CHEV_L = '<svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>';
@@ -161,7 +161,7 @@ function home() {
   // a sample quest track at 5 players: seal size follows party size, the last two show their quest's party size
   const seals = QUEST_SIZES[5].map((n, i) => `<span class="hseal ${['ok', 'bad', 'ok', 'now', 'wait'][i]}" style="--n:${n}">${i < 3 ? art(['chalice', 'broken', 'chalice'][i]) : n}</span>`).join('');
   return `<main class="wrap home">
-    <nav class="home-nav" aria-label="Game Night"><a class="hub-link" href="${HUB}">${CHEV_L}All Games</a></nav>
+    <nav class="home-nav" aria-label="Game Night"><a class="hub-link" href="${HUB}">${CHEV_L}All games</a></nav>
     <div class="home-hero">
       <div class="home-brand"><span class="logo-mark" aria-hidden="true">${art('crown')}</span>
         <h1 class="wordmark"><span>Quest</span> <span>Night</span></h1><svg class="tower" viewBox="0 0 56 84" aria-hidden="true" focusable="false"><path d="M13 84V34h-3v-8h5v-4h4v4h4v-4h4v4h4v-4h4v4h4v8h-3v50z" fill="#1D1D68"/><path d="M19 84V58a6 6 0 0 1 12 0v26z" fill="#0B0B3A"/><rect x="21.5" y="38" width="4" height="9" rx="2" fill="#F6D98A"/><rect x="24.8" y="2" width="2.2" height="22" rx="1" fill="#B7A66C"/><path class="pennant" d="M27 3c8 3 13-3 22 1.5L44.5 11 49 18c-9-4-14 2-22-1z" fill="#E0AE52"/></svg></div>
@@ -172,11 +172,11 @@ function home() {
       <section class="path"><h2 class="path-title">Host a table</h2>
         <p class="muted">You’re the Host. Play too, or sit out. Everyone else joins with a 6-letter room code.</p>
         <label class="field"><span>Your name</span><input data-i="hostName" maxlength="20" autocomplete="nickname" enterkeyhint="go" value="${esc(S.ui.draft.hostName || store.get(`${KEY}.name`) || '')}"></label>
-        <button type="button" class="btn big" data-a="host">Open Table</button>
+        <button type="button" class="btn big" data-a="host">Host a game</button>
         ${mine.map((c) => `<p class="resume-row" data-room="${esc(c)}"><a class="resume" href="#/play/${esc(c)}">Back to table <b class="code">${esc(c)}</b></a><button type="button" class="resume-x" data-a="forgetRoom" data-v="${esc(c)}" aria-label="Forget table ${esc(c)} on this phone">${ui('x')}</button></p>`).join('')}</section>
       <section class="path"><h2 class="path-title">Join a table</h2>
         <div class="join-row"><label class="field"><span>Room code</span><input class="code-input" data-i="joinCode" maxlength="6" autocapitalize="characters" autocomplete="off" spellcheck="false" enterkeyhint="go" placeholder="6 letters" value="${esc(S.ui.draft.joinCode || '')}"></label>
-        <button type="button" class="btn" data-a="goJoin">Join Table</button></div></section>
+        <button type="button" class="btn" data-a="goJoin">Join a game</button></div></section>
       <a class="side-card" href="#/faq"><span><b>Rules &amp; FAQ</b><small>Roles, table sizes, and what to do when it gets weird.</small></span>${CHEV}</a>
       <section class="how-sec"><h2 class="block-title">How to play</h2>
         <ol class="how">
@@ -219,7 +219,7 @@ function rulesPage() {
 function joinForm() {
   return `<main class="wrap join"><h1 class="phase-title">Join Table <span class="code">${esc(S.code)}</span></h1>
     <label class="field"><span>Your Name</span><input data-i="joinName" maxlength="20" autocomplete="nickname" enterkeyhint="go" value="${esc(S.ui.draft.joinName || store.get(`${KEY}.name`) || '')}"></label>
-    <button type="button" class="btn big" data-a="join">Take a Seat</button>
+    <button type="button" class="btn big" data-a="join">Join</button>
     <p class="muted" style="margin-top:var(--s4)">If the game has started, you’ll watch unless the Host opens a seat for you. <a href="#/">Back</a></p></main>`;
 }
 
@@ -230,7 +230,7 @@ const PHASE = { lobby: ['Lobby', 'table'], reveal: ['Secret Cards', 'good'], pro
 const rolesChip = (v) => { const n = v.game?.n || v.players.filter((p) => !p.watch).length; return `<button type="button" class="roles-chip" data-a="roles" aria-label="Roles in this game${n >= MIN_PLAYERS ? `, ${n} roles` : ''}">${n >= MIN_PLAYERS ? `${n} roles` : 'Roles'}</button>`; };
 function appbar(v) {
   const [label, icon] = PHASE[v.phase] || ['', 'crown'];
-  return `<header class="appbar"><a class="appbar-mark" href="#/" aria-label="Home">${art('crown')}</a>
+  return `<header class="appbar"><a class="appbar-mark" href="#/" aria-label="Quest Night home">${art('crown')}</a>
     <div class="appbar-title"><span class="appbar-word">Table</span> <span class="code">${esc(v.code)}</span></div>
     ${T.timerChip(v)}${rolesChip(v)}<span class="phase-badge">${art(icon)}<span class="pb-t">${label}</span></span></header>`;
 }
@@ -293,14 +293,14 @@ function lobbyPlain(v) {
   const guide = m.roles === 'physical' && n >= 5 && !list.error ? cardGuideBlock(n, v.settings, v.house) : '';
   return `<section class="join-code"><p class="muted">Room code</p><p class="room-code">${esc(v.code)}</p>
       <p class="muted join-link">${esc(link)}</p>
-      ${host ? `<button type="button" class="qr-tap" data-a="qrFull" data-link="${esc(link)}" data-code="${esc(v.code)}" aria-label="Show the join QR code full screen">${qrSvg(link, `QR code to join room ${v.code}`)}<span>Tap for Full Screen</span></button>` : ''}
-      <div class="btn-row"><button class="btn ghost" data-a="copy" data-link="${esc(link)}">${ui('copy')} Copy Link</button>
+      ${host ? `<button type="button" class="qr-tap" data-a="qrFull" data-link="${esc(link)}" data-code="${esc(v.code)}" aria-label="Show the join QR code full screen">${qrSvg(link, `QR code to join room ${v.code}`)}<span>Full screen</span></button>` : ''}
+      <div class="btn-row"><button class="btn ghost" data-a="copy" data-link="${esc(link)}">${ui('copy')} Copy link</button>
       ${navigator.share ? `<button class="btn ghost" data-a="share" data-link="${esc(link)}">Share</button>` : ''}</div></section>
     <section class="stage"><h2 class="block-title">At the Table (${n})</h2>
       <p class="muted">Seat order is the order the crown travels. ${host ? 'Match it to how everyone is sitting.' : ''}</p>
       <ul class="seat-list">${seats}</ul>${status}${balance}
-      ${host ? `<div class="add-seat"><label class="field"><span>Add a Seat Without a Phone</span><input data-i="seatName" maxlength="20" placeholder="Name" enterkeyhint="done" value="${esc(S.ui.draft.seatName || '')}"></label><button class="btn ghost" data-a="addSeat">Add Seat</button></div>
-      <div class="btn-row"><button class="btn ghost" data-a="shuffleSeats">${ui('shuffle')} Shuffle Seats</button></div>` : ''}</section>
+      ${host ? `<div class="add-seat"><label class="field"><span>Add a seat without a phone</span><input data-i="seatName" maxlength="20" placeholder="Name" enterkeyhint="done" value="${esc(S.ui.draft.seatName || '')}"></label><button class="btn ghost" data-a="addSeat">Add seat</button></div>
+      <div class="btn-row"><button class="btn ghost" data-a="shuffleSeats">${ui('shuffle')} Shuffle seats</button></div>` : ''}</section>
     <section class="stage"><h2 class="block-title">How You’re Playing</h2><div class="settings">${modes}</div>${pieces}
       ${m.play !== 'phone' ? `<p class="muted">Real cards: <a href="/print.html" target="_blank" rel="noopener">print the card guide or the Quest Night cards</a>. The Host enters anything physical and never sees a secret.</p>` : ''}</section>
     <section class="stage"><h2 class="block-title">Special Cards</h2>${host ? '' : '<p class="muted">The Host picks these.</p>'}
@@ -311,7 +311,7 @@ function lobbyPlain(v) {
       <label class="toggle"><span><b>Vote Reveal Delay</b><span class="muted">A short drumroll before votes are shown.</span></span>${sel('revealDelay', [[0, 'Off'], [3, '3 s'], [5, '5 s']])}</label>
       <label class="toggle"><span><b>First Leader</b><span class="muted">Who wears the crown first.</span></span>${sel('firstLeader', [['random', 'Random'], ['host', 'The Host']])}</label></div></section>
     ${guide}
-    ${host ? `<div class="sticky-act"><button class="btn big ${n < 5 || list.error ? 'disabled' : ''}" data-a="start">${m.roles === 'app' ? 'Deal Cards' : 'Start Game'}</button></div>`
+    ${host ? `<div class="sticky-act"><button class="btn big ${n < 5 || list.error ? 'disabled' : ''}" data-a="start">${m.roles === 'app' ? `Deal ${n} roles` : 'Start game'}</button></div>`
     : '<div class="empty">Waiting for the Host to start…</div>'}`;
 }
 
@@ -354,7 +354,7 @@ function advancedBlock(v, n) {
     ${pieces ? `<h3 class="cs-adv-h">Real cards or the app</h3>${pieces}` : ''}
     ${m.play !== 'phone' ? '<p class="muted">Real cards: <a href="/print.html" target="_blank" rel="noopener">print the card guide or the Quest Night cards</a>. The Host enters anything physical and never sees a secret.</p>' : ''}
     <h3 class="cs-adv-h">Seat order</h3><p class="muted">Seat order is the order the crown travels. Match it to how everyone is sitting.</p>
-    <ul class="seat-list">${seats}</ul><div class="btn-row"><button type="button" class="btn ghost" data-a="shuffleSeats">${ui('shuffle')} Shuffle Seats</button></div>${guide}`;
+    <ul class="seat-list">${seats}</ul><div class="btn-row"><button type="button" class="btn ghost" data-a="shuffleSeats">${ui('shuffle')} Shuffle seats</button></div>${guide}`;
 }
 
 // ---- carousel actions
@@ -398,7 +398,7 @@ function savedMenu(id) {
   let nameEl = null; // the sheet closes before onClick runs, so keep the input itself
   const dlg = openSheet({ title: p.name, cls: 'saved-sheet',
     bodyHtml: `<label class="field"><span>Name</span><input id="sv-name" maxlength="24" value="${esc(p.name)}"></label>`,
-    buttons: [{ label: 'Save name', onClick: () => { const nm = (nameEl?.value || '').trim().slice(0, 24); if (nm) { p.name = nm; persistSaved(); render(); } } },
+    buttons: [{ label: 'Save', onClick: () => { const nm = (nameEl?.value || '').trim().slice(0, 24); if (nm) { p.name = nm; persistSaved(); render(); } } },
       { label: 'Delete', cls: 'ghost danger', close: false, onClick: () => { const b = document.querySelector('.saved-sheet .danger'); if (b?.dataset.sure) { S.saved = S.saved.filter((x) => x.id !== id); persistSaved(); dlg.close(); render(); } else if (b) { b.dataset.sure = '1'; b.textContent = 'Tap again to delete'; } } }] });
   nameEl = document.getElementById('sv-name');
 }
@@ -574,7 +574,7 @@ function stage(v) {
     return `<section class="stage reveal-stage"><h1 class="phase-title">Your Secret Card</h1>
       ${say('Shield your screen. Hold the card to see it, then let go.')}
       ${cardView(v, true)}
-      ${ready ? '<p class="muted center">Waiting for the others to read their cards…</p>' : '<button class="btn big" data-a="ready">I’m Ready</button>'}
+      ${ready ? '<p class="muted center">Waiting for the others to read their cards…</p>' : '<button class="btn big" data-a="ready">I’m ready</button>'}
       ${D}</section>`;
   }
   if (v.phase === 'propose') {
@@ -622,7 +622,7 @@ function stage(v) {
     return `<section class="stage"><h1 class="phase-title">The Lantern</h1>${say(`${esc(nameOf(v, L.holder))} will look into one player’s heart.`)}${D}</section>`;
   }
   if (v.phase === 'assassin') {
-    if (!g.appRoles) return `<section class="stage"><h1 class="phase-title">The Assassin Takes Aim</h1>${say('Evil, show your cards. The Assassin names one servant.')}${host ? `<p class="note">Tap who the Assassin named, then say if they were Merlin.</p>${S.ui.strike ? `<div class="choice-pair"><button class="choice no" data-a="strikeHit" data-v="1" aria-pressed="${S.ui.hit === true}">It Was Merlin</button><button class="choice yes" data-a="strikeHit" data-v="0" aria-pressed="${S.ui.hit === false}">Not Merlin</button></div>` : ''}${D}` : ''}</section>`;
+    if (!g.appRoles) return `<section class="stage"><h1 class="phase-title">The Assassin Takes Aim</h1>${say('Evil, show your cards. The Assassin names one servant.')}${host ? `<p class="note">Tap who the Assassin named, then say if they were Merlin.</p>${S.ui.strike ? `<div class="choice-pair"><button class="choice no" data-a="strikeHit" data-v="1" aria-pressed="${S.ui.hit === true}">It was Merlin</button><button class="choice yes" data-a="strikeHit" data-v="0" aria-pressed="${S.ui.hit === false}">Not Merlin</button></div>` : ''}${D}` : ''}</section>`;
     if (g.assassin === me.id) return `<section class="stage"><h1 class="phase-title">Name Merlin</h1>${say('Three quests succeeded. Talk it over with Evil, then tap the one you believe is Merlin. You get one strike.')}${D}</section>`;
     return `<section class="stage"><h1 class="phase-title">The Assassin Takes Aim</h1>${say(`${g.assassin ? esc(nameOf(v, g.assassin)) : 'The Assassin'} will name one servant. If it is Merlin, the Minions of Mordred win.`)}${D}</section>`;
   }
@@ -641,7 +641,7 @@ function over(v) {
   return `<section class="winner a-${side}">${art(side === 'good' ? 'chalice' : 'evil')}<h1>${side === 'good' ? 'The Loyal Servants of Arthur win' : 'The Minions of Mordred win'}</h1>
       <p class="say">${why}</p>${won}</section>
     ${roles ? `<section class="stage"><h2 class="block-title">Who Was Who</h2><ul class="roles-list">${roles}</ul></section>` : '<section class="stage"><p class="say">Everyone, turn your cards over.</p></section>'}
-    ${me?.host ? '<div class="sticky-act"><button class="btn big" data-a="restart">Restart</button><button class="btn ghost" data-a="again">Change setup first</button></div>' : v.kind === 'screen' ? '' : '<p class="muted center">The Host can start another game.</p>'}`;
+    ${me?.host ? '<div class="sticky-act"><button class="btn big" data-a="restart">Play again</button><button class="btn ghost" data-a="again">Change setup first</button></div>' : v.kind === 'screen' ? '' : '<p class="muted center">The Host can start another game.</p>'}`;
 }
 
 // A deterministic cosmetic shuffle (so a re-render keeps the same order): the table sees how many sabotage cards
@@ -757,12 +757,12 @@ function hostControls(v) {
   if (v.phase === 'reveal') idle = seats.filter((p) => !g.ready.includes(p.id) && !p.phoneless);
   if (v.phase === 'vote' && v.mode.votes === 'app') idle = seats.filter((p) => !g.voted.includes(p.id));
   if (v.phase === 'quest' && v.mode.cards === 'app') idle = seats.filter((p) => g.team.includes(p.id) && !g.played.includes(p.id));
-  const skipText = { reveal: 'Mark Ready', vote: 'Skip (Reject)', quest: 'Skip (Success)' }[v.phase];
+  const skipText = { reveal: 'Mark ready', vote: 'Skip', quest: 'Skip' }[v.phase];
   return `<h3 class="sub">This Phase</h3>
     ${idle.length ? `<ul class="dash-list">${idle.map((p) => `<li><span class="who">${esc(p.name)} <small class="muted">waiting</small></span><span class="btn-row"><button class="btn ghost sm" data-a="nudge" data-id="${p.id}">Nudge</button><button class="btn ghost sm" data-a="skip" data-id="${p.id}">${skipText}</button></span></li>`).join('')}</ul>` : ''}
-    <div class="btn-row wrap">${v.phase === 'reveal' ? '<button class="btn ghost" data-a="skipReveal">Start First Party</button>' : ''}
-    ${v.phase === 'propose' ? '<button class="btn ghost" data-a="skip">Pass the Crown</button>' : ''}${v.phase === 'lantern' ? '<button class="btn ghost" data-a="skip">Skip the Lantern</button>' : ''}</div>
-    <p class="muted">Skips and undos are written in the log for everyone.</p>
+    <div class="btn-row wrap">${v.phase === 'reveal' ? '<button class="btn ghost" data-a="skipReveal">Start the first quest</button>' : ''}
+    ${v.phase === 'propose' ? '<button class="btn ghost" data-a="skip">Pass the crown</button>' : ''}${v.phase === 'lantern' ? '<button class="btn ghost" data-a="skip">Skip the lantern</button>' : ''}</div>
+    <p class="muted">A skipped vote counts as Reject and a skipped card as Success. Skips and undos are written in the log for everyone.</p>
     ${v.moderator ? `<h3 class="sub">The Deal (Host Only)</h3><ul class="roles-list">${seats.map((p) => { const r = v.moderator.roles[p.id]; return r ? `<li class="a-${r.side}">${glyph(r.icon)}<span><b>${esc(p.name)}</b><small>${esc(r.name)}</small></span></li>` : ''; }).join('')}</ul>` : ''}`;
 }
 
@@ -771,7 +771,7 @@ function hostPane(v) {
   const script = g ? `${scriptHtml(phaseScript(v))}<details class="faq-q"><summary>Opening Script (Eyes Closed)</summary>${scriptHtml(openingScript(g.roleSet, !!g.lantern))}</details>`
     : `<p class="muted">Once you start, the lines to read aloud for each phase appear here.</p>`;
   const toggle = `<label class="toggle fx-opt ${fx.isUserOn() ? 'is-on' : ''}"><input type="checkbox" data-a="fxSet" ${fx.isUserOn() ? 'checked' : ''}><span><b>Animations</b><span class="muted">Reveals, bursts, scroll effects, and the victory card on this device. Always off if your device asks for reduced motion.</span></span></label>`;
-  const tools = `<div class="btn-row wrap"><button type="button" class="btn ghost" data-a="roles">Roles in this game</button>${v.phase !== 'lobby' ? '<button type="button" class="btn ghost" data-a="restartAsk">Restart game…</button>' : ''}</div>`;
+  const tools = `<div class="btn-row wrap"><button type="button" class="btn ghost" data-a="roles">Roles in this game</button>${v.phase !== 'lobby' ? '<button type="button" class="btn ghost" data-a="restartAsk">Restart game</button>' : ''}</div>`;
   return T.hostPane(v, toggle + tools + hostControls(v), script);
 }
 
@@ -934,7 +934,7 @@ function showRoles() {
 function restartAsk() {
   openSheet({ title: 'Restart the game?', cls: 'restart-sheet',
     bodyHtml: '<p>Everyone stays seated and gets a fresh deal with the same setup. The chat, log and quests so far are cleared.</p>',
-    buttons: [{ label: 'Keep playing', cls: 'ghost' }, { label: 'Change setup first', cls: 'ghost', onClick: () => send({ type: 'again' }) }, { label: 'Restart now', onClick: () => send({ type: 'restart' }) }] });
+    buttons: [{ label: 'Keep playing', cls: 'ghost' }, { label: 'Change setup first', cls: 'ghost', onClick: () => send({ type: 'again' }) }, { label: 'Restart game', onClick: () => send({ type: 'restart' }) }] });
 }
 
 async function act(a, el) {

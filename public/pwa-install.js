@@ -43,8 +43,8 @@ function show() {
   el.setAttribute('role', 'region');
   el.setAttribute('aria-label', 'Install app');
   el.innerHTML = ios
-    ? `<span>To install, tap Share ${share}, then Add to Home Screen.</span><button class="pwa-x" type="button">Not Now</button>`
-    : `<span><strong>Install app</strong><small>Opens full screen. Games need internet.</small></span><button class="pwa-go" type="button">Install app</button><button class="pwa-x" type="button">Not Now</button>`;
+    ? `<span>To install, tap Share ${share}, then Add to Home Screen.</span><button class="pwa-x" type="button">Not now</button>`
+    : `<span><strong>Install app</strong><small>Opens full screen. Games need internet.</small></span><button class="pwa-go" type="button">Install app</button><button class="pwa-x" type="button">Not now</button>`;
   el.querySelector('.pwa-x').onclick = () => hide(true);
   const go = el.querySelector('.pwa-go');
   if (go) go.onclick = async () => {

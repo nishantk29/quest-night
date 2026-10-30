@@ -31,10 +31,10 @@ h1,h2,.phase-title,.block-title,.path-title,.sheet-title{font-family:var(--displ
 
 /* ---- home: Mafia structure. Actions on the left, title and logo on the right, then suggestions and footer */
 .home-brand{display:grid;gap:var(--s3);justify-items:start}
-.logo-mark{display:grid;place-items:center;width:72px;height:72px;border-radius:20px;background:var(--brass);color:var(--on-brass);box-shadow:0 10px 24px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.35);transform:rotate(-4deg)}
+.logo-mark{display:grid;place-items:center;width:72px;height:72px;border-radius:var(--f-r-card);background:var(--brass);color:var(--on-brass);box-shadow:0 10px 24px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.35);transform:rotate(-4deg)}
 .logo-mark .ico,.logo-mark svg{width:46px;height:46px}
 .home-hero{gap:var(--s3)}
-.home-art{width:auto;max-width:100%;padding:var(--s3);margin:var(--s2) 0 0;flex-wrap:nowrap;background:rgba(42,42,134,.72);border-radius:var(--r-row)}
+.home-art{width:auto;max-width:100%;padding:var(--s3);margin:var(--s2) 0 0;flex-wrap:nowrap;background:rgba(42,42,134,.72);border-radius:var(--f-r-card)}
 .home-art .hseal{flex:0 0 auto;width:calc((100% - 4 * var(--s2)) / 5);height:auto;aspect-ratio:1;max-width:76px;font-size:clamp(1rem,5vw,1.6rem)}
 .home-art .hseal svg,.home-art .hseal .ico{width:56%;height:56%}
 @media (min-width:900px){
@@ -53,8 +53,8 @@ h1,h2,.phase-title,.block-title,.path-title,.sheet-title{font-family:var(--displ
 /* ---- more games */
 .more-games{display:grid;gap:var(--s3);max-width:100%}
 .more-grid{display:grid;gap:var(--s3);grid-template-columns:repeat(auto-fill,minmax(250px,1fr))}
-.more-card{display:flex;align-items:center;gap:var(--s4);min-height:96px;padding:var(--s4);border-radius:var(--r-block,20px);background:#1B1B22;color:#fff;text-decoration:none;box-shadow:inset 0 0 0 1px rgba(255,255,255,.08),inset 0 1px 0 rgba(255,255,255,.08),0 8px 22px rgba(0,0,0,.35);hyphens:none;overflow-wrap:normal}
-.more-logo{flex:none;display:grid;place-items:center;width:56px;height:56px;border-radius:50%;background:var(--tok,#2F6BD6);color:#fff}
+.more-card{display:flex;align-items:center;gap:var(--s4);min-height:96px;padding:var(--s4);border-radius:var(--f-r-card);background:#1B1B22;color:#fff;text-decoration:none;box-shadow:inset 0 0 0 1px rgba(255,255,255,.08),inset 0 1px 0 rgba(255,255,255,.08),0 8px 22px rgba(0,0,0,.35);hyphens:none;overflow-wrap:normal}
+.more-logo{flex:none;display:grid;place-items:center;width:56px;height:56px;border-radius:var(--f-r-round);background:var(--tok,#2F6BD6);color:#fff}
 .more-logo svg{width:32px;height:32px}
 .more-mafia{--tok:#8E1620}.more-gilded{--tok:#B9770E}.more-hub{--tok:#2F6BD6}
 .more-text{display:grid;gap:2px;min-width:0}
@@ -83,21 +83,21 @@ h1,h2,.phase-title,.block-title,.path-title,.sheet-title{font-family:var(--displ
 @media (hover:hover) and (pointer:fine){.more-card:hover,.side-card:hover,.path:hover{box-shadow:inset 0 0 0 1px rgba(255,255,255,.14),0 14px 30px rgba(0,0,0,.45)}}
 .path,.side-card,.more-card{position:relative}
 .path::after,.side-card::after,.more-card::after{content:"";position:absolute;inset:0;border-radius:inherit;background:var(--paper);background-size:160px;opacity:.05;mix-blend-mode:overlay;pointer-events:none}
-.how-sec li{border-radius:var(--r-row)}
+.how-sec li{border-radius:var(--f-r-card)}
 .history li,.history li.ok,.history li.bad{border-left:0}
 
 /* ---- role picker: icon-led tokens, two across on a phone, faction as a ring and a pill, selected = gold frame + banner notch */
 .settings:has(> .role-token){display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}
-.role-token{position:relative;display:grid;grid-template-rows:auto 1fr;justify-items:center;align-content:start;gap:var(--s2);min-height:150px;padding:18px 12px 14px;text-align:center;border-radius:14px;background:#1B1B1F;color:#fff;border:0;box-shadow:inset 0 0 0 1px rgba(255,255,255,.1),inset 0 1px 0 rgba(255,255,255,.1),0 6px 14px rgba(0,0,0,.35);cursor:pointer;hyphens:none;overflow-wrap:normal}
-.role-token .token{display:grid;place-items:center;width:60px;height:60px;border-radius:50%;background:#26262E;box-shadow:0 0 0 3px var(--ring,#2F6BD6),inset 0 0 0 2px rgba(255,255,255,.14)}
+.role-token{position:relative;display:grid;grid-template-rows:auto 1fr;justify-items:center;align-content:start;gap:var(--s2);min-height:150px;padding:18px 12px 14px;text-align:center;border-radius:var(--f-r-field);background:#1B1B1F;color:#fff;border:0;box-shadow:inset 0 0 0 1px rgba(255,255,255,.1),inset 0 1px 0 rgba(255,255,255,.1),0 6px 14px rgba(0,0,0,.35);cursor:pointer;hyphens:none;overflow-wrap:normal}
+.role-token .token{display:grid;place-items:center;width:60px;height:60px;border-radius:var(--f-r-round);background:#26262E;box-shadow:0 0 0 3px var(--ring,#2F6BD6),inset 0 0 0 2px rgba(255,255,255,.14)}
 .role-token.a-good{--ring:#4C86F0}.role-token.a-evil{--ring:#D8404C}
 .role-token .token .ico{width:34px;height:34px;color:#fff}
 .role-token .rt-text{display:grid;justify-items:center;gap:4px;min-width:0}
 .role-token b{font:800 1rem/1.2 var(--display-serif);letter-spacing:.01em;text-wrap:balance;hyphens:none;overflow-wrap:normal}
-.role-token .pill{padding:1px 8px;border-radius:999px;font-size:.7rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;background:rgba(255,255,255,.1);color:#fff}
+.role-token .pill{padding:1px 8px;border-radius:var(--f-r-pill);font-size:.7rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;background:rgba(255,255,255,.1);color:#fff}
 .role-token.a-good .pill{background:rgba(76,134,240,.28)}.role-token.a-evil .pill{background:rgba(216,64,76,.3)}
 .role-token .muted{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;font-size:.8rem;line-height:1.35;color:rgba(255,255,255,.74);margin:0}
-.role-token input{position:absolute;top:8px;right:8px;appearance:none;-webkit-appearance:none;margin:0;width:24px;height:24px;border-radius:50%;background:transparent;box-shadow:inset 0 0 0 2px rgba(255,255,255,.35);display:grid;place-items:center}
+.role-token input{position:absolute;top:8px;right:8px;appearance:none;-webkit-appearance:none;margin:0;width:24px;height:24px;border-radius:var(--f-r-round);background:transparent;box-shadow:inset 0 0 0 2px rgba(255,255,255,.35);display:grid;place-items:center}
 .role-token input:checked{background:var(--brass) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M6 12.5l4 4 8-9' fill='none' stroke='%231B1410' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/16px no-repeat;box-shadow:none}
 .role-token input:focus-visible{outline:3px solid #fff;outline-offset:2px}
 .role-token.is-on{background:#1F2036;box-shadow:inset 0 0 0 2px var(--brass),0 8px 18px rgba(0,0,0,.4)}
@@ -124,14 +124,14 @@ h1,h2,.phase-title,.block-title,.path-title,.sheet-title{font-family:var(--displ
 .pane-sec[aria-label="Game log"] > .seg{top:calc(var(--stk-top,0px) + 3.1rem);padding-bottom:var(--s2);background:#17317E;border-radius:0}
 @media (max-width:1099px){.pane-sec[aria-label="Game log"]{--stk-top:var(--appbar-h,56px)}}
 .msgs.log{display:grid;gap:var(--s2)}
-.msgs.log > li{line-height:1.5;padding:var(--s2) var(--s3);border-radius:12px;background:rgba(255,255,255,.05)}
+.msgs.log > li{line-height:1.5;padding:var(--s2) var(--s3);border-radius:0;background:rgba(255,255,255,.05)}
 .msgs.log b,.msgs.log .who{color:var(--brass);font-weight:700}
 
 /* ---- host close-room */
 .btn.danger{min-height:48px}
 .resume-row{display:flex;align-items:center;gap:var(--s2)}
 .resume-row .resume{flex:1;min-width:0}
-.resume-x{flex:none;display:grid;place-items:center;width:44px;height:44px;border:0;border-radius:50%;background:rgba(255,255,255,.12);color:#fff;cursor:pointer}
+.resume-x{flex:none;display:grid;place-items:center;width:44px;height:44px;border:0;border-radius:var(--f-r-round);background:rgba(255,255,255,.12);color:#fff;cursor:pointer}
 .resume-x .ui-ico{width:18px;height:18px}
 @media (hover:hover){.resume-x:hover{background:rgba(255,255,255,.24)}}
 .ended{text-align:center;justify-items:center}
