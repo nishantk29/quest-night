@@ -4,7 +4,7 @@
 // Copy to test/e2e/phones.mjs in each game; the game's test/e2e/multi-phone.e2e.mjs drives it with a small adapter.
 //
 //   BASE=https://...  node test/e2e/multi-phone.e2e.mjs   # against a deployed site (read-only smoke; closes its rooms)
-//   node test/e2e/multi-phone.e2e.mjs                     # starts `wrangler dev` from this repo on a free port, stops it after
+//   node test/e2e/multi-phone.e2e.mjs                     # starts `wrangler dev --local` (no Cloudflare login) on a free port, stops it after
 //
 // Chromium only (system Chrome). The box has no WebKit runtime libraries. Browser tests stay out of the deploy gate
 // (node --test); run them before opening a PR that touches the client or the Worker.
@@ -44,7 +44,8 @@ export function ledger(title) {
 const freePort = () => new Promise((res, rej) => { const s = createServer(); s.listen(0, '127.0.0.1', () => { const a = s.address(); s.close(() => res(typeof a === 'object' && a ? a.port : 0)); }); s.on('error', rej); });
 
 /**
- * Starts `wrangler dev` (real workerd, local Durable Objects) for the repo at `dir`, unless BASE is set.
+ * Starts `wrangler dev --local` (real workerd, local Durable Objects; remote bindings off, so the Workers AI binding is
+ * not connected and no Cloudflare login is needed) for the repo at `dir`, unless BASE is set.
  * @param {string} dir repo root
  * @returns {Promise<{ base: string, stop: () => void, local: boolean }>}
  */
@@ -53,7 +54,7 @@ export async function server(dir) {
   const bin = join(dir, 'node_modules/.bin/wrangler');
   if (!existsSync(bin)) throw new Error(`no ${bin}: run npm install (or set BASE=...)`);
   const port = await freePort();
-  const p = spawn(bin, ['dev', '--port', String(port), '--ip', '127.0.0.1', '--persist-to', join(dir, '.wrangler/e2e-state')], { cwd: dir, stdio: ['ignore', 'pipe', 'pipe'], detached: false });
+  const p = spawn(bin, ['dev', '--local', '--port', String(port), '--ip', '127.0.0.1', '--persist-to', join(dir, '.wrangler/e2e-state')], { cwd: dir, stdio: ['ignore', 'pipe', 'pipe'], detached: false });
   let log = '';
   await new Promise((res, rej) => {
     const to = setTimeout(() => rej(new Error('wrangler dev did not start in 60 s\n' + log)), 60000);

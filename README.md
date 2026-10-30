@@ -23,7 +23,7 @@ Live: https://quest-night.hatethespurs.workers.dev
 
 ## Run and test (Node 22+)
 - `npm test`: rules and reducer tests, including secrecy.
-- `npx wrangler dev --port 8861 --ip 127.0.0.1`, then `BASE=http://127.0.0.1:8861 GAMES=40 SEED=1 node scripts/sim-games.mjs`
+- `npm run dev -- --port 8861 --ip 127.0.0.1` (wrangler dev --local, no Cloudflare login), then `BASE=http://127.0.0.1:8861 GAMES=40 SEED=1 node scripts/sim-games.mjs`
   plays whole games with scripted players (no LLM) and checks secrecy, vote/quest/assassin outcomes and the
   five-reject rule. Every run must end `problems: 0`.
 
