@@ -79,7 +79,7 @@ test('crash handler output never includes the error message or stack', () => {
   assert.match(app, /\$app\.innerHTML = crashHtml\(\)/);
   assert.doesNotMatch(app.slice(app.indexOf('function crash(')).split('\n').slice(0, 4).join('\n'), /innerHTML = .*(e\.message|e\.stack|String\(e\))/);
   assert.match(app, /addEventListener\('error'/); assert.match(app, /addEventListener\('unhandledrejection'/);
-  assert.match(app, /try \{ \$app\.innerHTML = screen\(\); \} catch/);
+  assert.match(app, /try \{ morph\(\$app, screen\(\)\); \} catch \(e\) \{ console\.error\(e\); crash\(\); return; \}/); // a render that throws still ends on the crash screen
 });
 
 test('long disconnect keeps the banner and adds both home buttons; labels never wrap', () => {

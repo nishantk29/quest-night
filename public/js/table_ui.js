@@ -184,7 +184,8 @@ export function makeTable(ctx) {
   function tick() {
     for (const el of document.querySelectorAll('[data-ends]')) {
       const ends = +el.dataset.ends; const lf = el.dataset.left === '' ? 0 : +el.dataset.left;
-      const ms = ends ? ends - Date.now() : lf; el.textContent = mmss(ms);
+      const ms = ends ? ends - Date.now() : lf; const txt = mmss(ms);
+      if (el.textContent !== txt) el.textContent = txt; // only when the second changes: no DOM write (and no layout) 4 times a second
       if (ends && ms <= 0 && !rung.has(ends)) { rung.add(ends); el.closest('.chip,.timer-big')?.classList.add('is-out'); beep(); }
     }
     const v = S.view; const running = !!(v && ((v.timer && v.timer.endsAt) || (v.talk && v.talk.endsAt)));
