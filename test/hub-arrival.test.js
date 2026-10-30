@@ -5,14 +5,14 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 const rd = (f) => readFileSync(new URL(`../public/${f}`, import.meta.url), 'utf8');
 const css = rd('redesign.css').replace(/\/\*[\s\S]*?\*\//g, ''), html = rd('index.html');
-const scale = +(rd('styles.css') + rd('redesign.css')).match(/--dur-scale:\s*([\d.]+)/)[1];
+const scale = 1; // no --dur-scale since 2026-10-29: durations are as written
 const hubRules = [...css.matchAll(/([^{}]*(?:\.hand\b|#hand)[^{}]*)\{([^{}]*)\}/g)].map((m) => ({ sel: m[1].trim(), body: m[2] }));
 
-test('the arrival is a single opacity fade of the page, <= 300 ms at --dur-scale', () => {
+test('the arrival is a single opacity fade of the page, <= 300 ms', () => {
   const fades = hubRules.filter((r) => /animation:/.test(r.body) && !/animation:none/.test(r.body));
   assert.equal(fades.length, 1, JSON.stringify(fades));
   assert.equal(fades[0].sel, '.hand #app,.hand .bg-art');
-  const m = fades[0].body.match(/animation:qn-hub-fade calc\((\d+)ms \* var\(--dur-scale\)\)/);
+  const m = fades[0].body.match(/animation:qn-hub-fade (\d+)ms/);
   assert.ok(m && +m[1] * scale <= 300, fades[0].body);
   assert.match(css, /@keyframes qn-hub-fade\{from\{opacity:0\}to\{opacity:1\}\}/);
 });

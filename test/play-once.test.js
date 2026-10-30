@@ -19,11 +19,11 @@ test('no infinite or repeating animation anywhere (CSS, inline styles, JS)', () 
 });
 const keyframes = (name) => strip(rd('redesign.css')).match(new RegExp(`@keyframes ${name}\\{((?:[^{}]|\\{[^{}]*\\})*)\\}`))[1];
 const decl = (sel) => strip(rd('redesign.css')).match(new RegExp(`(?:^|[}\\n])${sel.replace(/[.]/g, '\\.')}\\{([^}]*)\\}`))[1];
-test('twinkle, flutter and pennant each run once', () => {
-  assert.match(decl('.bg-stars'), /animation:qn-twinkle 6s var\(--qn-ease\) 1 both/);
-  assert.match(decl('.bg-win'), /animation:qn-twinkle calc\(7s \* var\(--dur-scale\)\) ease-in-out 1 both/);
-  assert.match(decl('.flag-cloth'), /animation:qn-flutter 7s var\(--qn-ease\) 1\b/);
-  assert.match(decl('.pennant'), /animation:qn-pennant 5s var\(--qn-ease\) 1\b/);
+test('the sky twinkles once in 400ms; the flag and pennant hold their resting pose (400ms budget, 2026-10-29)', () => {
+  assert.match(decl('.bg-stars'), /animation:qn-twinkle 400ms var\(--qn-ease\) 1 both/);
+  assert.match(decl('.bg-win'), /animation:qn-twinkle 400ms ease-in-out 1 both/);
+  assert.match(decl('.flag-cloth'), /animation:none\b/);
+  assert.match(decl('.pennant'), /animation:none\b/);
 });
 test('the final frame is the resting pose, so reduced motion (animation:none) shows the same final frame', () => {
   assert.match(keyframes('qn-twinkle'), /to\{opacity:1\}/); // stars and windows end fully lit (their resting opacity is 1)

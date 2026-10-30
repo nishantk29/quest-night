@@ -5,7 +5,7 @@ import { errorBody } from '../public/js/error-screen.js';
 const CSS = `.err-page{min-height:100svh;display:grid;align-content:center}
 .err-mark{display:block;text-align:center;font-family:var(--display-serif);font-size:var(--fs-lg);letter-spacing:.06em;color:var(--brass);padding-top:var(--s5)}
 .err-page .empty{gap:var(--s4);justify-items:center;text-align:center}
-@media (prefers-reduced-motion:no-preference){.err-page .empty>*{animation:err-rise calc(.5s * var(--dur-scale)) var(--ease-out) both}.err-page .empty>:nth-child(2){animation-delay:calc(.06s * var(--dur-scale))}.err-page .empty>:nth-child(3){animation-delay:calc(.12s * var(--dur-scale))}}
+@media (prefers-reduced-motion:no-preference){.err-page .empty>*{animation:err-rise 280ms var(--ease-out) both}.err-page .empty>:nth-child(2){animation-delay:40ms}.err-page .empty>:nth-child(3){animation-delay:80ms}}
 @keyframes err-rise{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}`;
 
 export const ERRORS = {

@@ -64,7 +64,8 @@
 
   /* motion */
   --ease-out:cubic-bezier(.22,1,.36,1); --ease-in-out:var(--ease-out);
-  --dur-scale:2; --t-press:calc(90ms * var(--dur-scale)); --t-open:calc(220ms * var(--dur-scale)); --t-enter:calc(90ms * var(--dur-scale)); --t-reveal:calc(360ms * var(--dur-scale));
+  --f-press:120ms; --f-release:90ms; --f-press-scale:.97; --f-press-row:rgba(255,255,255,.08);
+  --t-press:var(--f-release); --t-open:400ms; --t-enter:180ms; --t-reveal:400ms;
 
   /* chrome */
   --appbar-h:56px; --tabbar-h:64px; --dock-h:80px; --table-chrome:140px;
@@ -155,9 +156,9 @@ html[data-phase="night"] .phase-badge .ui-ico{color:var(--town)}
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:var(--s2);min-height:48px;padding:0 20px;
   border-radius:var(--r-control);border:2px solid var(--brass);background:var(--brass);color:var(--on-brass);
   font:700 var(--fs-md)/1.2 var(--font-ui);text-align:center;text-decoration:none;cursor:pointer;
-  transition:background-color var(--t-press),border-color var(--t-press),transform var(--t-press)}
+  transition:transform var(--t-press)}
 .btn .ui-ico{width:20px;height:20px;vertical-align:0}
-.btn:active{transform:translateY(1px)}
+.btn:active{transform:scale(var(--f-press-scale))}
 .btn.ghost{background:transparent;color:var(--candle);border-color:var(--rule-strong)}
 .btn.danger{background:var(--mafia);border-color:var(--mafia);color:var(--on-brass)}
 .btn.ghost.danger{background:transparent;color:var(--mafia);border-color:var(--mafia)}
@@ -330,7 +331,7 @@ html[data-phase="night"] .phase-badge .ui-ico{color:var(--town)}
 .rcard.is-unflipping .rcard-inner{animation:rc-unflip var(--t-open) var(--ease-in-out) both}
 .rcard.is-flipping .rcard-front::after{content:"";position:absolute;inset:-10% 0;z-index:3;pointer-events:none;
   background:linear-gradient(115deg, transparent 35%, rgba(247,213,138,.26) 50%, transparent 65%);
-  animation:rc-glint calc(250ms * var(--dur-scale)) ease-out calc(var(--t-reveal) - calc(250ms * var(--dur-scale))) both}
+  animation:rc-glint 400ms ease-out calc(var(--t-reveal) - 400ms) both}
 @keyframes rc-flip{from{transform:rotateY(180deg)}to{transform:rotateY(0deg)}}
 @keyframes rc-unflip{from{transform:rotateY(0deg)}to{transform:rotateY(180deg)}}
 @keyframes rc-glint{from{transform:translateX(-110%)}to{transform:translateX(110%)}}
@@ -403,7 +404,7 @@ html[data-phase="night"] .phase-badge .ui-ico{color:var(--town)}
 .servant.is-off .servant-disc{opacity:.45}
 .servant.on-team .servant-disc{background:var(--card);color:var(--card-ink);border-color:var(--card);box-shadow:0 0 0 3px rgba(244,233,211,.25), 0 0 18px rgba(244,233,211,.35)}
 .servant.can-pick{cursor:pointer}
-.servant.can-pick:active .servant-disc{transform:scale(.94)}
+.servant.can-pick:active .servant-disc{transform:scale(var(--f-press-scale))}
 .servant.can-pick:focus-visible{outline:none}
 .servant.can-pick:focus-visible .servant-disc{outline:3px solid var(--focus);outline-offset:2px}
 .servant-crown{position:absolute;top:-14px;left:50%;transform:translateX(-50%);width:26px;height:26px;color:var(--brass);filter:drop-shadow(0 2px 2px rgba(0,0,0,.6))}
@@ -428,12 +429,12 @@ html[data-phase="night"] .phase-badge .ui-ico{color:var(--town)}
 .choice.success{background:linear-gradient(160deg,#2C4466,#16233A);border-color:#D7E6FA;color:#D7E6FA}
 .choice.sabotage{background:linear-gradient(160deg,#7A1F26,#33090D);border:4px double #FFD0CE;color:#FFD0CE}
 .choice[aria-disabled="true"]{opacity:.35;cursor:not-allowed}
-.choice:active:not([aria-disabled="true"]){transform:translateY(1px)}
+.choice:active:not([aria-disabled="true"]){transform:scale(var(--f-press-scale))}
 @media (hover:hover){.choice:hover:not([aria-disabled="true"]){box-shadow:0 0 0 3px rgba(224,174,82,.35)}}
 
 /* reveals */
 .reveal{display:grid;gap:var(--s3);padding:var(--s4);border-radius:var(--r-panel);background:var(--panel);border:1px solid var(--divider)}
-.reveal.is-new{animation:reveal-in calc(300ms * var(--dur-scale)) var(--ease-out) both}
+.reveal.is-new{animation:reveal-in 400ms var(--ease-out) both}
 @keyframes reveal-in{from{opacity:0}to{opacity:1}} /* opacity only: the vote tiles inside flip on their own, so the panel must not move under them */
 .reveal-h{font-family:var(--font-display);font-weight:800;font-size:var(--fs-xl);line-height:var(--lh-head)}
 .reveal-h.ok{color:var(--town)} .reveal-h.bad{color:var(--mafia)}
@@ -499,7 +500,7 @@ html[data-phase="night"] .phase-badge .ui-ico{color:var(--town)}
 .home-faq{margin-top:var(--s5);text-align:center}
 /* home: Rules & FAQ card and the 4-step How to Play */
 .side-card{display:flex;align-items:center;gap:var(--s4);width:100%;min-height:72px;padding:var(--s3) var(--s4);border-radius:var(--r-row);background:var(--panel);color:var(--candle);text-align:left;text-decoration:none;transition:transform var(--t-press) var(--ease-out)}
-.side-card:active{transform:scale(.98)}
+.side-card:active{transform:scale(var(--f-press-scale))}
 .side-card>span{flex:1;min-width:0}
 .side-card b{display:block;font-size:var(--fs-md);font-weight:800}
 .side-card small{display:block;margin-top:2px;font-size:var(--fs-sm);line-height:1.35;color:var(--smoke)}
