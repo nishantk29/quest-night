@@ -1,5 +1,6 @@
-// Quest Night client: routing, the live WebSocket, and every screen. The whole page re-renders on each
-// update (same approach as Mafia Night); focus and typed text survive because inputs pause re-renders.
+// Quest Night client: routing, the live WebSocket, and every screen. Each update renders the whole page as markup,
+// then morph() patches only what changed into the live page (no full rebuild, so no restyle of every node, no replayed
+// animations, no lost scroll inside lists); focus and typed text survive because inputs pause re-renders.
 // Table things (chat, log, tools, host dashboard frame) come from table_ui.js.
 import { ui } from './ui_icons.js';
 import { hostNav } from './host-nav.js';
@@ -26,6 +27,7 @@ import { allPresets, findPreset, presetSettings, savedPreset, misfit, fits } fro
 import { SAVED_PRESETS_KEY, SAVED_PRESETS_MAX, SLIDE_MS, FADE_MS, SWIPE_PX, SETUP_STEPS } from './config-defaults.js';
 import { errorBody, errorButtons, crashHtml, FATAL, ENDED } from './error-screen.js';
 import { backClosesSheets } from './back-sheet.js';
+import { morph } from './morph.js';
 // Back (Android Back, the iOS edge swipe) closes the top sheet or confirm first, the same as Escape. They are <dialog>s on
 // <body>, so watching body's children keeps Back in step with them.
 const backNav = backClosesSheets(() => {
@@ -99,13 +101,17 @@ function paint() {
   const y = window.scrollY;
   $html.dataset.phase = S.view?.phase || S.mode;
   $html.dataset.screen = S.mode === 'screen' ? '1' : '';
-  try { $app.innerHTML = screen(); } catch (e) { console.error(e); crash(); return; }
+  // Lists that follow the newest line (the chat) stay pinned to the bottom only if the reader was already there.
+  const pinned = new Set([...$app.querySelectorAll('[data-scroll]')].filter((el) => el.scrollHeight - el.scrollTop - el.clientHeight < 40).map((el) => el.dataset.scroll));
+  const known = new Set([...$app.querySelectorAll('[data-scroll]')].map((el) => el.dataset.scroll));
+  try { morph($app, screen()); } catch (e) { console.error(e); crash(); return; }
   S.ui.fresh = {}; S.ui.flip = false;
   // Same screen: keep the reader's place. New screen: start at the top (Nishant 2026-10-28: "open to the top", card still hidden).
-  window.scrollTo(0, toTop ? 0 : y); toTop = false;
+  if (toTop) window.scrollTo(0, 0); else if (window.scrollY !== y) window.scrollTo(0, y);
+  toTop = false;
   fx.after($app);
   afterSetupPaint();
-  for (const el of $app.querySelectorAll('[data-scroll]')) el.scrollTop = el.scrollHeight;
+  for (const el of $app.querySelectorAll('[data-scroll]')) if (pinned.has(el.dataset.scroll) || !known.has(el.dataset.scroll)) el.scrollTop = el.scrollHeight;
   wake.set(wantsWakeLock(S.view));
   if (S.mode === 'home' && !S.pruned) { S.pruned = true; pruneClosedRooms($app, (c) => { store.del(`${KEY}.player.${c}`); store.del(`${KEY}.host.${c}`); }); }
 }
