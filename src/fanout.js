@@ -10,7 +10,8 @@ export const seatStale = (room, att) => {
   return !p || (att.token !== undefined && p.token !== att.token);
 };
 
-export function fanout(room, sockets, connected, wasOver = false) {
+// stamp: { rev, hist } from the event log. Every view carries rev; the host's view also carries hist (Undo/Redo).
+export function fanout(room, sockets, connected, wasOver = false, stamp = null) {
   const ending = !wasOver && room.phase === 'over';
   for (const { ws, att } of sockets) {
     if (!att?.who) continue;
@@ -20,6 +21,7 @@ export function fanout(room, sockets, connected, wasOver = false) {
       continue;
     }
     const view = screen ? viewForScreen(room, connected) : viewForPlayer(room, att.playerId, connected);
+    if (stamp) { view.rev = stamp.rev; if (view.me?.host) view.hist = stamp.hist; }
     try {
       ws.send(JSON.stringify({ type: 'view', view }));
       if (ending) ws.send(JSON.stringify(gameOverEvent(room, screen ? null : att.playerId)));

@@ -109,7 +109,7 @@ test('physical roles: the Assassin phase takes the host’s entry', () => {
   assert.equal(t.room.game.winner, 'evil');
 });
 
-test('host tools: skip, pause, undo, nudge, open a seat and take it over, hand off', () => {
+test('host tools: skip, pause, nudge, open a seat and take it over, hand off (Undo: undo-redo.test.js)', () => {
   const t = started(5);
   const lead = leader(t.room);
   must(act(t.room, lead, { type: 'propose', team: t.ids.slice(0, 2) }));
@@ -120,8 +120,6 @@ test('host tools: skip, pause, undo, nudge, open a seat and take it over, hand o
   must(act(t.room, t.host, { type: 'skip', id: t.ids[4] }));
   assert.equal(t.room.game.lastVote.reject.includes(t.ids[4]), true, 'a skipped vote is a reject');
   assert.equal(t.room.phase, 'quest');
-  must(act(t.room, t.host, { type: 'undo' }));
-  assert.equal(t.room.phase, 'vote', 'undo goes back one step');
   must(act(t.room, t.host, { type: 'nudge', id: t.ids[4] }));
   assert.equal(viewForPlayer(t.room, t.ids[4]).me.nudged, 1);
   const before = t.room.game.roles[t.ids[3]];
@@ -132,7 +130,7 @@ test('host tools: skip, pause, undo, nudge, open a seat and take it over, hand o
   must(act(t.room, t.host, { type: 'handoff', id: t.ids[1] }));
   assert.ok(t.room.players.find((p) => p.id === t.ids[1]).host);
   assert.ok(act(t.room, t.host, { type: 'pause' }).error);
-  assert.ok(t.room.log.some((m) => /skipped/.test(m.text)) && t.room.log.some((m) => /undid/.test(m.text)));
+  assert.ok(t.room.log.some((m) => /skipped/.test(m.text)));
 });
 
 test('chat, claims, no-claims mode, mute and moderation', () => {
