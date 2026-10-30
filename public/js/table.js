@@ -1,7 +1,9 @@
 // The table layer, shared by Quest Night and Council Night (identical copy in each repo).
 // Everything a table needs that is not the game itself: seats, play modes, house rules, chat and claims,
 // the game log, Table Tools (coin, dice, picker, timers, talk turns, tally, counters) and host controls
-// (pause, nudge, replace, hand off, mute, undo). Pure and deterministic given `rng` and `now`.
+// (pause, nudge, replace, hand off, mute). Pure and deterministic given `rng` and `now`. Undo and Redo are steps on
+// the room's event log (event-log.js), not a reducer action; `room.undo` stays an empty list so an older build
+// reading the room still finds one.
 
 export const MAX_NAME = 20;
 export const MAX_CHAT = 280;
@@ -317,16 +319,6 @@ export function reduceTable(room, actor, msg, rng, now, hooks) {
       else c.value = int(c.value + (msg.op === 'dec' ? -1 : 1), -999, 999, 0);
       return ok();
     }
-    case 'undo': {
-      const e = hostOnly(); if (e) return e;
-      // The end screen shows every role, so a finished game stays finished (Restart / Play again start a new one).
-      if (room.phase === 'over') return err('The game is over. Use Restart or Play again.');
-      const snap = room.undo.pop();
-      if (!snap) return err('Nothing to undo.');
-      const s = JSON.parse(snap); room.game = s.game; room.phase = s.phase;
-      log(room, 'host', 'The host undid the last step.', null, now);
-      return ok();
-    }
     default: return null;
   }
 }
@@ -342,7 +334,7 @@ export function tableView(room, viewerId, connected) {
     log: room.log.slice(-150).map((m) => (m.hidden ? { n: m.n, t: m.t, kind: m.kind, by: m.by, text: '(removed by the host)', hidden: true } : { n: m.n, t: m.t, kind: m.kind, by: m.by, text: m.text })),
     paused: !!room.paused, timer: room.timer, talk: room.talk,
     poll: room.poll ? { q: room.poll.q, options: room.poll.options, counts: pollCounts(room.poll), mine: me && me.id in room.poll.votes ? room.poll.votes[me.id] : null } : null,
-    counters: room.counters, canUndo: room.phase !== 'over' && room.undo.length > 0,
+    counters: room.counters,
     me: me ? { id: me.id, name: me.name, host: !!me.host, watch: !!me.watch, muted: !!me.muted, nudged: room.nudges[me.id] || 0 } : null,
   };
 }

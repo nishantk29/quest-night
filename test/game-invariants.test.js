@@ -69,6 +69,9 @@ const adapter = {
       [p, { type: 'strike', id: other }], [H, { type: 'strikeResult', id: other, hit: true }], [H, { type: 'skip', id: other }], [H, { type: 'skip' }],
       [p, { type: 'pick', id: other }]];
   },
+  // The reducer has no Undo of its own any more (Undo and Redo are steps on the event log, see undo-redo.test.js),
+  // so the kit's "no Undo after game over" check sees the reducer refuse it. Going back from the end screen on purpose
+  // is allowed through the log, with a confirm sheet (RULES.md R21).
   undo: (room) => [host(room), { type: 'undo' }],
   fingerprint: (room) => JSON.stringify({ phase: room.phase, game: room.game }),
   viewers: (room) => room.players.map((p) => p.id),

@@ -111,6 +111,15 @@ export function makeTable(ctx) {
     </section>`;
   }
 
+  // Undo and Redo: steps on the room's event log. The labels say what the step was ("Undo: The quest result").
+  // Redo shows only when there is something to redo. Same button style as the rest of the row.
+  function undoButtons(v) {
+    const h = v.hist || {};
+    const undo = `<button class="btn ghost ${h.canUndo ? '' : 'disabled'}" data-a="undo" aria-label="${esc(h.canUndo ? `Undo: ${h.undoLabel}` : 'Undo')}" title="${esc(h.canUndo ? `Undo: ${h.undoLabel}` : h.undoWhy || 'Nothing to undo.')}">${ui('reset')} Undo</button>`;
+    const redo = h.canRedo ? `<button class="btn ghost" data-a="redo" aria-label="${esc(`Redo: ${h.redoLabel}`)}" title="${esc(`Redo: ${h.redoLabel}`)}">Redo</button>` : '';
+    return undo + redo;
+  }
+
   // ------------------------------------------------------------ host dashboard frame
   function hostPane(v, gameControls, script) {
     if (!isHost(v)) return '';
@@ -122,7 +131,7 @@ export function makeTable(ctx) {
       ${p.watch || !playing ? `<button class="btn ghost sm" data-a="kick" data-id="${p.id}">Remove</button>` : p.open ? '' : `<button class="btn ghost sm" data-a="kick" data-id="${p.id}">Replace</button>`}</span></li>`).join('');
     return `<section class="pane-sec dash" aria-label="Host dashboard"><h2 class="block-title">Host dashboard</h2>
       ${playing ? `<div class="btn-row wrap">${v.paused ? `<button class="btn" data-a="resume">${ui('play')} Resume</button>` : `<button class="btn ghost" data-a="pause">${ui('pause')} Pause</button>`}
-        <button class="btn ghost ${v.canUndo ? '' : 'disabled'}" data-a="undo">${ui('reset')} Undo</button>
+        ${undoButtons(v)}
         <button class="btn ghost" data-a="abandon">End game</button></div>` : ''}
       ${gameControls || ''}
       ${script ? `<h3 class="sub">Host script</h3><div class="script">${script}</div>` : ''}
@@ -157,7 +166,15 @@ export function makeTable(ctx) {
       case 'privDice': { const r = Array.from({ length: S.ui.dice.count }, () => 1 + rnd(S.ui.dice.sides)); S.ui.private = `Private ${S.ui.dice.count}d${S.ui.dice.sides}: ${r.join(', ')}${r.length > 1 ? ` (total ${r.reduce((x, y) => x + y, 0)})` : ''}`; ctx.render(); return true; }
       case 'pickPlayer': send({ type: 'pickPlayer' }); return true;
       case 'timer': send({ type: 'timer', secs: +d.v, label: d.label || 'Discussion' }); return true;
-      case 'timerStop': case 'talkNext': case 'talkStop': case 'pause': case 'resume': case 'undo': send({ type: a }); return true;
+      case 'timerStop': case 'talkNext': case 'talkStop': case 'pause': case 'resume': send({ type: a }); return true;
+      case 'undo': {
+        const v = S.view; const h = v?.hist || {};
+        if (!h.canUndo) { toast(h.undoWhy || 'Nothing to undo.'); return true; }
+        if (v.phase === 'over') askConfirm('Go back from the end screen? Every phone hides the roles again.', 'Go back').then((ok) => ok && send({ type: 'undo', rev: S.view.rev }));
+        else send({ type: 'undo', rev: v.rev });
+        return true;
+      }
+      case 'redo': send({ type: 'redo', rev: S.view?.rev }); return true;
       case 'talk': send({ type: 'talk', secs: +d.v, from: S.view?.game?.leader || S.view?.game?.speaker }); return true;
       case 'poll': send({ type: 'poll', q: d.players ? 'Who?' : 'Yes or no?', players: !!d.players }); return true;
       case 'pollVote': send({ type: 'pollVote', i: +d.v }); return true;

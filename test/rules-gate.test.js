@@ -98,6 +98,6 @@ describe('house rule: the service worker version is fresh', () => {
 describe('house rule: whole simulated games never break an invariant', () => {
   cites('sim-invariants.test.js', 'sim: no impossible states', 'sim: right winner', 'sim: knowledge correct', 'sim: restart resets');
 });
-describe('house rule: a finished game stays finished', () => {
-  cites('audit-v2.test.js', 'no-undo-after-over: Undo on the end screen is refused');
+describe('house rule: a finished game stays finished unless the host goes back on purpose', () => {
+  cites('audit-v2.test.js', 'undo-after-over: from the end screen the host can go back on purpose');
 });

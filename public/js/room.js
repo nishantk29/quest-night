@@ -19,8 +19,7 @@ export function newRoom(code, hostKey) {
 const ok = (data = {}) => ({ ok: true, data });
 const err = (error) => ({ error });
 const HOOKS = { minPlayers: MIN_PLAYERS, maxPlayers: MAX_PLAYERS, houseDefaults: HOUSE_DEFAULTS };
-const UNDOABLE = new Set(['propose', 'vote', 'tally', 'play', 'questResult', 'examine', 'skip', 'strike', 'strikeResult']);
-const GAME = new Set([...UNDOABLE, 'pick', 'ready', 'skipReveal']);
+const GAME = new Set(['propose', 'vote', 'tally', 'play', 'questResult', 'examine', 'skip', 'strike', 'strikeResult', 'pick', 'ready', 'skipReveal']);
 
 const seat = seatIds;
 const leaderId = (room) => seat(room)[room.game.leader % room.game.n];
@@ -285,13 +284,10 @@ export function reduce(room, actor, msg, rng = Math.random, now = Date.now()) {
   if (!msg || typeof msg.type !== 'string') return err('Bad message.');
   const before = room.phase;
   const t = reduceTable(room, actor, msg, rng, now, HOOKS);
-  if (t) { if (msg.type === 'undo' && t.ok) onPhaseChange(room, now); return t; }
+  if (t) return t;
   if (room.paused && GAME.has(msg.type)) return err('The game is paused.');
   if (GAME.has(msg.type) && !room.game) return err('No game is running.');
-  const snap = room.game && UNDOABLE.has(msg.type) ? JSON.stringify({ game: room.game, phase: room.phase }) : null;
   const res = gameReduce(room, actor, msg, rng, now);
-  if (res.ok && snap) { room.undo.push(snap); if (room.undo.length > 12) room.undo.shift(); }
-  if (room.phase === 'over') room.undo = []; // no Undo after game over (every role is revealed at 'over')
   if (res.ok && room.phase !== before) onPhaseChange(room, now);
   return res;
 }

@@ -3,6 +3,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { newRoom, reduce, viewForPlayer, viewForScreen, gameOverEvent } from '../public/js/room.js';
 import { fanout } from '../src/fanout.js';
+import { GameLog } from '../public/js/event-log.js';
 
 const seeded = (seed) => () => { seed = (seed * 1664525 + 1013904223) % 4294967296; return seed / 4294967296; };
 const must = (r) => { assert.ok(r.ok, r.error); return r; };
@@ -264,13 +265,23 @@ test('lantern: after quests 2, 3, 4; past holders cannot be examined; it passes;
   if (t.room.phase === 'lantern') assert.ok(act(t.room, evil, { type: 'examine', id: first }).error, 'past holders are safe');
 });
 
+// Undo is a step on the room's event log (event-log.js): the tests drive a GameLog the way the Durable Object does.
+function logged(n) {
+  const t = started(n); const L = new GameLog(t.room); let k = 0;
+  t.room = L.room; t.L = L;
+  t.a = (id, msg) => { const r = L.apply({ playerId: id }, msg, 10_000 + k, [k, ++k, 7, 9]); t.room = L.room; return r; };
+  return t;
+}
 test('undo-across-phases: undo steps back through a phase change and restores votes and team', () => {
-  const t = started(5);
-  propose(t); voteAll(t, true);
+  const t = logged(5);
+  const size = t.room.game.sizes[0];
+  must(t.a(lead(t), { type: 'propose', team: t.ids.slice(0, size) }));
+  for (const id of t.ids) must(t.a(id, { type: 'vote', approve: true }));
   assert.equal(t.room.phase, 'quest');
-  must(act(t.room, t.host, { type: 'undo' })); assert.equal(t.room.phase, 'vote'); assert.equal(Object.keys(t.room.game.votes).length, 4);
-  must(act(t.room, t.host, { type: 'undo' })); must(act(t.room, t.host, { type: 'undo' }));
-  assert.ok(['vote', 'propose'].includes(t.room.phase));
+  assert.equal(t.L.undoStep(), 'The vote'); t.room = t.L.room;
+  assert.equal(t.room.phase, 'vote'); assert.equal(Object.keys(t.room.game.votes).length, 4, 'back to just before the closing vote');
+  assert.equal(t.L.undoStep(), 'The party proposal'); t.room = t.L.room;
+  assert.equal(t.room.phase, 'propose'); assert.deepEqual(t.room.game.votes, {}); assert.deepEqual(t.room.game.team, []);
 });
 
 test('pause: every game action is refused while paused, and works again after resume', () => {
@@ -317,17 +328,24 @@ test('skip-every-phase: with the leader, a voter, a team member, the Lantern hol
   void L;
 });
 
-test('no-undo-after-over: Undo on the end screen is refused and the finished game stays finished (all versions)', () => {
-  const t = started(7);
-  toAssassin(t);
-  assert.ok(viewForPlayer(t.room, t.host).canUndo, 'undo is still offered before the end');
-  must(act(t.room, roleOf(t, 'assassin'), { type: 'strike', id: t.ids.find((id) => t.room.game.roles[id] === 'servant') || t.ids[1] }));
+test('undo-after-over: from the end screen the host can go back on purpose; every phone hides the roles again; Play again still works', () => {
+  const t = logged(7);
+  for (let q = 0; q < 3; q++) {
+    const size = t.room.game.sizes[t.room.game.quest];
+    must(t.a(lead(t), { type: 'propose', team: t.ids.slice(0, size) }));
+    for (const id of t.ids) must(t.a(id, { type: 'vote', approve: true }));
+    for (const id of t.ids.slice(0, size)) must(t.a(id, { type: 'play', sabotage: false }));
+  }
+  assert.equal(t.room.phase, 'assassin');
+  must(t.a(roleOf(t, 'assassin'), { type: 'strike', id: t.ids.find((id) => t.room.game.roles[id] === 'servant') || t.ids[1] }));
   assert.equal(t.room.phase, 'over');
-  const before = JSON.stringify({ phase: t.room.phase, game: t.room.game });
-  const r = act(t.room, t.host, { type: 'undo' });
-  assert.ok(r.error, 'undo refused'); assert.match(r.error, /over/i);
-  assert.equal(JSON.stringify({ phase: t.room.phase, game: t.room.game }), before);
-  assert.equal(viewForPlayer(t.room, t.host).canUndo, false, 'the Undo button is greyed on the end screen');
+  assert.ok(viewForPlayer(t.room, t.ids[1]).game.roles, 'the end screen shows every role');
+  assert.deepEqual(act(t.room, t.host, { type: 'undo' }), { error: 'Unknown action.' }, 'the reducer has no Undo of its own');
+  assert.ok(t.L.history().canUndo);
+  assert.equal(t.L.undoStep(), 'The Assassin’s strike'); t.room = t.L.room;
+  assert.equal(t.room.phase, 'assassin');
+  for (const id of t.ids) assert.ok(!viewForPlayer(t.room, id).game.roles, 'roles are hidden again');
   assert.deepEqual(t.room.undo, []);
-  must(act(t.room, t.host, { type: 'again' })); assert.equal(t.room.phase, 'lobby', 'Play again still works');
+  t.L.redoStep(); t.room = t.L.room; assert.equal(t.room.phase, 'over');
+  must(t.a(t.host, { type: 'again' })); assert.equal(t.room.phase, 'lobby', 'Play again still works');
 });
