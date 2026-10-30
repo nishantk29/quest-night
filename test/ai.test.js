@@ -50,7 +50,8 @@ test('ai: neurons maths matches the published rates', () => {
 test('ai: caps per mode, and all sites together stay under the 8,000 guard', () => {
   assert.equal(AI.capFor('quest', 'off'), 0);
   assert.equal(AI.capFor('quest', undefined), 0);
-  assert.equal(AI.capFor('quest', 'dark'), AI.DARK_CAP);
+  assert.equal(AI.capFor('quest', 'dark'), 0);
+  assert.equal(AI.capFor('quest', 'ON'), 0);
   assert.equal(AI.capFor('mafia', 'on'), 2000);
   assert.ok(Object.values(AI.CAPS).reduce((a, b) => a + b, 0) <= AI.ACCOUNT_GUARD);
   assert.ok(AI.ACCOUNT_GUARD < 10000);
@@ -105,7 +106,7 @@ test('ai: off, no binding, a throw, bad output or a spent budget all fall back t
   assert.equal(await AI.runText(undefined, { site: 'quest', messages: MSG }), null);
   const ai = fakeAI(); const { env } = fakeEnv({ ai });
   let n = 0; while (await AI.runText(env, { site: 'quest', messages: MSG })) n++;
-  assert.ok(n > 0 && n < 200, `stopped after ${n}`);
+  assert.ok(n > 0 && n <= AI.CAPS.quest, `stopped after ${n}`);
   const before = ai.calls.length;
   assert.equal(await AI.runText(env, { site: 'quest', messages: MSG }), null);
   assert.equal(ai.calls.length, before, 'no model call once the budget is spent');
@@ -136,6 +137,27 @@ test('no-step-blocks: game code never imports the AI helpers, and only /api/ask 
 
 test('ai: shared files match the shared source version', () => {
   const root = path.resolve(import.meta.dirname, '..');
-  assert.equal(AI.AI_VERSION, 1);
+  assert.equal(AI.AI_VERSION, 2);
   assert.match(fs.readFileSync(path.join(root, 'src/ask.js'), 'utf8'), /Shared file: identical copy/);
+});
+
+test('ai: dark, off, unset or any other mode never calls env.AI.run and reserves nothing', async () => {
+  for (const mode of ['dark', 'off', undefined, '', 'ON', 'true']) {
+    const ai = fakeAI(); const { env, stores, touched } = fakeEnv({ mode, ai });
+    if (mode === undefined) delete env.AI_MODE;
+    assert.equal(await AI.runText(env, { site: 'quest', messages: MSG }), null, `mode ${mode}`);
+    assert.equal(ai.calls.length, 0, `model called in mode ${mode}`);
+    assert.equal(touched.length, 0, `budget or cache touched in mode ${mode}`);
+    assert.equal(stores.size, 0, `storage written in mode ${mode}`);
+    assert.equal(AI.aiOn(env), false);
+  }
+});
+
+test('ai: on still calls the model once and reserves from the budget', async () => {
+  const ai = fakeAI('A tie is a rejection.'); const { env, stores } = fakeEnv({ mode: 'on', ai });
+  assert.equal(AI.aiOn(env), true);
+  assert.equal((await AI.runText(env, { site: 'quest', messages: MSG })).text, 'A tie is a rejection.');
+  assert.equal(ai.calls.length, 1);
+  await new Promise((res) => setTimeout(res, 5));
+  assert.ok((await stores.get(AI.BUDGET_NAME).get('aiBudget')).used > 0);
 });

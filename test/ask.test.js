@@ -81,3 +81,27 @@ test('no-leak: askMessages takes only (game, question, hits)', () => {
   assert.equal(askMessages.length, 3);
   assert.equal(askRule.length, 2);
 });
+
+test('ask: dark, off or unset answers null in the same shape, with no model call, budget or cache', async () => {
+  const q = RULES_INDEX[3].q;
+  const on = await askRule(fakeEnv({ mode: 'on', ai: fakeAI('Short plain answer from the rules.') }).env, ARGS(q));
+  for (const mode of ['dark', 'off', undefined]) {
+    const ai = fakeAI('Short plain answer from the rules.'); const { env, touched } = fakeEnv({ mode, ai });
+    if (mode === undefined) delete env.AI_MODE;
+    const r = await askRule(env, ARGS(q));
+    assert.deepEqual(Object.keys(r).sort(), Object.keys(on).sort(), `same JSON keys in mode ${mode}`);
+    assert.equal(r.answer, null); assert.equal(r.from, 'none'); assert.equal(r.source, on.source);
+    assert.equal(ai.calls.length, 0, `model called in mode ${mode}`);
+    assert.deepEqual(touched, [], `budget or cache touched in mode ${mode}`);
+  }
+});
+
+test('ask: an answer cached while on is not served once the mode is dark', async () => {
+  const ai = fakeAI('Short plain answer from the rules.'); const { env, touched } = fakeEnv({ mode: 'on', ai });
+  const q = RULES_INDEX[3].q;
+  assert.equal((await askRule(env, ARGS(q))).from, 'model');
+  env.AI_MODE = 'dark'; const n = touched.length;
+  const r = await askRule(env, ARGS(q));
+  assert.equal(r.answer, null); assert.equal(r.from, 'none');
+  assert.equal(ai.calls.length, 1); assert.equal(touched.length, n, 'no cache read in dark');
+});
