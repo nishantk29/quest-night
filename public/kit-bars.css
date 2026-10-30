@@ -1,0 +1,21 @@
+/* Floating Liquid Glass bars (Nishant 2026-10-30: glass only on the floating bars; FULL strength there).
+   Loaded LAST. Phone layout only (the tab bar is hidden from 1100 wide). Keeps the current tabs and tools (decision 5).
+   Uses only family tokens, so data-noblur / no-support / reduced transparency / more contrast make the bar solid.
+   Budget: 1 live blur layer (the tab bar). The dock CTA floats opaque (edge + shadow, no blur of its own). An open
+   sheet or dialog makes the bar solid, so glass never sits on glass. */
+@media (max-width:1099px){
+  :root{--tabbar-h:calc(var(--f-tabbar-h) + var(--f-s3))}            /* reserve: bar + its 12px float gap */
+  .tabbar{left:var(--f-pad-l);right:var(--f-pad-r);bottom:var(--f-safe-b);min-height:0;height:var(--f-tabbar-h);padding:var(--f-s1);box-sizing:border-box;
+    border:0;border-radius:var(--f-r-pill);background:var(--f-glass-tint);
+    -webkit-backdrop-filter:var(--f-glass-blur);backdrop-filter:var(--f-glass-blur);
+    box-shadow:var(--f-glass-edge),var(--f-glass-shadow);isolation:isolate;transform:translateZ(0)}
+  .tabbar button{min-height:0;border-radius:var(--f-r-pill)}
+  .tabbar button[aria-current="page"]{color:var(--f-ink);background:var(--f-glass-sel)} /* label on the capsule >= 4.5:1 over white */
+  .tabbar button[aria-current="page"] :is(svg,.ico,.ui-ico){color:var(--brass)}       /* the icon carries the accent */
+  .sticky-act{bottom:calc(var(--f-safe-b) + var(--f-tabbar-h) + var(--f-s3))}
+  .sticky-act .btn.big:not(:disabled):not([aria-disabled="true"]){box-shadow:var(--f-glass-edge),var(--f-glass-shadow)}
+  /* soft scroll edge: content fades out under the bars instead of colliding with them (no blur, static) */
+  body:has(.tabbar:not([hidden]))::after{content:"";position:fixed;left:0;right:0;bottom:0;z-index:20;height:calc(var(--f-safe-b) + var(--f-tabbar-h) + var(--f-s5));pointer-events:none;
+    background:linear-gradient(to top,color-mix(in srgb,var(--f-bg) 70%,transparent),transparent)}
+  html:has(dialog[open],[data-sheet][open],.glass:not([hidden])) .tabbar{-webkit-backdrop-filter:none;backdrop-filter:none;background:var(--f-glass-solid)}
+}
