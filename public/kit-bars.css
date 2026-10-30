@@ -23,3 +23,8 @@
 /* short phones (iPhone SE class, no home indicator): float the bar 4px off the edge, so it takes no more height than the
    old bar and docks riding on --tabbar-h don't cover content (same rule on every site). */
 @media (max-width:1099px) and (max-height:700px){:root{--kit-bar-gap:var(--f-s1);--kit-bar-b:max(var(--f-s1),env(safe-area-inset-bottom))}}
+/* Vote pair (kit, Nishant 30 Oct): Approve and Reject are two equal 66px buttons on top of the dock, in the thumb zone, above
+   the Host's button when there is one. Same colours as before, icon beside the word. */
+.dock>.vote-pair{gap:var(--f-s3)}
+.dock>.vote-pair .choice{grid-auto-flow:column;align-items:center;justify-content:center;gap:var(--f-s2);min-height:var(--f-row-2);padding:0 var(--f-s3);font-size:var(--f-fs-heading)}
+.dock>.vote-pair .choice .ico{width:var(--f-ic-lead);height:var(--f-ic-lead)}

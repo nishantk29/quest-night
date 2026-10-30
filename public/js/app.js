@@ -574,9 +574,10 @@ function roundTable(v) {
 }
 
 // The big button at the bottom of the phone, with the Host's skip chip: hostNav says what it reads and does.
-function dock(v) {
-  const nav = hostNav(v, S.ui); if (!nav) return '';
-  return `<div class="sticky-act dock"><button type="button" class="btn big ${nav.disabled ? 'disabled' : ''}" data-a="dockGo" ${nav.disabled ? 'disabled aria-disabled="true"' : ''}>${esc(nav.label)}</button>${nav.skip ? `<button type="button" class="btn ghost chip" data-a="dockSkip">${esc(nav.skip.label)}</button>` : ''}</div>`;
+// lead: an equal pair of choices (the vote) that sits on top of it, in the thumb zone (kit, Nishant 30 Oct).
+function dock(v, lead = '') {
+  const nav = hostNav(v, S.ui); if (!nav) return lead ? `<div class="sticky-act dock">${lead}</div>` : '';
+  return `<div class="sticky-act dock">${lead}<button type="button" class="btn big ${nav.disabled ? 'disabled' : ''}" data-a="dockGo" ${nav.disabled ? 'disabled aria-disabled="true"' : ''}>${esc(nav.label)}</button>${nav.skip ? `<button type="button" class="btn ghost chip" data-a="dockSkip">${esc(nav.skip.label)}</button>` : ''}</div>`;
 }
 
 function stage(v) {
@@ -612,9 +613,9 @@ function stage(v) {
     }
     if (me.watch) return `<section class="stage">${head}${D}</section>`;
     const voted = 'vote' in me;
-    return `<section class="stage">${head}${D}
-      ${voted ? `<p class="note">${ui('check')} You voted ${me.vote ? 'approve' : 'reject'}. Votes are shown when everyone is in.</p>`
-    : `<div class="choice-pair"><button class="choice yes" data-a="vote" data-v="1">${art('approve')}Approve</button><button class="choice no" data-a="vote" data-v="0">${art('reject')}Reject</button></div>`}</section>`;
+    if (voted) return `<section class="stage">${head}${D}
+      <p class="note">${ui('check')} You voted ${me.vote ? 'approve' : 'reject'}. Votes are shown when everyone is in.</p></section>`;
+    return `<section class="stage">${head}${dock(v, `<div class="choice-pair vote-pair"><button class="choice yes" data-a="vote" data-v="1">${art('approve')}Approve</button><button class="choice no" data-a="vote" data-v="0">${art('reject')}Reject</button></div>`)}</section>`;
   }
   if (v.phase === 'quest') {
     if (v.mode.cards === 'physical') {
