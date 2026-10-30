@@ -42,7 +42,7 @@ test('the assets binding is supplied by the embedded build instead of the upload
 });
 
 test('deployConfig uploads ai and vars, and refuses binding kinds it does not know', () => {
-  const base = '"name":"x","compatibility_date":"2026-10-01","durable_objects":{"bindings":[{"name":"ROOM","class_name":"Room"}]}';
+  const base = '"name":"x","compatibility_date":"2026-10-01","workers_dev":false,"preview_urls":false,"durable_objects":{"bindings":[{"name":"ROOM","class_name":"Room"}]}';
   const c = deployConfig(`{${base},"ai":{"binding":"AI"},"vars":{"AI_MODE":"on","GREETING":"hi"}}`);
   assert.deepEqual(c.metadata.bindings.map((b) => [b.type, b.name]), [['durable_object_namespace', 'ROOM'], ['ai', 'AI'], ['plain_text', 'AI_MODE'], ['plain_text', 'GREETING']]);
   assert.throws(() => deployConfig(`{${base},"kv_namespaces":[{"binding":"KV","id":"1"}]}`), /kv_namespaces/);
@@ -53,6 +53,6 @@ test('deployConfig uploads ai and vars, and refuses binding kinds it does not kn
 test('build-deploy.mjs writes the metadata from deployConfig through deployFunction', () => {
   const src = fs.readFileSync(new URL('../scripts/build-deploy.mjs', import.meta.url), 'utf8');
   assert.match(src, /deployConfig\(fs\.readFileSync\('wrangler\.jsonc'/);
-  assert.match(src, /deployFunction\(\{ name, metadata, worker: W \}\)/);
+  assert.match(src, /deployFunction\(\{ name, metadata, worker: W, workersDev \}\)/);
   assert.ok(!/const metadata = \$\{/.test(src), 'build-deploy.mjs must not build its own metadata');
 });

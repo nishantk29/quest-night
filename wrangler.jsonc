@@ -3,7 +3,10 @@
   "main": "src/worker.js",
   // 2026-10-01 matches the rest of the family. Flags that changed since 2025-09-01 are pinned in test/compat-date.test.js.
   "compatibility_date": "2026-10-01",
+  // workers.dev route and preview URLs, as live (GET .../workers/scripts/<name>/subdomain, Oct 30 2026: enabled, previews off).
+  // scripts/build-deploy.mjs posts exactly these two values; test/deploy-workersdev.test.js pins them to live.
   "workers_dev": true,
+  "preview_urls": false,
   "assets": { "directory": "./public", "binding": "ASSETS", "not_found_handling": "404-page" },
   "ai": { "binding": "AI" },
   // Rules helper is server-only ("dark") until a UI ships; free tier only.

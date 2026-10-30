@@ -14,7 +14,7 @@ test('migrations: only v1 new_sqlite_classes [Room]', () => {
 });
 test('src/worker.js exports class Room', () => assert.match(fs.readFileSync(new URL('../src/worker.js', import.meta.url), 'utf8'), /export class Room\b/));
 test('deployConfig derives name/bindings from wrangler text, no migrations', () => {
-  const c = deployConfig('{ // c\n "name": "x-app", "compatibility_date": "2025-01-01", "durable_objects": {"bindings":[{"name":"ROOM","class_name":"Room"}]}, "migrations":[{"tag":"v1"}] }');
+  const c = deployConfig('{ // c\n "name": "x-app", "compatibility_date": "2025-01-01", "workers_dev": false, "preview_urls": false, "durable_objects": {"bindings":[{"name":"ROOM","class_name":"Room"}]}, "migrations":[{"tag":"v1"}] }');
   assert.equal(c.name, 'x-app');
   assert.deepEqual(c.metadata.bindings, [{ type: 'durable_object_namespace', name: 'ROOM', class_name: 'Room' }]);
   assert.equal(c.metadata.compatibility_date, '2025-01-01');
