@@ -8,7 +8,7 @@ export const SLIDE_MS = 240;                          // carousel slide, transfo
 export const FADE_MS = 120;                           // reduced-motion cross-fade instead of the slide: 120ms on screen
 export const SWIPE_PX = 56;                           // horizontal drag needed to count as a swipe (never the only way to move)
 export const NAME_MAX = 20;                           // same cap the room applies to a name
-// Undo and Redo (event-log.js). Both answered on by Nishant and Fennel (Oct 30): the Host may go back over a quest
+// Undo and Redo (event-log.js). Both decided on (Oct 30): the Host may go back over a quest
 // result everyone has seen, and from the end screen (a confirm sheet says every phone hides the roles again).
 export const UNDO_PAST_RESULT = true;
 export const UNDO_PAST_GAME_OVER = true;

@@ -1,4 +1,4 @@
-// Table jank (Oct 29 2026, Nishant: "Table screen is sooooo janky"; same fix as The Gilded Chamber): a room update must patch the page, not rebuild it.
+// Table jank (playtest feedback, Oct 29 2026: "Table screen is sooooo janky"; same fix as The Gilded Chamber): a room update must patch the page, not rebuild it.
 // morph() is tested on a small fake DOM (the gate has no browser); the browser proof is test/e2e/table-jank.e2e.mjs
 // (no #app child replaced on a live update, the seats and board are the same nodes, CLS < 0.1, chat keeps its place).
 import { test } from 'node:test';

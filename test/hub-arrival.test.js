@@ -1,4 +1,4 @@
-// Arriving from the Game Night hub (Nishant, Oct 28 9:08 PM ET: "That logo moving on game night is kinda janky"):
+// Arriving from the Game Night hub (playtest feedback, Oct 28: "That logo moving on game night is kinda janky"):
 // one opacity fade of the page, at most 300 ms, nothing moves, nothing loops, and nothing at all under reduced motion.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';

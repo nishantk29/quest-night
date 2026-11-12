@@ -1,4 +1,4 @@
-// E2E (browser, Chromium): the Table tab under live updates (Nishant, Oct 29 2026: "Table screen is sooooo janky"; same fix as Gilded).
+// E2E (browser, Chromium): the Table tab under live updates (playtest feedback, Oct 29 2026: "Table screen is sooooo janky"; same fix as Gilded).
 // A host phone in a real room with five scripted phones (raw WebSockets) that vote, chat, flip coins and roll dice.
 // Asserts: no update replaces a child of #app (patched, not rebuilt); the quest track, every seat and the tab bar are the SAME
 // nodes after 12 updates; CLS < 0.1; the reader's scroll position holds; a chat read further up keeps its place while

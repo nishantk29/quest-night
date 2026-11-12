@@ -670,7 +670,7 @@ html[data-screen="1"] .round{width:min(100%,620px)}
 @media (prefers-reduced-motion:reduce){.confirm-sheet,.confirm-sheet::backdrop,.qr-full{animation:none!important}}
 .fx-off .confirm-sheet,.fx-off .confirm-sheet::backdrop,.fx-off .qr-full{animation:none!important}
 
-/* no sideways pan on phones (PM5 drift guard) */
+/* no sideways pan on phones (drift guard) */
 html,body{overflow-x:clip}
 
 /* Info sheets (Roles in this game, Restart) and the setup steppers */
@@ -709,6 +709,6 @@ html,body{overflow-x:clip}
 @media (max-width:430px){.appbar-title .appbar-word{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}.appbar-title{overflow:visible;text-overflow:clip}}
 
 /* The deal opens to the face-down card: on short phones it fits above the tab bar, so nobody scrolls to find it
-   (Nishant 2026-10-28). The card stays hidden; only its size changes. */
+   (playtest feedback, 2026-10-28). The card stays hidden; only its size changes. */
 .reveal-stage .rcard{width:min(100%, 360px, calc((100svh - var(--reveal-reserve, 17rem)) * 63 / 88))}
 @media (max-height:700px){.reveal-stage{gap:var(--s2)}.reveal-stage .phase-title{font-size:var(--fs-xl)}.reveal-stage>.say{display:none}}

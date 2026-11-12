@@ -1,7 +1,7 @@
 // Quest Night adapter for the shared game-rules kit (test/kit/game-invariants.mjs, copied unchanged from
-// /workspace/code-team/shared/invariants/). Four properties over seeded games, every table size 5..10, the optional
+// the shared kit). Four properties over seeded games, every table size 5..10, the optional
 // roles and the Lantern: game over stays final, no step can block, no leaks (non-interference), no Undo after game over.
-// The Undo one was a known bug until Quest -5 (Undo on the end screen re-opened a finished game with every role revealed);
+// The Undo one was a known bug until the logic audit (Undo on the end screen re-opened a finished game with every role revealed);
 // the reducer now refuses it, so the gate enforces it.
 import { gameInvariantTests, pick } from './kit/game-invariants.mjs';
 import { newRoom, reduce, viewForPlayer } from '../public/js/room.js';

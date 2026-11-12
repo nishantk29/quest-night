@@ -1,5 +1,5 @@
 // "Ask a rule", server side. Answers only from this game's own rules text (src/rules-index.js, built from faq.js).
-// Shared file: identical copy in each game repo (source /workspace/code-team/shared/ai/ask.js).
+// Shared file: identical copy in each Game Night repo.
 // Privacy: the prompt holds the question and rules text only. This file never reads a room, so no role, card,
 // word or name can reach the model, whatever the question says.
 import { runText, filterOutput, cleanText, sha256Hex, cacheGet, cachePut, aiOn } from './ai.js';

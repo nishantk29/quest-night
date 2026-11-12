@@ -1,5 +1,5 @@
-// One label per intent (Nishant approved 2026-10-29 6:03 PM ET; run/copy/label-list.md; DESIGN-SKILL §10).
-// kit/labels.mjs is a copy of /workspace/code-team/shared/copy-lint/labels.mjs (copy it, don't fork it).
+// One label per intent (label list approved 2026-10-29 in design review).
+// kit/labels.mjs is a copy of the shared Game Night label list (copy it, don't fork it).
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync, readdirSync, statSync } from 'node:fs';

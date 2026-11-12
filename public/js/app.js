@@ -90,7 +90,7 @@ function render() {
   // The room's first view replacing the connecting placeholder is the same screen: no second slide right after the first.
   const settling = lastKey !== null && lastKey.endsWith('|wait') && lastKey.split('|')[0] === key.split('|')[0];
   const animate = lastKey !== null && key !== lastKey && !settling && fx.enabled() && canTransition();
-  // Opening or leaving the FAQ (Nishant, Oct 30 2026: "janky"): no view transition. Its snapshot groups animate width, height
+  // Opening or leaving the FAQ (playtest feedback, Oct 30 2026: "janky"): no view transition. Its snapshot groups animate width, height
   // and backdrop-filter; the page fades and slides in on opacity + transform only (.faq-in, 220 ms).
   const faqHop = isFaqKey(lastKey) || isFaqKey(key);
   lastKey = key;
@@ -117,7 +117,7 @@ function paint() {
   const known = new Set([...$app.querySelectorAll('[data-scroll]')].map((el) => el.dataset.scroll));
   try { morph($app, screen()); } catch (e) { console.error(e); crash(); return; }
   S.ui.fresh = {}; S.ui.flip = false;
-  // Same screen: keep the reader's place. New screen: start at the top (Nishant 2026-10-28: "open to the top", card still hidden).
+  // Same screen: keep the reader's place. New screen: start at the top (playtest feedback, 2026-10-28: "open to the top", card still hidden).
   if (toTop) window.scrollTo(0, 0); else if (window.scrollY !== y) window.scrollTo(0, y);
   toTop = false;
   fx.after($app);
@@ -271,7 +271,7 @@ function layout(v) {
 
 function gameMain(v) {
   if (v.me?.watch && !v.me.host) return [track(v), roundTable(v), `<section class="stage"><p class="say">You are watching this game. You’ll see what the whole table sees.</p></section>`, lastReveals(v)].join('');
-  // At the deal, a player with a card to read sees it first, so the phone opens to the face-down card (Nishant 2026-10-28).
+  // At the deal, a player with a card to read sees it first, so the phone opens to the face-down card (playtest feedback, 2026-10-28).
   // Every player with a card gets the same order, so the layout says nothing about the card.
   const cardFirst = v.phase === 'reveal' && v.game?.appRoles && !!v.me?.role && !v.game.ready.includes(v.me.id);
   return (cardFirst ? [stage(v), track(v), roundTable(v), lastReveals(v), myCardBlock(v)] : [track(v), roundTable(v), stage(v), lastReveals(v), myCardBlock(v)]).join('');

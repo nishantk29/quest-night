@@ -1,6 +1,6 @@
 // game-invariants.mjs: shared game-rules test kit for the Game Night family (node:test, no dependencies, Node 20+).
-// Source of truth: /workspace/code-team/shared/invariants/. Copy it UNCHANGED into a repo's test/kit/ and write a small
-// adapter for that game in test/game-invariants.test.js. See README.md in the same folder.
+// Shared across the Game Night repos. Copy it UNCHANGED into a repo's test/kit/ and write a small
+// adapter for that game in test/game-invariants.test.js.
 //
 // Four properties, each a node:test test, checked over seeded random games:
 //   1. over is terminal: once a game is over, no in-game action changes the game (only the adapter's
@@ -76,7 +76,7 @@ function playOne(A, index, opts, hooks) {
  * @param {object} A adapter (see the header)
  * @param {{games?:number, maxSteps?:number, seed?:number, fallbackEvery?:number, leakViewers?:number,
  *   todo?: Partial<Record<'overIsTerminal'|'noBlock'|'noLeaks'|'noUndoAfterOver', string>>}} [opts]
- *   todo: mark a property as a known bug (node:test todo) with a pointer, e.g. { noUndoAfterOver: 'Quest -5 fixes this (QUEUE.md)' }
+ *   todo: mark a property as a known bug (node:test todo) with a pointer, e.g. { noUndoAfterOver: 'fixed by the end-screen Undo change' }
  */
 export function gameInvariantTests(A, opts = {}) {
   const o = { games: 300, maxSteps: 3000, seed: 20261027, fallbackEvery: 1, leakViewers: 2, todo: {}, ...opts };

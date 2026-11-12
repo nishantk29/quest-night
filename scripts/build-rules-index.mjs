@@ -1,5 +1,5 @@
 // Builds src/rules-index.js from this game's own FAQ (public/js/faq.js), as plain text chunks for "Ask a rule".
-// Shared script (source /workspace/code-team/shared/ai/build-rules-index.mjs). Run: node scripts/build-rules-index.mjs
+// Shared script (identical in each Game Night repo). Run: node scripts/build-rules-index.mjs
 // test/rules-index.test.js fails if the committed index is out of date with the FAQ.
 import fs from 'node:fs';
 import { pathToFileURL } from 'node:url';

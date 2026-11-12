@@ -134,7 +134,7 @@
 .roles-panel .rs-ico{background:#0E1F5C}
 .roles-chip{padding:0 var(--s3)}@media (min-width:420px){.roles-chip{padding:0 var(--s4)}}
 
-/* press feedback (Nishant, 2026-10-29): lands on press-in in --f-press (120ms);
+/* press feedback (design review, 2026-10-29): lands on press-in in --f-press (120ms);
    the release runs in --f-release (about 0.7x). Buttons and cards scale to .97. */
 @media (prefers-reduced-motion:no-preference){
   :is(.btn,.choice,.cs-btn,.role-token,.side-card,.servant.can-pick .servant-disc):active,.servant.can-pick:active .servant-disc{transition-duration:var(--f-press)}

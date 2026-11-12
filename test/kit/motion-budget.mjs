@@ -1,4 +1,4 @@
-// Motion budget (Nishant, 2026-10-29): presses land in 100-150ms and are never scaled by --dur-scale;
+// Motion budget (design review, 2026-10-29): presses land in 100-150ms and are never scaled by --dur-scale;
 // no animation or transition runs over 400ms (duration, and delay + duration where the delay is known).
 // Static resolver: reads every stylesheet, <style> block and CSS-in-JS template under public/, resolves
 // var()/calc()/min()/max() against the custom properties defined there, and checks every time value.

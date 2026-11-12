@@ -8,7 +8,7 @@ FAQ and classic rules, pairwise role interactions, look-alike/duplicate roles, p
 ## Method
 Read each area narrowly, wrote a test that fails on any bug, fixed it, kept the suite green. Behaviour that was already right is
 pinned by a "confirmation" test so it cannot regress. Everything is in `test/audit-v2.test.js` (the many-games simulation is
-Task D, the deploy gate Task E). Leak, display and crash fixes apply to every room; fixes that change a legal move are gated
+in `test/sim-invariants.test.js`, the gate that blocks a release on a red test in `test/deploy-gate.test.js`). Leak, display and crash fixes apply to every room; fixes that change a legal move are gated
 `rulesVersion >= 2`. Rooms without `rulesVersion` are version 1 and never backfilled.
 
 ## Findings
@@ -16,7 +16,7 @@ Task D, the deploy gate Task E). Leak, display and crash fixes apply to every ro
 |---|---|---|---|---|
 | Look-alikes | Percival's two candidates (and Merlin's / Evil's lists) were in seat order | per-game random `game.order` (never sent to a client); lists follow it, stable within the game | new games (games dealt earlier fall back to seat order) | `percival-order: ...`, `knowledge-order: ...`, `old-game-order: ...` |
 | Leaks | At the strike, every Evil player (and Oberon) was sent the full Evil list, so Oberon was exposed to the team and Oberon saw everyone | list = what that role's card already knows; Oberon gets none | all | `assassin-phase-oberon: ...` |
-| Leaks | Undo on the end screen re-opened a finished game after every phone had been shown every role (found by the shared invariant kit, Quest -5) | `undo` refused at 'over', undo stack cleared when the game ends, `canUndo` false on the end screen | all | `no-undo-after-over: ...`; game-invariants `no Undo after game over` |
+| Leaks | Undo on the end screen re-opened a finished game after every phone had been shown every role (found by the shared invariant kit) | `undo` refused at 'over', undo stack cleared when the game ends, `canUndo` false on the end screen (later replaced: Undo from the end screen now asks first and hides the roles again on every phone; see RULES.md R21) | all | `no-undo-after-over: ...`; game-invariants `no Undo after game over` |
 | Leaks | Naming a non-Loyal player was refused with "choose a Loyal player", so the Assassin could probe sides (e.g. find Oberon) | the Assassin may name any other player; only self is refused | all | `strike-no-oracle: ...` |
 | Phases | Assassin phase could not be skipped: an absent/opened-seat Assassin stalled the game | host Skip makes a random strike at a non-Assassin, logged in the open | 2 | `assassin-skip: ...` (3 tests) |
 | Leaks | A host who rejoined as a late watcher and claimed the host key got the moderator view (the whole deal) | moderator view only when Host sits out is on | all | `moderator-view: ...` |
@@ -37,7 +37,7 @@ card markup and quest-card reveal (count-only, seeded shuffle) are identical wha
 - Real WebSocket/Durable Object behaviour (only the pure fanout and reducer are tested); service worker; visual timing in a browser.
 - Games already in progress when this ships keep seat-order knowledge lists (no `game.order` yet).
 
-## Rule choices for Nishant
+## Rule choices
 1. **Skipping an absent Assassin** strikes a random other player (Merlin only if hit), logged openly. Alternative: Good wins by
    default. Default chosen so a no-show neither hands Evil a free win nor Good one.
 2. **Host Skip on the leader's turn** passes the crown without counting as a rejection (kept as it was).

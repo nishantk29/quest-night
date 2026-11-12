@@ -1,5 +1,5 @@
 // Optional language-model helpers, server side only (Worker + the existing Room Durable Object class).
-// Shared file: the source of truth is /workspace/code-team/shared/ai/ai.js; each game repo keeps an identical copy in
+// Shared file: the source of truth is a shared helper kit; each Game Night repo keeps an identical copy in
 // src/ai.js (test/ai.test.js checks the version line). Rules this file enforces:
 //  - Never throws to a caller and never blocks a game step: every failure, timeout or budget stop returns null, and the
 //    caller shows its normal text. Game reducers (public/js) never import this file.
@@ -7,7 +7,7 @@
 //    class, no migration). A room code is 6 letters, so these reserved names can never be a room.
 //  - Output passes a code filter (length, banned phrases, forbidden terms) before anyone sees it.
 //  - Only AI_MODE 'on' may call the model. 'dark', 'off', unset or anything else: no model call, no neurons reserved,
-//    no budget or cache read (Nishant's rule: no AI that could cost money goes live without his OK).
+//    no budget or cache read (house rule: no AI that could cost money goes live without the maintainer's OK).
 export const AI_VERSION = 2;
 export const AI_MODEL = '@cf/google/gemma-4-26b-a4b-it';
 // Neurons per million tokens, from https://developers.cloudflare.com/workers-ai/platform/pricing/ (read 2026-10-29).

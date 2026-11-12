@@ -1,4 +1,4 @@
-// Jank fixes (Oct 29 2026, Nishant: "The way some elements appear are very janky"): short entrances on opacity and
+// Jank fixes (playtest feedback, Oct 29 2026: "The way some elements appear are very janky"): short entrances on opacity and
 // transform only, one slide per screen (the room's first view does not slide a second time), one divider token.
 import test from 'node:test';
 import assert from 'node:assert/strict';

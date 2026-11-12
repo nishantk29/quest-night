@@ -1,4 +1,4 @@
-// Radius gate (Nishant approved the corner-radius tokens 2026-10-29 6:03 PM ET; run/mockups/corner-radius/side-by-side/NOTES.md).
+// Radius gate (corner-radius tokens approved 2026-10-29 after a side-by-side mockup review).
 // Copy into each game's test/kit/. Every border-radius value must be built from the family tokens; a raw px value fails
 // unless its selector is on the site's exemption list.
 export const TOKENS = ['--f-r-inset', '--f-r-field', '--f-r-card', '--f-r-sheet', '--f-r-pill', '--f-r-round', '--f-r-face'];

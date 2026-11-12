@@ -5,7 +5,7 @@
 :root{--qn-ease:cubic-bezier(.2,.8,.2,1);--display-serif:"Cinzel","Rubik Fallback",Georgia,serif;
   --paper:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 .5 0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)' opacity='.5'/%3E%3C/svg%3E")}
 
-/* ---- type: Cinzel (plain, no swash Decorative cut; Nishant 2026-10-28 "overdoing" the decorative display) for the title and headings, Rubik stays for reading */
+/* ---- type: Cinzel (plain, no swash Decorative cut; design review 2026-10-28: "overdoing" the decorative display) for the title and headings, Rubik stays for reading */
 .wordmark{font-family:var(--display-serif);font-weight:800;letter-spacing:.01em;text-transform:none;line-height:1.02;hyphens:none;text-wrap:balance}
 h1,h2,.phase-title,.block-title,.path-title,.sheet-title{font-family:var(--display-serif);font-weight:800;letter-spacing:.015em;hyphens:none;overflow-wrap:normal;text-wrap:balance}
 .phase-title{font-size:clamp(1.7rem,1.3rem + 2.4vw,2.7rem)}
@@ -23,7 +23,7 @@ h1,h2,.phase-title,.block-title,.path-title,.sheet-title{font-family:var(--displ
 .bg-stars-b{animation-duration:400ms;animation-delay:-130ms}
 .bg-win{animation:qn-twinkle 400ms ease-in-out 1 both;animation-delay:-110ms}
 @keyframes qn-twinkle{from{opacity:.35}to{opacity:1}}
-/* the flag hangs still, flutters once about four seconds in, then rests (no looping motion: Nishant, Oct 28 11:09 PM ET) */
+/* the flag hangs still, flutters once about four seconds in, then rests (no looping motion: design review, Oct 28) */
 .bg-flag{transform-box:fill-box}
 .flag-cloth{transform-origin:2.4px -36px;transform-box:view-box;animation:none} /* holds its resting pose: a flutter squeezed into 400ms reads as a twitch (2026-10-29) */
 @keyframes qn-flutter{0%,56%,100%{transform:none}64%{transform:skewY(-9deg) scaleX(.93)}72%{transform:skewY(7deg) scaleX(1.04)}80%{transform:skewY(-5deg) scaleX(.97)}88%{transform:skewY(3deg)}}
@@ -177,7 +177,7 @@ h1,h2,.phase-title,.block-title,.path-title,.sheet-title{font-family:var(--displ
 .fx-off .pennant{animation:none!important}
 
 /* ---- arriving from the hub (game end of the handoff): ONE opacity fade of the page, 300ms.
-   Nothing moves: no logo overlay flying in from the handoff pose (Nishant, Oct 28: "That logo moving on game night is kinda
+   Nothing moves: no logo overlay flying in from the handoff pose (playtest feedback, Oct 28: "That logo moving on game night is kinda
    janky") and the first-load rise is skipped. html.hand is set by the inline <head> script, never under reduced motion, and
    stays for the page's life, so nothing replays when html.boot goes. */
 .hand{background:#0B0B0D}
@@ -204,7 +204,7 @@ h1,h2,.phase-title,.block-title,.path-title,.sheet-title{font-family:var(--displ
 /* theme.css's .stage>*{position:relative} beat the fixed dock, so it floated over the text above it: keep it pinned above the tab bar. */
 .stage>.sticky-act{position:fixed}
 @media (min-width:1100px){.stage>.sticky-act{position:sticky}}
-/* Reconnect notice as a compact callout (Nishant 2026-10-28: "This warning can have a call out box and can be in smaller font"). */
+/* Reconnect notice as a compact callout (playtest feedback, 2026-10-28: "This warning can have a call out box and can be in smaller font"). */
 .banner{font-size:var(--fs-xs);font-weight:600;line-height:1.35;color:color-mix(in srgb,var(--ink) 80%,transparent);background:color-mix(in srgb,var(--panel-2) 84%,var(--red-block));border:0;border-bottom:1px solid color-mix(in srgb,var(--red-block) 55%,transparent);padding:var(--s1) var(--gutter)}
 .banner > .ui-ico{color:color-mix(in srgb,var(--red-block) 45%,#fff);flex:none}
 /* Polish sweep (Oct 28). App bar: the room code keeps its width; a long phase label shortens instead of running under the settings button. */

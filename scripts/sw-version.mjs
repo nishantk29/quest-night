@@ -1,4 +1,4 @@
-// Recomputes public/sw.js VERSION exactly as shared/pwa/make-pwa.mjs does (sha256 over sorted "/path\0" + bytes, first 10 hex).
+// Recomputes public/sw.js VERSION exactly as the shared make-pwa tool does (sha256 over sorted "/path\0" + bytes, first 10 hex).
 import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
@@ -25,4 +25,4 @@ export function swVersion(pub = 'public') {
   return m && m[1];
 }
 
-export const FIX_HINT = 'run: node /workspace/code-team/shared/pwa/make-pwa.mjs public pwa/pwa.json';
+export const FIX_HINT = 'run: node scripts/stamp-sw.mjs public';
