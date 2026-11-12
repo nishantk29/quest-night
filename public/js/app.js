@@ -874,7 +874,7 @@ async function route() {
   const [kind, arg] = location.hash.replace(/^#\/?/, '').split('/');
   if ((kind === 'play' || kind === 'join' || kind === 'screen') && /^[A-Za-z]{6}$/.test(arg || '')) {
     S.mode = kind === 'screen' ? 'screen' : 'play'; S.code = arg.toUpperCase();
-    const ex = await fetch(`/api/room/${S.code}`).then((r) => r.ok).catch(() => false);
+    const ex = await fetch(`/api/room/${S.code}`).then((r) => (r.ok ? r.json() : null)).then((j) => j?.exists === true).catch(() => false);
     if (!ex) { store.del(`${KEY}.player.${S.code}`); S.fatal = FATAL.noRoom(S.code); }
     else {
       S.pendingJoin = sessionStorage.getItem(`${KEY}.pendingJoin`);

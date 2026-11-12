@@ -41,7 +41,7 @@ export async function pruneClosedRooms(root, forget) {
     const code = row.dataset.room;
     try {
       const r = await fetch(`/api/room/${code}`);
-      if (r.status === 404) { forget(code); row.remove(); }
-    } catch { /* offline: keep the chip */ }
+      if (r.ok && (await r.json()).exists === false) { forget(code); row.remove(); }
+    } catch { /* offline / error: keep the chip */ }
   }
 }
