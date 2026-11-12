@@ -225,3 +225,32 @@ h1,h2,.phase-title,.block-title,.path-title,.sheet-title{font-family:var(--displ
 
 /* deslop 2026-10-29: link rows are spaced by layout, not middle dots */
 .linkrow{display:flex;flex-wrap:wrap;gap:var(--s2,8px) var(--s4,16px);align-items:center}
+
+/* ---- home, desktop: one centred container in two uneven columns (7fr / 5fr). The masthead leads on the left with the Host
+   table (the one primary) beside it; How to play sits under the masthead, Join, Rules and More from Game Night under Host;
+   the footer runs the full container. .home-paths dissolves so its children take grid areas; DOM and phone stay as they are.
+   The castle backdrop steps out on the desktop home: the tower in the masthead carries the castle there. */
+@media (min-width:900px){
+  .wrap.home{max-width:1120px;grid-template-columns:minmax(0,7fr) minmax(0,5fr);column-gap:var(--s7);row-gap:var(--s4);
+    align-items:start;align-content:start;padding-top:var(--s4);
+    grid-template-areas:"back back" "hero host" "how join" "how rules" "how more" "faq more" "foot foot";
+    grid-template-rows:repeat(5,auto) 1fr auto}
+  .wrap.home > .home-nav{grid-area:back;margin:0}
+  .wrap.home > .home-hero{grid-area:hero;align-self:center;padding-top:0}
+  .wrap.home .home-brand{grid-template-columns:auto auto;justify-content:start;width:max-content;padding-right:var(--s8)}
+  .wrap.home .home-brand .wordmark{width:min-content}.wrap.home .home-brand .wordmark span{white-space:nowrap}
+  .wrap.home > .home-paths{display:contents}
+  .wrap.home .home-paths > .path:first-child{grid-area:host}
+  .wrap.home .home-paths > .path + .path{grid-area:join}
+  .wrap.home .home-paths > .side-card{grid-area:rules}
+  .wrap.home .how-sec{grid-area:how;margin-top:var(--s5)}
+  .wrap.home .home-faq{grid-area:faq;margin:0}
+  .wrap.home .how{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--s2) var(--s6);padding:var(--s4) var(--s5)}
+  .wrap.home .how li{border-top:0;align-content:start}
+  .wrap.home > .more-games{grid-area:more;margin-top:var(--s5)}
+  .wrap.home .more-grid{grid-template-columns:minmax(0,1fr)}
+  .wrap.home > .site-foot{grid-area:foot;margin-top:var(--s6)}
+  body:has(.wrap.home) .bg-art{background:none}
+  body:has(.wrap.home) .bg-sky{display:none}
+}
+@media (min-width:1100px){.wrap.home{column-gap:var(--s8)}}
