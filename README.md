@@ -1,51 +1,106 @@
 # Quest Night
 
-A hidden-minion quest game for 5 to 10 players, one phone each, no moderator. Sister app to
-[Mafia Night](https://mafia-app.hatethespurs.workers.dev): same stack, same design system, its own game.
+Quest Night is a hidden-loyalty party game for 5 to 10 people in the same room, played on their phones with no
+moderator: a rotating leader picks a party, everyone votes, and the party secretly plays Success or Sabotage on
+three-of-five quests while a hidden Evil team tries to stay unnoticed. It is a sister app to
+[Mafia Night](https://mafia.hatethespurs.com). On the engineering side, each room is a single server-authoritative
+Cloudflare Durable Object that keeps the game as a replayable event log and sends every phone its own projection of
+the state, so no secret ever reaches a phone that should not see it. The client is an installable offline PWA, and a
+test suite of rules, secrecy and whole-game simulations guards the game logic.
 
-Live: https://quest-night.hatethespurs.workers.dev
+**Live:** https://avalon.hatethespurs.com
 
-## How it plays
-- Most players are **the Loyal Servants**; 2 to 4 are **Evil** and know each other.
-- A rotating **leader** (the crown) proposes a party; everyone votes approve/reject, shown together. Strict
-  majority passes. Five rejected parties in a row: the Minions of Mordred win.
-- The party plays Success/Sabotage face down (Loyal can only play Success). One sabotage fails a quest, except
-  quest 4 at 7+ players, which needs two. Three quests decide.
-- Optional cards (host settings): Merlin + the Assassin (pair), Percival, Morgana, Mordred, the
-  Oberon. If Merlin is in play and the Loyal Servants of Arthur win three quests, the Assassin gets one strike at Merlin.
+<p>
+  <img src="docs/screenshots/home-phone.png" width="260" alt="Home screen on a phone">
+  <img src="docs/screenshots/host-lobby-phone.png" width="260" alt="Host lobby with the room code and seats">
+  <img src="docs/screenshots/player-role-phone.png" width="260" alt="A player's secret role card">
+</p>
 
-## Code
-- `public/js/rules.js`: pure rules (table sizes, quest sizes, two-fail rule, role deal, who sees whom).
-- `public/js/room.js`: the reducer for every action plus `viewForPlayer` (all secrecy lives here).
-- `src/worker.js`: Cloudflare Worker + one Durable Object per room (WebSocket hibernation), copied from Mafia Night.
-- `public/js/app.js`: the whole client (hash routing, live socket, screens). `public/styles.css`: Mafia Night's
-  tokens/components plus Quest Night's track, round table, vote and quest reveals.
+## Features
 
-## Run and test (Node 22+)
-- `npm test`: rules and reducer tests, including secrecy.
-- `npm run dev -- --port 8861 --ip 127.0.0.1` (wrangler dev --local, no Cloudflare login), then `BASE=http://127.0.0.1:8861 GAMES=40 SEED=1 node scripts/sim-games.mjs`
-  plays whole games with scripted players (no LLM) and checks secrecy, vote/quest/assassin outcomes and the
-  five-reject rule. Every run must end `problems: 0`.
+- **One phone each, no moderator.** The host makes a room, players join with a six-letter code or QR code, and the
+  app deals the roles, runs the votes and quests, and checks every win condition.
+- **Optional roles.** Merlin and the Assassin as a pair, plus Percival, Morgana, Mordred and Oberon. Each role sees
+  exactly what it should: Merlin sees Evil except Mordred, and Percival sees Merlin and Morgana in a random order.
+- **Classic rules handled for you.** Quest sizes by table size, the two-Sabotage rule on quest 4 at 7+ players, five
+  rejected parties in a row as an Evil win, and the Assassin's strike at Merlin after three successful quests.
+- **Phone, physical or hybrid play.** Roles, votes and quest cards can each run in the app or with real cards. A
+  printable card guide and card sheet (PDF) are included.
+- **Host tools that never dead-end.** Unlimited Undo and Redo, pause, replace or skip an absent player, hand off
+  the host role, and an optional Lantern card. Tables also get timers, a coin, dice and a shared table screen.
+- **Reconnect-safe.** A phone that drops or locks gets back the same seat, card and vote.
+- **Installable and offline-ready.** A service worker caches the app shell, and the screen stays awake during play.
 
-## Deploy
-- `npm run deploy` (stamps the service-worker version, then `wrangler deploy`) with `CLOUDFLARE_API_TOKEN` and
-  `CLOUDFLARE_ACCOUNT_ID` set, or the manual **Deploy** GitHub Action once those two repo secrets are added
-  (same as Mafia Night). Workers.dev only: no custom domain, no DNS.
-- After deploying: `BASE=https://quest-night.hatethespurs.workers.dev GAMES=6 node scripts/sim-games.mjs`.
+## Stack
 
-> The GitHub Actions files live in `docs/github-workflows/` for now: the box's GitHub login can't write
-> `.github/workflows` (no `workflow` scope). Move them to `.github/workflows/` from a login that can.
+- **Language:** JavaScript (ES modules), no build step for the client.
+- **Server:** Cloudflare Workers, one Durable Object per room (SQLite-backed) using the WebSocket Hibernation API,
+  with a 12-hour alarm that clears idle rooms.
+- **Static files:** Workers Static Assets from `public/`, with a styled 404 page.
+- **Client:** vanilla JS and CSS, no framework. Hash routing, a live WebSocket, and a built-in QR encoder.
+- **PWA:** web app manifest and a service worker whose cache version is a content hash of `public/`.
+- **Tooling:** Wrangler 4 (the only dependency) and Node's built-in test runner.
 
-### Deploying without a wrangler token (how v1 went live)
-`node scripts/build-embedded.mjs` builds `dist-embedded/worker.js` with every file in `public/` inlined; it was
-uploaded through the Cloudflare API (script `quest-night`, Durable Object migration tag `v1`, workers.dev on).
-A later `npm run deploy` replaces it with the normal Static Assets build; the migration tag matches.
+## How it works
 
-## Deploy file
-For deploying through the Cloudflare API without wrangler. Worker name, the ROOM -> Room binding and the compat date are read from `wrangler.jsonc` (never passed by hand); no migrations are sent.
 ```
-node /workspace/code-team/shared/pwa/make-pwa.mjs public pwa/pwa.json   # FIRST: refreshes sw.js VERSION (or `node scripts/stamp-sw.mjs public`); build-deploy refuses a stale one
-node scripts/build-embedded.mjs
-node scripts/build-deploy.mjs <outFile>  # runs the whole test suite first; no secrets embedded
+public/js/rules.js      pure rules: table sizes, quest sizes, the two-fail rule, role deal, who sees whom
+public/js/room.js       the reducer for every action, plus viewForPlayer / viewForScreen (all secrecy lives here)
+public/js/table.js      table layer: seats, play modes, house rules, chat, host controls, table tools
+public/js/event-log.js  the room as an event log; replaying it rebuilds the room, which is how Undo/Redo work
+src/worker.js           Worker routes (/api/create, /ws/<code>) and the Room Durable Object
+src/fanout.js           sends each connected socket its own view after every action
+public/js/app.js        the client: routing, the socket, every screen
 ```
-If any test fails it prints `Deploy file NOT written: N test(s) failed`, exits 1 and does not create or touch `<outFile>`. There is no bypass flag. See `RULES.md` for the rules the gate protects.
+
+- The server is the only source of truth. Phones send actions, and the reducer validates them.
+- Each event stores its own random seed and timestamp, so replaying the log always gives the same room.
+- Views are computed per viewer, so hidden roles, quest-card owners and host keys never leave the server.
+
+## Run locally
+
+Requires Node 22 or newer (CI uses Node 24). No Cloudflare account is needed.
+
+```sh
+npm ci
+npm run dev          # wrangler dev --local, serves http://localhost:8787
+```
+
+Open the URL on a few browser windows or phones on the same network to play a room.
+
+## Tests
+
+```sh
+npm test             # 354 unit and integration tests, about 12 seconds
+```
+
+The suite covers the rules, the reducer, secrecy in every phase, Undo/Redo, the realtime fan-out, the FAQ against
+the rules, the PWA cache version, fonts, and deploy config. [RULES.md](RULES.md) maps each house rule to the test
+that guards it, and [AUDIT.md](AUDIT.md) records the logic audit.
+
+Whole-game simulation against a running server (scripted players, no browser):
+
+```sh
+BASE=http://localhost:8787 GAMES=40 SEED=1 node scripts/sim-games.mjs   # must end with problems: 0
+```
+
+Browser end-to-end tests drive several phones in Chromium against `wrangler dev --local`. They need
+`playwright-core` and Chrome, located with the `PW` and `CHROME` environment variables:
+
+```sh
+PW=/path/to/node_modules/playwright-core CHROME=/path/to/chrome npm run e2e
+```
+
+## Deploying
+
+`npm run deploy` runs `wrangler deploy` with `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` set. A manual GitHub
+Actions workflow (`deploy.yml`) does the same after `npm test`; the workflow files are in `docs/github-workflows/`
+until they are moved to `.github/workflows/`. See [docs/deploying.md](docs/deploying.md) for the details.
+
+## Credits
+
+- Crown, chalice, lantern and crest icons drawn for Quest Night.
+- Role icons from [game-icons.net](https://game-icons.net) by Lorc, Delapouite and contributors (CC BY 3.0).
+- Interface icons from [Phosphor](https://phosphoricons.com) (MIT).
+- Fonts: Rubik, Cinzel, Alegreya and Alegreya Sans (SIL Open Font License 1.1). See `public/fonts/` and
+  [scripts/fonts/README.md](scripts/fonts/README.md).
