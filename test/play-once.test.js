@@ -1,4 +1,4 @@
-// Nishant, Oct 28 11:09 PM ET: the looping decorations play ONCE and stop on their final frame; with reduced motion the
+// Design review, Oct 28: the looping decorations play ONCE and stop on their final frame; with reduced motion the
 // final frame shows with no motion. Nothing in Quest Night's CSS, HTML or JS loops forever.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';

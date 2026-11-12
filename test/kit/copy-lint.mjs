@@ -1,4 +1,4 @@
-// Shared copy lint (Nishant 2026-10-28: "Make sure the text is checked to avoid AI wording").
+// Shared copy lint (design review, 2026-10-28: "Make sure the text is checked to avoid AI wording").
 // Import in each game's test gate and run over all user-facing strings (FAQ, roles, narration, buttons, tips).
 export const BANNED = [
   /\bdelv(e|es|ing)\b/i, /\bseamless(ly)?\b/i, /\belevat(e|es|ed|ing)\b/i, /\bembark/i, /\bunleash/i,

@@ -5,12 +5,14 @@
 import { createRequire } from 'node:module';
 import http from 'node:http';
 import fs from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { newRoom, reduce } from '../public/js/room.js';
 import { fanout } from '../src/fanout.js';
 
-const puppeteer = createRequire('/workspace/code-team/bugsweep/pp/node_modules/')('puppeteer-core');
+// Puppeteer is an optional dev tool (not in package.json): `npm i --no-save puppeteer-core`, or set PUPPETEER to its install dir.
+const puppeteer = createRequire(import.meta.url)(process.env.PUPPETEER || 'puppeteer-core');
 const PUB = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'public');
 const TYPES = { js: 'text/javascript', css: 'text/css', html: 'text/html', png: 'image/png', svg: 'image/svg+xml', woff2: 'font/woff2', webmanifest: 'application/manifest+json', pdf: 'application/pdf' };
 const UA = 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Mobile/15E148 Safari/604.1';
@@ -145,8 +147,9 @@ async function noReplay(page, label, names) { // same view re-broadcast twice: r
 // ---- home
 {
   const p = await mkPage(); await p.goto(`${BASE}/`, { waitUntil: 'networkidle0' });
-  fs.mkdirSync('/workspace/code-team/screens/pm5', { recursive: true });
-  await sleep(600); await p.screenshot({ path: '/workspace/code-team/screens/pm5/avalon-home-after-local.png' });
+  const shots = process.env.OUT || path.join(os.tmpdir(), 'quest-night-screens');
+  fs.mkdirSync(shots, { recursive: true });
+  await sleep(600); await p.screenshot({ path: path.join(shots, 'avalon-home-after-local.png') });
   await resetRec(p); await sleep(800);
   const y0 = await p.evaluate(() => document.querySelector('.home-art').getBoundingClientRect().top + scrollY);
   await p.evaluate(() => scrollTo(0, 500)); await sleep(500); await resetRec(p); await sleep(300);

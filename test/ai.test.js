@@ -1,4 +1,4 @@
-// Shared AI helper tests (identical in every game repo; source /workspace/code-team/shared/ai/test).
+// Shared AI helper tests (identical in every Game Night repo).
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';

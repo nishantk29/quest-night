@@ -76,7 +76,7 @@ npm test             # 354 unit and integration tests, about 12 seconds
 
 The suite covers the rules, the reducer, secrecy in every phase, Undo/Redo, the realtime fan-out, the FAQ against
 the rules, the PWA cache version, fonts, and deploy config. [RULES.md](RULES.md) maps each house rule to the test
-that guards it, and [AUDIT.md](AUDIT.md) records the logic audit.
+that guards it, and [docs/logic-audit.md](docs/logic-audit.md) records the logic audit.
 
 Whole-game simulation against a running server (scripted players, no browser):
 

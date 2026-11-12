@@ -1,4 +1,4 @@
-// Type rules (Nishant 2026-10-28: the art deco / decorative display stays in Mafia Night only).
+// Type rules (design review, 2026-10-28: the art deco / decorative display stays in Mafia Night only).
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';

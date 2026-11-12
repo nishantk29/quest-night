@@ -18,7 +18,7 @@ const SEED = Number(process.env.UNDO_SEED || 1);
 const json = (x) => JSON.stringify(x);
 const games = (f) => { for (let g = 0; g < GAMES; g++) f(SEED * 1000 + g); };
 
-test('the defaults Nishant and Fennel chose: back over a seen quest result, back from the end screen, players told', () => {
+test('the chosen defaults: back over a seen quest result, back from the end screen, players told', () => {
   assert.equal(UNDO_PAST_RESULT, true); assert.equal(UNDO_PAST_GAME_OVER, true); assert.equal(NOTIFY_ON_UNDO, true);
 });
 

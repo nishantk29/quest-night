@@ -1,4 +1,4 @@
-# Deploy to Cloudflare from GitHub, so nobody needs 1Password on a laptop.
+# Deploy to Cloudflare from GitHub, so no Cloudflare token has to live on a laptop.
 # Runs only when started by hand (Actions tab, or `gh workflow run deploy.yml`), never on every push:
 # deploys stay deliberate. Tests must pass first; the live smoke test runs after.
 name: Deploy

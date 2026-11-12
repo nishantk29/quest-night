@@ -1,4 +1,4 @@
-// Copy gate (Nishant 2026-10-28: "Make sure the text is checked to avoid AI wording"). Shared lint vendored in test/kit/copy-lint.mjs.
+// Copy gate (design review, 2026-10-28: "Make sure the text is checked to avoid AI wording"). Shared lint vendored in test/kit/copy-lint.mjs.
 // Scans every user-facing string: the FAQ, role and power text, and every .js/.html file the site ships (tags stripped).
 import test from 'node:test';
 import assert from 'node:assert/strict';

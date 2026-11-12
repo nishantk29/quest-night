@@ -1,4 +1,4 @@
-// Logic audit (AUDIT.md): one named test per finding. Rule-affecting fixes are gated on rulesVersion >= 2.
+// Logic audit (docs/logic-audit.md): one named test per finding. Rule-affecting fixes are gated on rulesVersion >= 2.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { newRoom, reduce, viewForPlayer, viewForScreen, gameOverEvent } from '../public/js/room.js';

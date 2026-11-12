@@ -1,4 +1,4 @@
-// Nishant, Oct 30 2026 (Mafia Night): "The animation when you open FAQS is also janky". Same cause here: opening the FAQ
+// Playtest feedback, Oct 30 2026 (Mafia Night): "The animation when you open FAQS is also janky". Same cause here: opening the FAQ
 // ran the step view transition, whose snapshot groups animate width, height and backdrop-filter. Opening the FAQ page
 // animates transform and opacity only, 200-250 ms with the kit easing, never height, max-height, width or blur, and
 // uses no view transition. With reduced motion (or Animations off) the FAQ shows at once.

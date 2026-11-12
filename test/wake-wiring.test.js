@@ -3,7 +3,8 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 const app = readFileSync(new URL('../public/js/app.js', import.meta.url), 'utf8');
-const kit = '/workspace/code-team/shared/reconnect/wake.js';
+// Optional: WAKE_KIT points at the shared reconnect kit's wake.js; the copy check is skipped when it is unset or missing.
+const kit = process.env.WAKE_KIT || '';
 const start = app.indexOf('function wsTransport');
 const t = app.slice(start, app.indexOf('\nfunction ', start + 10));
 

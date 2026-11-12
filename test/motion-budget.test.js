@@ -1,4 +1,4 @@
-// Motion budget (Nishant, 2026-10-29): presses are snappy (100-150ms, never scaled) and nothing runs over 400ms.
+// Motion budget (design review, 2026-10-29): presses are snappy (100-150ms, never scaled) and nothing runs over 400ms.
 // Replaces the old "--dur-scale is 2" expectation: --dur-scale is removed, so what is written is what is seen.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';

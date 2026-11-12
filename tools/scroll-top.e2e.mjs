@@ -1,10 +1,11 @@
-// Scroll-to-top e2e (Nishant 2026-10-28: "The player hands dont open to the card. People have to scroll up.
+// Scroll-to-top e2e (playtest feedback, 2026-10-28: "The player hands dont open to the card. People have to scroll up.
 // Keep the card hidden just open to the top."). Static files come from the repo's public/ dir, and the room
 // WebSocket is answered in-process by the repo's own room.js, so no dev server is needed.
 // usage: node scroll-top.mjs <repoDir> <gilded|quest>   exit 0 = pass, 1 = fail
-import fs from 'node:fs'; import path from 'node:path'; import { createRequire } from 'node:module';
-const require = createRequire('/workspace/forge/pw/');
-const { chromium, webkit } = require('playwright-core');
+import fs from 'node:fs'; import path from 'node:path'; import os from 'node:os'; import { createRequire } from 'node:module';
+// Playwright is an optional dev tool (not in package.json): `npm i --no-save playwright-core`, or set PW to its install dir.
+const require = createRequire(import.meta.url);
+const { chromium, webkit } = require(process.env.PW || 'playwright-core');
 const [repo, game] = process.argv.slice(2);
 const pub = path.join(repo, 'public');
 const R = await import(path.join(repo, 'public/js/room.js'));
@@ -72,7 +73,7 @@ async function run(browserType, device, label) {
     const dockTop = Math.round(Math.min(window.innerHeight, ...dock));
     return { dockTop, y: Math.round(window.scrollY), h: window.innerHeight, found: !!el, top: r && Math.round(r.top), bottom: r && Math.round(r.bottom), hidden: !!el && (el.classList.contains('is-hidden') || !!el.querySelector('.is-hidden')) };
   }, CFG.card);
-  await page.screenshot({ path: `/workspace/forge/e2e/${game}-${label.split(' ')[0]}.png` });
+  await page.screenshot({ path: path.join(process.env.OUT || os.tmpdir(), `${game}-${label.split(' ')[0]}.png`) });
   await browser.close();
   const pass = out.found && out.y === 0 && out.top >= 0 && out.bottom <= out.dockTop && out.hidden;
   console.log(JSON.stringify({ label, pass, scrolledBefore: before, ...out, errs: errs.slice(0, 3) }));

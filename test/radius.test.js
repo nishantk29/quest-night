@@ -1,5 +1,5 @@
-// Radius gate (Nishant approved the corner-radius tokens 2026-10-29 6:03 PM ET; run/mockups/corner-radius/side-by-side/NOTES.md).
-// kit/radius-gate.mjs is a copy of /workspace/code-team/shared/gate/radius-gate.mjs. Every border-radius is a family token
+// Radius gate (corner-radius tokens approved 2026-10-29 after a side-by-side mockup review).
+// kit/radius-gate.mjs is a copy of the shared Game Night radius gate. Every border-radius is a family token
 // (--f-r-inset|field|card|sheet|pill|round|face), 0 or inherit; a raw value fails unless its selector is exempt below.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
