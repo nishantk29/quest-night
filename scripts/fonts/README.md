@@ -27,4 +27,6 @@ the service worker precache list and restamp it.
 ## Licences
 - Cinzel (The Cinzel Project Authors): SIL OFL 1.1, no Reserved Font Name (`public/fonts/LICENSE-cinzel.txt`). Name kept.
 - Alegreya, Alegreya Sans (The Alegreya / Alegreya Sans Project Authors): SIL OFL 1.1, no Reserved Font Name. Names kept.
-- Rubik is not touched here (separate change).
+- Rubik (The Rubik Project Authors): SIL OFL 1.1, no Reserved Font Name (`public/fonts/LICENSE-rubik.txt`). Name kept.
+
+Rubik is not split into core/ext (`"split": false`): it carries underlined links, and WebKit (Safari) stops skipping descenders under an underline when a family is served as more than one unicode-range file. One subset file keeps it pixel-identical.

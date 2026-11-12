@@ -2,7 +2,7 @@
    Base tokens, type, buttons, fields, home and join styles are copied from Mafia Night so the two apps match.
    Font: Rubik (SIL OFL 1.1, self-hosted, same as the Game Night home page). *
 /* ==================================================================== fonts */
-@font-face{font-family:"Rubik";font-style:normal;font-weight:300 900;font-display:swap;src:url(/fonts/rubik-var.woff2) format("woff2")}
+@font-face{font-family:"Rubik";font-style:normal;font-weight:300 900;font-display:swap;src:url(/fonts/rubik.woff2) format("woff2")}
 
 /* =================================================================== tokens */
 :root{

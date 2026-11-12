@@ -136,8 +136,8 @@ test('every startViewTransition use handles aborted transitions and still paints
 
 test('theme display font is declared and preloaded', () => {
   assert.match(read('theme.css'), /--font-display:"Rubik"/);
-  assert.match(read('styles.css'), /@font-face\{font-family:"Rubik"[^}]*rubik-var\.woff2/);
-  assert.match(read('index.html'), /rel="preload" href="\/fonts\/rubik-var\.woff2"/);
+  assert.match(read('styles.css'), /@font-face\{font-family:"Rubik"[^}]*rubik\.woff2/);
+  assert.match(read('index.html'), /rel="preload" href="\/fonts\/rubik\.woff2"/);
 });
 
 test('copy: Host, never storyteller, in visible strings', () => {
