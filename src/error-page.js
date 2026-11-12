@@ -26,6 +26,8 @@ export const errorPage = ({ status = 404, title, line } = {}) => {
 <meta name="color-scheme" content="dark">
 <meta name="theme-color" content="#0B0B0D">
 <style>html{background:#0B0B0D;color-scheme:dark}</style>
+<link rel="icon" href="/icons/favicon-32.png" sizes="32x32" type="image/png">
+<link rel="icon" href="/icons/favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="/styles.css">
 <link rel="stylesheet" href="/theme.css">
 <link rel="stylesheet" href="/redesign.css">

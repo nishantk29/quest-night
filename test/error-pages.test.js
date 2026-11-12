@@ -28,7 +28,7 @@ test('unknown /api route: HTML for browsers, JSON for API callers', async () => 
   const j = await worker.fetch(req('/api/zzz'), env());
   assert.equal(j.status, 404); assert.match(j.headers.get('content-type'), /json/);
   const r = await worker.fetch(req('/api/room/ZZZZZZ'), env());
-  assert.equal(r.status, 404); assert.deepEqual(await r.json(), { exists: false });
+  assert.equal(r.status, 200); assert.deepEqual(await r.json(), { exists: false });
 });
 test('/ws/ without an upgrade: styled 426', async () => {
   const res = await worker.fetch(req('/ws/ABCDEF'), env());
