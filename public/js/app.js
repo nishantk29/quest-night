@@ -160,14 +160,14 @@ const HUB = 'https://gamenight.hatethespurs.com/';
 const MORE_GAMES = [
   { cls: 'more-mafia', name: 'Mafia Night', href: 'https://mafia.hatethespurs.com', blurb: 'Secret roles for Mafia and Werewolf, dealt to every phone.',
     logo: '<svg viewBox="0 0 48 48"><path d="M8 20c4-8 11-10 16-6 5-4 12-2 16 6-3 12-9 19-16 19S11 32 8 20z" fill="currentColor"/><ellipse cx="17" cy="22" rx="4.4" ry="2.6" fill="#1B1410"/><ellipse cx="31" cy="22" rx="4.4" ry="2.6" fill="#1B1410"/></svg>' },
-  { cls: 'more-gilded', name: 'The Gilded Chamber', href: 'https://secrethitler.hatethespurs.com', blurb: 'Elect a Chancellor. Pass laws. Find the traitor.',
+  { cls: 'more-gilded', name: 'The Gilded Chamber', href: 'https://gilded.hatethespurs.com', blurb: 'Elect a Chancellor. Pass laws. Find the traitor.',
     logo: '<svg viewBox="0 0 48 48"><circle cx="24" cy="24" r="8" fill="currentColor"/><g stroke="currentColor" stroke-width="3" stroke-linecap="round">' + Array.from({ length: 12 }, (_, i) => { const a = i * Math.PI / 6; return `<path d="M${(24 + 13 * Math.cos(a)).toFixed(1)} ${(24 + 13 * Math.sin(a)).toFixed(1)}L${(24 + 20 * Math.cos(a)).toFixed(1)} ${(24 + 20 * Math.sin(a)).toFixed(1)}"/>`; }).join('') + '</g></svg>' },
 ];
 const HUB_LOGO = '<svg viewBox="0 0 48 48"><rect x="7" y="7" width="15" height="15" rx="4" fill="currentColor"/><rect x="26" y="7" width="15" height="15" rx="4" fill="currentColor"/><rect x="7" y="26" width="15" height="15" rx="4" fill="currentColor"/><rect x="26" y="26" width="15" height="15" rx="4" fill="currentColor" opacity=".5"/></svg>';
 
 // One footer for every page: the game links, then the licences tucked behind "Credits".
 function siteFooter() {
-  return `<footer class="site-foot"><nav aria-label="Game Night games"><a href="${HUB}">All games</a><a href="https://mafia.hatethespurs.com">Mafia Night</a><a href="https://secrethitler.hatethespurs.com">The Gilded Chamber</a><a href="https://avalon.hatethespurs.com" aria-current="page">Quest Night</a></nav>
+  return `<footer class="site-foot"><nav aria-label="Game Night games"><a href="${HUB}">All games</a><a href="https://mafia.hatethespurs.com">Mafia Night</a><a href="https://gilded.hatethespurs.com">The Gilded Chamber</a><a href="https://avalon.hatethespurs.com" aria-current="page">Quest Night</a></nav>
     <details class="credits-box"><summary>Credits</summary><p>Crown, chalice, lantern and crest icons drawn for Quest Night. Role icons from <a href="https://game-icons.net" target="_blank" rel="noopener">game-icons.net</a> by Lorc, Delapouite and contributors (CC BY 3.0). Interface icons from <a href="https://phosphoricons.com" target="_blank" rel="noopener">Phosphor</a> (MIT). Fonts Rubik and Cinzel (SIL OFL 1.1).</p></details></footer>`;
 }
 const CHEV_L = '<svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>';
