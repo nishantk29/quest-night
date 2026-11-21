@@ -254,3 +254,24 @@ h1,h2,.phase-title,.block-title,.path-title,.sheet-title{font-family:var(--displ
   body:has(.wrap.home) .bg-sky{display:none}
 }
 @media (min-width:1100px){.wrap.home{column-gap:var(--s8)}}
+
+/* more-pill: on phones Tools is a pill in the tab bar (not a tab); Table Tools opens in a sheet that grows out of it
+   (js/more-pill.js, FLIP on transform + opacity). Opaque, no backdrop-filter. The sheet has no CSS entrance, so a live
+   update never replays one. `.tabbar .more-pill` because `.tabbar button` outranks a bare class. While a field has focus
+   the pill hides with the tab bar (the rule above). Wide screens keep Tools as a side tab. */
+.tabbar .more-pill{display:inline-flex;align-items:center;justify-content:center;gap:var(--s1);align-self:center;justify-self:center;min-width:44px;min-height:44px;max-width:100%;padding:0 var(--s3);
+  border-radius:var(--f-r-pill);background:#26262E;color:#fff;box-shadow:inset 0 0 0 1px rgba(255,255,255,.28);font-weight:800;white-space:nowrap;
+  transition:transform var(--f-release) var(--ease-out)}
+.tabbar .more-pill .ui-ico{width:18px;height:18px;flex:none}
+.tabbar .more-pill:active{transform:scale(var(--f-press-scale));transition-duration:var(--f-press)}
+.tabbar .more-pill[aria-expanded="true"]{opacity:0}
+html.fx-off .tabbar .more-pill{transform:none!important}
+@media (max-width:359px){.tabbar .more-pill .ui-ico{display:none}}
+.tools-scrim{position:fixed;inset:0;z-index:40;background:rgba(0,0,0,.6)}
+.tools-sheet{position:fixed;left:0;right:0;bottom:0;z-index:41;max-width:640px;max-height:calc(100dvh - var(--appbar-h));margin-inline:auto;overflow:auto;overscroll-behavior:contain;
+  padding:var(--s3) var(--gutter-r) calc(var(--s4) + env(safe-area-inset-bottom)) var(--gutter-l);background:#17317E;color:#fff;border-radius:var(--f-r-sheet) var(--f-r-sheet) 0 0;box-shadow:var(--lift-2)}
+.tools-sheet:focus{outline:none}
+.tools-sheet-top{position:sticky;top:calc(-1 * var(--s3));z-index:4;display:flex;justify-content:flex-end;margin:calc(-1 * var(--s3)) 0 0;padding:var(--s3) 0 var(--s2);background:#17317E}
+.tools-sheet > .pane-sec{padding:0 var(--s1)}
+.more-ghost{pointer-events:none}
+@media (min-width:1100px){.tools-sheet,.tools-scrim{display:none!important}}

@@ -61,8 +61,8 @@ for (const w of [375, 390]) {
   const piece = await page.$$eval('[data-a="piece"]', (x) => x.map((e) => Math.round(e.getBoundingClientRect().height)));
   await page.evaluate(() => document.querySelector('[data-a="tab"][data-v="log"]')?.click()); await page.waitForTimeout(300);
   const log = await page.$$eval('[data-a="logFilter"]', (x) => x.map((e) => Math.round(e.getBoundingClientRect().height)));
-  await page.evaluate(() => document.querySelector('[data-a="tab"][data-v="tools"]')?.click()); await page.waitForTimeout(300);
-  const dice = await page.$$eval('[data-a="dSides"]', (x) => x.map((e) => Math.round(Math.min(e.getBoundingClientRect().height, e.getBoundingClientRect().width))));
+  await page.evaluate(() => document.querySelector('.tabbar .more-pill').click()); await page.waitForSelector('.tools-sheet'); await page.waitForTimeout(300);
+  const dice = await page.$$eval('.tools-sheet [data-a="dSides"]', (x) => x.map((e) => Math.round(Math.min(e.getBoundingClientRect().height, e.getBoundingClientRect().width))));
   const all = [...piece, ...log, ...dice];
   check('segmented controls are 44px tall', all.length >= 8 && all.every((x) => x >= 44), { piece, log, dice }); await ctx.close(); }
 { const { page, ctx } = await open(browser, { w: 390, h: 844, hash: '#/' });
