@@ -12,3 +12,8 @@ test('app.js wires Back to the open dialogs, closing the top one like Escape, an
   assert.match(app, /new MutationObserver\(\(\) => backNav\.sync\(\)\)\.observe\(document\.body, \{ childList: true \}\)/);
   assert.ok(sw.includes("'/js/back-sheet.js'"));
 });
+test('Back also closes the Tools sheet (inside #app, so paint() syncs it), after any dialog on top', () => {
+  assert.match(app, /if \(d\) return \{ key:[\s\S]*?return \$app\.querySelector\('\.tools-sheet'\) \? \{ key: 'tools-sheet', close: closeTools \} : null;/);
+  assert.match(app, /function paint\(\) \{[\s\S]*?backNav\.sync\(\);\n\}/);
+  assert.ok(sw.includes("'/js/more-pill.js'"));
+});

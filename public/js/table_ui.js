@@ -34,9 +34,11 @@ export function makeTable(ctx) {
   // ------------------------------------------------------------ chrome
   function tabbar(v) {
     const unread = Math.max(0, (v.log.filter((m) => m.kind === 'chat' || m.kind === 'claim').at(-1)?.n || 0) - (S.ui.seenChat || 0));
-    const tabs = [['game', 'table', 'Table'], ['chat', 'note', 'Chat'], ['log', 'log', 'Log'], ['tools', 'tools', 'Tools']];
-    if (isHost(v)) tabs.push(['host', 'crown', 'Host']);
-    return `<nav class="tabbar" aria-label="Sections">${tabs.map(([k, icon, label]) => `<button type="button" data-a="tab" data-v="${k}" aria-current="${S.ui.tab === k ? 'page' : 'false'}">${ui(icon)}<span>${label}</span>${k === 'chat' && unread && S.ui.tab !== 'chat' ? `<b class="badge">${unread > 9 ? '9+' : unread}</b>` : ''}</button>`).join('')}</nav>`;
+    const tabs = [['game', 'table', 'Table'], ['chat', 'note', 'Chat'], ['log', 'log', 'Log']];
+    const tab = ([k, icon, label]) => `<button type="button" data-a="tab" data-v="${k}" aria-current="${S.ui.tab === k ? 'page' : 'false'}">${ui(icon)}<span>${label}</span>${k === 'chat' && unread && S.ui.tab !== 'chat' ? `<b class="badge">${unread > 9 ? '9+' : unread}</b>` : ''}</button>`;
+    // Tools is not a tab on a phone: a pill in its slot opens Table Tools in a sheet over the current pane (S.ui.toolsOpen).
+    const pill = `<button type="button" class="more-pill" data-a="tools" aria-haspopup="dialog" aria-expanded="${S.ui.toolsOpen ? 'true' : 'false'}">${ui('tools')}<span>Tools</span></button>`;
+    return `<nav class="tabbar" aria-label="Sections"${S.ui.toolsOpen ? ' inert' : ''}>${tabs.map(tab).join('')}${pill}${isHost(v) ? tab(['host', 'crown', 'Host']) : ''}</nav>`;
   }
 
   function timerChip(v) {
@@ -151,6 +153,8 @@ export function makeTable(ctx) {
     switch (a) {
       case 'tab': S.ui.tab = d.v; if (d.v === 'chat') S.ui.seenChat = S.view?.log.at(-1)?.n || 0; ctx.render(); window.scrollTo(0, 0); return true;
       case 'side': S.ui.side = d.v; ctx.render(); return true;
+      case 'tools': S.ui.toolsOpen = true; ctx.render(); return true; // no scrollTo: the pane underneath keeps its place
+      case 'toolsClose': S.ui.toolsOpen = false; ctx.render(); return true;
       case 'logFilter': S.ui.logFilter = d.v; ctx.render(); return true;
       case 'chat': case 'claim': {
         const inp = document.getElementById('chat-in'); const text = (inp?.value ?? S.ui.draft.chat ?? '').trim();
