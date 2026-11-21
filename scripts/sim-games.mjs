@@ -1,6 +1,7 @@
 // Plays whole Quest Night games against a running server with scripted players (no LLM).
 // Usage: BASE=http://127.0.0.1:8861 GAMES=30 SEED=1 node scripts/sim-games.mjs   (Node 22+, global WebSocket)
 // Checks on every view: secrecy (only your own role, until the end), the rule outcomes, and that games finish.
+import { pathToFileURL } from 'node:url';
 import { ROLES, QUEST_SIZES, failsNeeded, knowledgeFor } from '../public/js/rules.js';
 
 const BASE = process.env.BASE || 'http://127.0.0.1:8861';
@@ -47,6 +48,14 @@ async function until(fn, what, ms = 4000) {
   throw new Error(`timeout waiting for ${what}`);
 }
 
+const byId = (list) => JSON.stringify([...(list || [])].sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0)));
+export const sameKnowledge = (seen, truth) => byId(seen) === byId(truth);
+// Percival needs Merlin (rules.js refuses the deal otherwise), so he is only rolled when Merlin is on.
+export function rollSettings() {
+  const merlin = rnd() < 0.85;
+  return { merlin, percival: merlin && rnd() < 0.5, morgana: rnd() < 0.4, mordred: rnd() < 0.35, oberon: rnd() < 0.3 };
+}
+
 const problems = [];
 const stats = { good: 0, evil: 0, reasons: {}, roles: new Set(), sizes: {} };
 
@@ -54,7 +63,7 @@ async function game(g) {
   const n = 5 + (g % 6);
   const sabP = [0.1, 0.4, 0.8][g % 3];
   const approveP = g % 4 === 3 ? 0.15 : 0.65;
-  const settings = { merlin: rnd() < 0.85, percival: rnd() < 0.5, morgana: rnd() < 0.4, mordred: rnd() < 0.35, oberon: rnd() < 0.3 };
+  const settings = rollSettings();
   const r = await fetch(`${BASE}/api/create`, { method: 'POST' }).then((x) => x.json());
   const seats = [];
   const used = new Set();
@@ -68,14 +77,20 @@ async function game(g) {
   const fail = (msg) => { throw new Error(`game ${g} (${n}p ${r.code}): ${msg}`); };
   await until(() => seats.every((s) => s.view?.players.length === n), 'lobby');
   if (!host.view.me.host || seats.slice(1).some((s) => s.view.me.host)) fail('host flag wrong');
-  host.send({ type: 'settings', settings });
-  await sleep(30);
+  // Wait for the server's answer (a new view or an error) instead of sleeping and hoping it has arrived.
+  const answer = async (msg, what) => {
+    const v0 = host.views, e0 = host.errors.length;
+    host.send(msg);
+    await until(() => host.views > v0 || host.errors.length > e0, what);
+    return host.errors.slice(e0);
+  };
+  await answer({ type: 'settings', settings }, 'settings');
   // Too many evil roles for small tables: drop optional ones until it deals.
-  host.send({ type: 'start' });
-  await sleep(60);
-  if (host.view.phase === 'lobby') {
-    host.send({ type: 'settings', settings: { morgana: false, mordred: false, oberon: false } }); await sleep(30);
-    host.send({ type: 'start' });
+  let refused = await answer({ type: 'start' }, 'start');
+  if (refused.length) {
+    await answer({ type: 'settings', settings: { morgana: false, mordred: false, oberon: false } }, 'fallback settings');
+    refused = await answer({ type: 'start' }, 'start after fallback');
+    if (refused.length) fail(`start refused: ${refused.join('; ')}`);
   }
   await until(() => seats.every((s) => s.view?.phase === 'reveal'), 'reveal');
   // Secrecy + knowledge checks against the true deal (only learnable at the end, so collect now and verify later).
@@ -90,7 +105,8 @@ async function game(g) {
   const scr = await new Promise((res, rej) => { const w = new WebSocket(`${WS}/ws/${r.code}`); w.onopen = () => w.send(JSON.stringify({ type: 'hello', screen: true })); w.onmessage = (e) => { const m = JSON.parse(e.data); if (m.type === 'view') { w.close(); res(m.view); } }; w.onerror = () => rej(new Error('screen ws')); });
   if (scr.kind !== 'screen' || /"role":\{|"sees"|"roles":\{|token|hostKey/.test(JSON.stringify(scr))) fail('table screen leak');
   const truthKnow = Object.fromEntries(seats.map((s) => [s.id, knowledgeFor(s.id, mine)]));
-  for (const s of seats) if (JSON.stringify(s.view.me.sees) !== JSON.stringify(truthKnow[s.id])) fail(`${s.name} knowledge mismatch`);
+  // The server lists who you see in the game's hidden random order (never sent), so compare as sets: sorted by id.
+  for (const s of seats) if (!sameKnowledge(s.view.me.sees, truthKnow[s.id])) fail(`${s.name} knowledge mismatch`);
   Object.values(mine).forEach((x) => stats.roles.add(x));
 
   for (const s of seats) s.send({ type: 'ready' });
@@ -137,13 +153,12 @@ async function game(g) {
     }
     rejectsInRow = 0;
     await until(() => seats.every((s) => s.view.phase === 'quest'), 'quest');
-    // A good servant trying to sabotage must be refused.
-    const loyalOn = team.find((id) => side(id) === 'good');
-    if (loyalOn) { const s = seats.find((x) => x.id === loyalOn); const before = s.errors.length; s.send({ type: 'play', sabotage: true }); await until(() => s.errors.length > before, 'good sabotage refused'); }
+    // A Loyal Servant's Sabotage silently counts as Success (house rule R4: no error), so Good players try it half
+    // the time and only Evil sabotage may show up in the fail count checked below.
     let fails = 0;
     for (const id of team) {
-      const sab = side(id) === 'evil' && rnd() < sabP;
-      if (sab) fails++;
+      const sab = side(id) === 'evil' ? rnd() < sabP : rnd() < 0.5;
+      if (sab && side(id) === 'evil') fails++;
       seats.find((s) => s.id === id).send({ type: 'play', sabotage: sab });
     }
     await until(() => host.view.game.results.length === q + 1, 'quest result');
@@ -157,7 +172,10 @@ async function game(g) {
   if (v.phase === 'assassin') {
     if (!settings.merlin && !Object.values(mine).includes('assassin')) fail('assassin phase without assassin');
     const assassin = seats.find((s) => mine[s.id] === 'assassin');
-    if (v.game.assassin !== assassin.id) fail('wrong assassin shown');
+    // Only Evil players (not Oberon) are told who strikes; Good phones learn nothing before the end (R3, R13).
+    await until(() => assassin.view.phase === 'assassin', 'assassin view');
+    if (assassin.view.game.assassin !== assassin.id) fail('wrong assassin shown');
+    for (const s of seats) if (s.view.phase === 'assassin' && side(s.id) === 'good' && ('assassin' in s.view.game || 'evil' in s.view.game)) fail(`${s.name} (Good) was shown the Evil team`);
     const targets = seats.filter((s) => side(s.id) === 'good');
     const t = rnd() < 0.4 ? targets.find((s) => mine[s.id] === 'merlin') : pick(targets);
     assassin.send({ type: 'strike', id: t.id });
@@ -178,11 +196,14 @@ async function game(g) {
   seats.forEach((s) => s.close());
 }
 
-let clean = 0;
-for (let g = 0; g < GAMES; g++) {
-  try { await game(g); clean++; } catch (e) { problems.push(e.message); console.log('PROBLEM', e.message); }
+// Run only from the command line, so test/sim-games.test.js can import the helpers without playing games.
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  let clean = 0;
+  for (let g = 0; g < GAMES; g++) {
+    try { await game(g); clean++; } catch (e) { problems.push(e.message); console.log('PROBLEM', e.message); }
+  }
+  console.log(`games: ${GAMES}, clean: ${clean}, problems: ${problems.length}`);
+  console.log(`winners: good ${stats.good}, evil ${stats.evil}; reasons ${JSON.stringify(stats.reasons)}; sizes ${JSON.stringify(stats.sizes)}`);
+  console.log(`roles dealt: ${stats.roles.size} of ${Object.keys(ROLES).length} (${[...stats.roles].sort().join(', ')})`);
+  process.exit(problems.length ? 1 : 0);
 }
-console.log(`games: ${GAMES}, clean: ${clean}, problems: ${problems.length}`);
-console.log(`winners: good ${stats.good}, evil ${stats.evil}; reasons ${JSON.stringify(stats.reasons)}; sizes ${JSON.stringify(stats.sizes)}`);
-console.log(`roles dealt: ${stats.roles.size} of ${Object.keys(ROLES).length} (${[...stats.roles].sort().join(', ')})`);
-process.exit(problems.length ? 1 : 0);

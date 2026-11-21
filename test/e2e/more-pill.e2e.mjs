@@ -1,6 +1,6 @@
 // E2E (browser, Chromium): on phones Tools is a pill in the tab bar that opens Table Tools in a sheet (js/more-pill.js).
 // A host phone in a real room with five scripted phones (raw WebSockets); one stays connected as the witness of server state.
-// Asserts: the pill replaces only the Tools tab (44px, aria), the sheet opens by click / Enter and closes by Escape, Back,
+// Asserts: the pill replaces only the Tools tab (48px tall, aria), the sheet opens by click / Enter and closes by Escape, Back,
 // the scrim and Close with focus back on the pill; every tool inside it works (stepper, public and private rolls, timers);
 // a running timer keeps its endsAt and keeps counting down while the sheet is closed and after it reopens; live updates
 // patch the open sheet in place (same nodes, no #app child swaps, scroll kept); the sheet is opaque; the pill hides with
@@ -67,7 +67,7 @@ try {
   // 1. the pill
   const box = await P.locator(PILL).boundingBox();
   L.check('1 pill visible in the tab bar', await P.locator(PILL).isVisible());
-  L.check('1 pill is at least 44x44 and inside the viewport', box && box.width >= 44 && box.height >= 44 && box.x >= 0 && box.x + box.width <= 390 && box.y + box.height <= 844, box);
+  L.check('1 pill is at least 44 wide, 48 tall and inside the viewport', box && box.width >= 44 && box.height >= 48 && box.x >= 0 && box.x + box.width <= 390 && box.y + box.height <= 844, box);
   L.check('1 pill says Tools, aria-haspopup=dialog, aria-expanded=false', (await P.locator(PILL).innerText()).trim() === 'Tools' && (await P.locator(PILL).getAttribute('aria-haspopup')) === 'dialog' && (await expanded(P)) === 'false');
   const tabs = await P.$$eval('.tabbar [data-a="tab"]', (x) => x.map((e) => e.dataset.v));
   L.check('1 no Tools tab; Table, Chat, Log, Host tabs still there', (await P.locator('.tabbar [data-v="tools"]').count()) === 0 && tabs.join() === 'game,chat,log,host', tabs);
