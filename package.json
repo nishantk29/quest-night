@@ -10,7 +10,7 @@
     "e2e": "node test/e2e/multi-phone.e2e.mjs"
   },
   "devDependencies": {
-    "wrangler": "^4.151.2"
+    "wrangler": "^4.162.0"
   },
   "allowScripts": {
     "esbuild@0.28.2": true,
