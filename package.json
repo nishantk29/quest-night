@@ -7,7 +7,11 @@
     "test": "node --test test/*.test.js",
     "stamp": "node scripts/stamp-sw.mjs",
     "deploy": "wrangler deploy",
-    "e2e": "node test/e2e/multi-phone.e2e.mjs"
+    "e2e": "node test/e2e/multi-phone.e2e.mjs",
+    "test:quick": "node --test test/*.test.js",
+    "test:e2e": "node test/e2e/multi-phone.e2e.mjs",
+    "check": "node scripts/guard.mjs",
+    "fuzz": "node --test test/sim-invariants.test.js"
   },
   "devDependencies": {
     "wrangler": "^4.151.2"
